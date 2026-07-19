@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 220" role="img" aria-label="Refrigerator spec elevation">
+  <style>
+    svg { color: #0e1726; }
+    .s { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+    .accent { stroke: var(--brand, #0d7c66); }
+    .node { fill: var(--brand, #0d7c66); stroke: none; }
+    .wash { fill: color-mix(in srgb, var(--brand, #0d7c66) 10%, transparent); stroke: none; }
+  </style>
+  <g class="s">
+    <!-- spec brackets -->
+    <path class="accent" d="M22 34V20h13"/>
+    <path class="accent" d="M218 186v14h-13"/>
+    <!-- dimension line (height) -->
+    <path class="accent" d="M62 26v168M56 26h12M56 194h12"/>
+    <circle class="node" cx="62" cy="110" r="3"/>
+    <!-- body -->
+    <rect x="80" y="26" width="80" height="168" rx="13"/>
+    <rect class="wash" x="85" y="31" width="70" height="158" rx="9"/>
+    <!-- freezer divider -->
+    <path d="M80 92h80"/>
+    <!-- handles -->
+    <path d="M147 44v38M147 104v72"/>
+    <!-- hinge nodes -->
+    <circle class="node" cx="80" cy="48" r="3"/>
+    <circle class="node" cx="80" cy="150" r="3"/>
+    <!-- feet -->
+    <path d="M92 194v8M148 194v8"/>
+  </g>
+</svg>

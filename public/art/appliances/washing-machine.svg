@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 220" role="img" aria-label="Washing machine spec elevation">
+  <style>
+    svg { color: #0e1726; }
+    .s { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+    .accent { stroke: var(--brand, #0d7c66); }
+    .node { fill: var(--brand, #0d7c66); stroke: none; }
+    .wash { fill: color-mix(in srgb, var(--brand, #0d7c66) 10%, transparent); stroke: none; }
+    .glass { fill: color-mix(in srgb, #0e1726 8%, transparent); stroke: currentColor; }
+  </style>
+  <g class="s">
+    <path class="accent" d="M46 48V34h13"/>
+    <path class="accent" d="M194 172v14h-13"/>
+    <!-- body -->
+    <rect x="66" y="40" width="108" height="140" rx="14"/>
+    <!-- control panel -->
+    <path d="M66 68h108"/>
+    <circle cx="150" cy="54" r="4"/>
+    <circle cx="134" cy="54" r="4"/>
+    <circle class="node" cx="118" cy="54" r="3"/>
+    <!-- door -->
+    <circle cx="120" cy="128" r="38"/>
+    <circle class="glass" cx="120" cy="128" r="27"/>
+    <circle class="node" cx="158" cy="128" r="3"/>
+    <!-- feet -->
+    <path d="M80 180v10M160 180v10"/>
+    <!-- width dimension -->
+    <path class="accent" d="M66 202h108M66 196v12M174 196v12"/>
+    <circle class="node" cx="120" cy="202" r="3"/>
+  </g>
+</svg>

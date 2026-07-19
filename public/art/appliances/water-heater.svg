@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 220" role="img" aria-label="Water heater spec elevation">
+  <style>
+    svg { color: #0e1726; }
+    .s { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+    .accent { stroke: var(--brand, #0d7c66); }
+    .node { fill: var(--brand, #0d7c66); stroke: none; }
+    .wash { fill: color-mix(in srgb, var(--brand, #0d7c66) 10%, transparent); stroke: none; }
+  </style>
+  <g class="s">
+    <path class="accent" d="M60 48V34h13"/>
+    <path class="accent" d="M182 176v14h-13"/>
+    <!-- dimension line (height) -->
+    <path class="accent" d="M70 42v146M64 42h12M64 188h12"/>
+    <circle class="node" cx="70" cy="115" r="3"/>
+    <!-- inlet / outlet pipes -->
+    <path d="M104 42V22"/>
+    <path class="accent" d="M136 42V22"/>
+    <circle class="node" cx="104" cy="22" r="3"/>
+    <circle class="node" cx="136" cy="22" r="3"/>
+    <!-- tank -->
+    <rect x="88" y="42" width="64" height="150" rx="24"/>
+    <rect class="wash" x="93" y="47" width="54" height="140" rx="19"/>
+    <path d="M88 68h64M88 168h64"/>
+    <!-- thermostat access panel -->
+    <rect x="104" y="104" width="32" height="30" rx="4"/>
+    <circle class="node" cx="120" cy="119" r="3"/>
+    <!-- drain valve -->
+    <path d="M96 180h-9"/>
+    <!-- feet -->
+    <path d="M100 192v8M140 192v8"/>
+  </g>
+</svg>
