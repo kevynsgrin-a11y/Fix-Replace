@@ -212,7 +212,23 @@ body::after {
     var(--grad-sheen),
     var(--surface);
 }
-.step-num {
+.step-glyph {
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--sp-4);
+  filter: drop-shadow(0 3px 10px color-mix(in srgb, var(--brand) 16%, transparent));
+}
+.step .step-num {
+  position: absolute;
+  top: var(--sp-6);
+  right: var(--sp-6);
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--step--1);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 12%, transparent),
     0 6px 16px color-mix(in srgb, var(--brand) 24%, transparent);
 }
