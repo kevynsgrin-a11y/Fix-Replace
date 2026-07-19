@@ -1,0 +1,17 @@
+# Cloudflare static-asset headers. Static files are served by the Assets
+# binding and bypass the Worker, so security + caching headers live here.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), interest-cohort=()
+
+/styles/*
+  Cache-Control: public, max-age=86400
+
+/scripts/*
+  Cache-Control: public, max-age=86400
+
+/icon.svg
+  Cache-Control: public, max-age=604800
