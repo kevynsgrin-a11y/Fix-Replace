@@ -108,6 +108,7 @@
         ]
       }
     </script>
+    <link rel="stylesheet" href="/styles/visuals.css" />
   </head>
   <body>
     <a class="skip-link" href="#calculator">Skip to the calculator</a>
@@ -116,6 +117,21 @@
     <main id="main">
       <!-- ===================== HERO + CALCULATOR (above the fold) ============ -->
       <section class="hero">
+        <div class="hero-atmos" aria-hidden="true">
+          <svg class="hero-curve" viewBox="0 0 640 260" fill="none" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="hcurve" x1="0" y1="0" x2="640" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="var(--repair)" />
+                <stop offset="0.55" stop-color="var(--uncertain)" />
+                <stop offset="1" stop-color="var(--replace)" />
+              </linearGradient>
+            </defs>
+            <path data-draw style="--draw-len: 980"
+                  d="M0 236 C 150 236 224 214 312 154 C 386 104 452 58 640 34"
+                  stroke="url(#hcurve)" stroke-width="3" stroke-linecap="round" />
+            <circle class="hero-node" cx="312" cy="154" r="6" fill="var(--brand)" data-pulse />
+          </svg>
+        </div>
         <div class="container container-wide">
           <div class="hero-grid">
             <div class="hero-copy">
