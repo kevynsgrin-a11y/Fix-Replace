@@ -110,6 +110,24 @@ describe('worker /api/report', () => {
     expect(res.status).toBe(400);
   });
 
+  it('rejects an unknown verdict with 400', async () => {
+    const res = await worker.fetch(postJson('/api/report', { verdict: 'hacked' }), makeEnv());
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects a non-numeric gaugePosition (XSS payload) with 400', async () => {
+    const res = await worker.fetch(
+      postJson('/api/report', { verdict: 'replace', gaugePosition: '<img src=x onerror=alert(1)>' }),
+      makeEnv(),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('accepts a numeric gaugePosition', async () => {
+    const res = await worker.fetch(postJson('/api/report', { verdict: 'replace', gaugePosition: 82 }), makeEnv());
+    expect(res.status).toBe(201);
+  });
+
   it('rejects an oversized payload with 413', async () => {
     const big = '{"verdict":"repair","pad":"' + 'x'.repeat(33 * 1024) + '"}';
     const res = await worker.fetch(postJson('/api/report', null, big), makeEnv());

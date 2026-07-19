@@ -41,6 +41,7 @@ function json(data: unknown, init: ResponseInit = {}): Response {
 }
 
 const VALID_CATEGORIES = new Set(Object.keys(APPLIANCES));
+const VALID_VERDICTS = new Set(['repair', 'replace', 'uncertain']);
 const VALID_TIERS = new Set(['budget', 'mid', 'premium']);
 const VALID_FUELS = new Set(['gas', 'electric']);
 const UPC_RE = /^[0-9]{8,14}$/;
@@ -156,8 +157,17 @@ async function handleReportSave(request: Request, env: Env): Promise<Response> {
   } catch {
     return json({ error: 'Invalid JSON body.' }, { status: 400 });
   }
-  if (typeof body !== 'object' || body === null || typeof (body as Record<string, unknown>).verdict !== 'string') {
+  if (typeof body !== 'object' || body === null) {
     return json({ error: 'Body must be a calculation result.' }, { status: 400 });
+  }
+  const rec = body as Record<string, unknown>;
+  if (!VALID_VERDICTS.has(rec.verdict as string)) {
+    return json({ error: 'Body must be a calculation result.' }, { status: 400 });
+  }
+  // The client coerces numeric fields on render, but reject an obviously-tampered
+  // gaugePosition here too so no HTML-bearing value is ever stored.
+  if (rec.gaugePosition !== undefined && rec.gaugePosition !== null && typeof rec.gaugePosition !== 'number') {
+    return json({ error: 'Invalid result payload.' }, { status: 400 });
   }
   const id = crypto.randomUUID();
   await env.CACHE.put(`report:${id}`, JSON.stringify(body), { expirationTtl: 60 * 60 * 24 * 7 });

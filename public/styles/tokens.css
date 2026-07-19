@@ -15,7 +15,7 @@
   --ink: #0e1726;          /* headings */
   --body: #38455c;         /* body copy */
   --muted: #64748b;        /* secondary */
-  --faint: #93a0b4;        /* tertiary / captions */
+  --faint: #5f6a7c;        /* tertiary / captions */
 
   --line: #e5e9f0;
   --line-strong: #d3dae5;
@@ -120,7 +120,7 @@
     --ink: #f2f6fc;
     --body: #c2cddd;
     --muted: #8b99ad;
-    --faint: #64728a;
+    --faint: #93a1b6;
 
     --line: #223047;
     --line-strong: #2c3d57;
@@ -169,7 +169,7 @@
   --ink: #f2f6fc;
   --body: #c2cddd;
   --muted: #8b99ad;
-  --faint: #64728a;
+  --faint: #93a1b6;
   --line: #223047;
   --line-strong: #2c3d57;
   --brand: #23c3a2;

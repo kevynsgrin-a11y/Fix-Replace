@@ -61,6 +61,17 @@ function safeHref(value) {
   return '#';
 }
 
+/**
+ * Coerce a value to a finite number before it is interpolated into markup or a
+ * data-* attribute. Result fields can come from a saved/shared payload (via
+ * /api/report) that is attacker-controllable, so a non-numeric value must never
+ * reach innerHTML verbatim — a string could carry HTML/event-handler markup.
+ */
+function num(v, fallback = 0) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 function fmtMoney(n) {
   if (!Number.isFinite(n)) return '$—';
   return money0.format(Math.round(n));
@@ -177,11 +188,13 @@ function verdictTags(r) {
 }
 
 function gaugeMarkup(pos) {
+  // Coerce + clamp: `pos` may arrive from an attacker-controllable saved result.
+  const p = Math.max(0, Math.min(100, Math.round(num(pos))));
   // Semicircle: centre (160,168), radius 148 → left (12,168) … right (308,168)
   return `
     <div class="gauge">
       <svg class="gauge-svg" viewBox="0 0 320 176" role="img"
-           aria-label="Repair-to-replace gauge, ${pos} out of 100 toward replace">
+           aria-label="Repair-to-replace gauge, ${p} out of 100 toward replace">
         <defs>
           <linearGradient id="ggrad" x1="12" y1="0" x2="308" y2="0" gradientUnits="userSpaceOnUse">
             <stop offset="0" stop-color="var(--repair)"/>
@@ -194,7 +207,7 @@ function gaugeMarkup(pos) {
         <path d="M12 168 A148 148 0 0 1 308 168" fill="none"
               stroke="url(#ggrad)" stroke-width="20" stroke-linecap="round"
               opacity="0.92"/>
-        <g class="gauge-needle" data-gauge-needle data-pos="${pos}" transform="rotate(-90 160 168)">
+        <g class="gauge-needle" data-gauge-needle data-pos="${p}" transform="rotate(-90 160 168)">
           <line x1="160" y1="168" x2="160" y2="34" stroke="var(--ink)" stroke-width="4.5" stroke-linecap="round"/>
         </g>
         <circle cx="160" cy="168" r="11" fill="var(--surface)" stroke="var(--ink)" stroke-width="3.5"/>
@@ -203,7 +216,7 @@ function gaugeMarkup(pos) {
         <span class="g-repair">Repair</span>
         <span class="g-replace">Replace</span>
       </div>
-      <div class="gauge-readout"><b class="tnum">${pos}</b>/100 toward replacing</div>
+      <div class="gauge-readout"><b class="tnum">${p}</b>/100 toward replacing</div>
     </div>`;
 }
 
@@ -249,8 +262,8 @@ function verdictMarkup(r) {
 
 function npcMarkup(r) {
   const npc = r.npc || {};
-  const repair = Math.max(0, npc.repair ?? 0);
-  const replace = Math.max(0, npc.replace ?? 0);
+  const repair = Math.max(0, num(npc.repair));
+  const replace = Math.max(0, num(npc.replace));
   const max = Math.max(repair, replace, 1);
   const repairWins = repair <= replace;
   const be = fmtBreakEven(npc.breakEvenMonths);
@@ -315,7 +328,7 @@ function rulMarkup(r) {
         <p>Weibull survival model</p>
       </div>
       <div class="rr-stat">
-        <span class="stat-value tnum" data-count data-to="${rul.medianRemainingYears ?? 0}" data-kind="years">0 yrs</span>
+        <span class="stat-value tnum" data-count data-to="${num(rul.medianRemainingYears)}" data-kind="years">0 yrs</span>
         <span class="stat-label">Median remaining life at this age</span>
       </div>
       <div class="survival" aria-label="Probability the unit is still working at 12, 24, and 36 months">
@@ -323,15 +336,15 @@ function rulMarkup(r) {
           .map(
             (s) => `<div class="survival-bar">
               <span class="bar-val">${fmtPct(s.v)}</span>
-              <div class="survival-track"><div class="bar" data-bar data-pct="${Math.round((s.v ?? 0) * 100)}"></div></div>
+              <div class="survival-track"><div class="bar" data-bar data-pct="${Math.round(num(s.v) * 100)}"></div></div>
               <span class="bar-cap">${s.cap}</span>
             </div>`,
           )
           .join('')}
       </div>
       <p class="muted" style="font-size:var(--step--1);margin-top:var(--sp-3)">
-        Chance the unit is still running at each horizon. Shape β&nbsp;<b class="tnum">${(rul.shape ?? 0).toFixed(2)}</b>
-        (&gt;1 = wear-out), scale η&nbsp;<b class="tnum">${(rul.scaleYears ?? 0).toFixed(1)}</b>&nbsp;yrs.
+        Chance the unit is still running at each horizon. Shape β&nbsp;<b class="tnum">${num(rul.shape).toFixed(2)}</b>
+        (&gt;1 = wear-out), scale η&nbsp;<b class="tnum">${num(rul.scaleYears).toFixed(1)}</b>&nbsp;yrs.
       </p>
     </section>`;
 }
@@ -351,7 +364,7 @@ function repairCostMarkup(r) {
         </div>
         <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON.arrow}</svg>
         <div class="rr-stat">
-          <span class="stat-value tnum" data-count data-to="${rc.expected ?? 0}" data-kind="money">${fmtMoney(0)}</span>
+          <span class="stat-value tnum" data-count data-to="${num(rc.expected)}" data-kind="money">${fmtMoney(0)}</span>
           <span class="stat-label">Risk-adjusted expected</span>
         </div>
       </div>
@@ -374,7 +387,7 @@ function energyMarkup(r) {
         <p>${e.localized ? 'Localized rates' : 'National average rates'}</p>
       </div>
       <div class="rr-stat">
-        <span class="stat-value tnum" data-count data-to="${Math.abs(e.annualSavings ?? 0)}" data-kind="money">${fmtMoney(0)}</span>
+        <span class="stat-value tnum" data-count data-to="${Math.abs(num(e.annualSavings))}" data-kind="money">${fmtMoney(0)}</span>
         <span class="stat-label">${saves ? 'Estimated annual saving with a new unit' : 'Estimated annual cost increase with a new unit'}</span>
       </div>
       <div class="stat-pair" style="margin-top:var(--sp-4)">
@@ -382,8 +395,8 @@ function energyMarkup(r) {
         <div class="rr-stat"><span class="stat-value tnum" style="font-size:var(--step-1)">${fmtMoney(e.annualNewCost)}</span><span class="stat-label">New unit / yr</span></div>
       </div>
       <div class="rate-grid">
-        <div class="rate"><b class="tnum">$${(e.electricityRate ?? 0).toFixed(3)}</b><span>per kWh electricity</span></div>
-        <div class="rate"><b class="tnum">$${(e.gasRate ?? 0).toFixed(2)}</b><span>per therm gas</span></div>
+        <div class="rate"><b class="tnum">$${num(e.electricityRate).toFixed(3)}</b><span>per kWh electricity</span></div>
+        <div class="rate"><b class="tnum">$${num(e.gasRate).toFixed(2)}</b><span>per therm gas</span></div>
       </div>
       ${e.localized ? '' : '<p class="muted" style="font-size:var(--step--1);margin-top:var(--sp-3)">Add a location above for rates specific to your state.</p>'}
     </section>`;
@@ -400,10 +413,10 @@ function confidenceMarkup(r, wide) {
         <p>How complete your inputs are</p>
       </div>
       <div class="conf-head">
-        <span class="conf-score tnum" data-count data-to="${c.score ?? 0}" data-kind="int">0</span>
+        <span class="conf-score tnum" data-count data-to="${num(c.score)}" data-kind="int">0</span>
         <span class="conf-level">${esc(CONFIDENCE_LABEL[level] || level)}</span>
       </div>
-      <div class="conf-meter"><div class="conf-fill" data-conf-fill data-level="${esc(level)}" data-pct="${c.score ?? 0}"></div></div>
+      <div class="conf-meter"><div class="conf-fill" data-conf-fill data-level="${esc(level)}" data-pct="${num(c.score)}"></div></div>
       ${factors ? `<ul class="factor-list">${factors}</ul>` : '<p class="muted" style="font-size:var(--step--1)">All key inputs provided — nothing dragging the estimate down.</p>'}
     </section>`;
 }
