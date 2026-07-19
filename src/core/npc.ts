@@ -97,7 +97,11 @@ export function computeNpc(input: NpcInput): NpcResult {
     repairEnergyPv += monthlyEnergy * d;
     // The mid-horizon replacement outlay lands once we pass its purchase month.
     const midOutlaySoFar = hasMidReplacement && m >= Mold ? midReplacementPv : 0;
-    cumRepair = upfrontRepair + repairEnergyPv + midOutlaySoFar;
+    // Credit the terminal residual at the horizon month so the final-month
+    // cumulative equals the reported repair total (keeps break-even consistent
+    // with the NPC totals rather than the residual-inflated running sum).
+    const residualAtHorizon = m === M ? residualCredit : 0;
+    cumRepair = upfrontRepair + repairEnergyPv + midOutlaySoFar - residualAtHorizon;
 
     if (breakEvenMonths === null && cumReplace <= cumRepair) {
       breakEvenMonths = m;
@@ -128,14 +132,21 @@ export function computeNpc(input: NpcInput): NpcResult {
     repairBreakdown.salvageCredit +
     repairBreakdown.riskAdjustment;
 
+  const advantageOfReplacing = repair - replace;
+
+  // Break-even must never contradict the full-horizon verdict: if repairing is
+  // cheaper over the horizon, replacing does not "pull ahead" at any point, so
+  // report no break-even rather than a misleading crossing from the running sum.
+  const reconciledBreakEven = advantageOfReplacing >= 0 ? breakEvenMonths : null;
+
   return {
     horizonYears,
     discountRate,
     replace,
     repair,
-    advantageOfReplacing: repair - replace,
+    advantageOfReplacing,
     replaceBreakdown,
     repairBreakdown,
-    breakEvenMonths,
+    breakEvenMonths: reconciledBreakEven,
   };
 }

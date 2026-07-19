@@ -39,6 +39,28 @@ function esc(value) {
     .replace(/'/g, '&#39;');
 }
 
+/**
+ * Scheme-allowlist a URL before it is placed in an href. Shared/saved results
+ * (via /api/report) are attacker-controllable, so a bare esc() is not enough:
+ * a `javascript:` URI survives HTML-escaping and would execute on click. Only
+ * http(s), root-relative, and mailto URLs are allowed through; anything else
+ * collapses to '#'.
+ */
+function safeHref(value) {
+  const raw = String(value === null || value === undefined ? '' : value).trim();
+  if (!raw) return '#';
+  // Root-relative (but not protocol-relative "//host") links are safe.
+  if (raw[0] === '/' && raw[1] !== '/') return raw;
+  try {
+    const base = typeof window !== 'undefined' && window.location ? window.location.origin : 'https://x';
+    const u = new URL(raw, base);
+    if (u.protocol === 'http:' || u.protocol === 'https:' || u.protocol === 'mailto:') return u.href;
+  } catch (e) {
+    /* fall through */
+  }
+  return '#';
+}
+
 function fmtMoney(n) {
   if (!Number.isFinite(n)) return '$—';
   return money0.format(Math.round(n));
@@ -389,18 +411,35 @@ function confidenceMarkup(r, wide) {
 function safetyMarkup(r) {
   const s = r.safety || {};
   if (!(s.professionalRequired || (s.messages && s.messages.length))) return '';
+  const hazardList = s.hazards || [];
+  // Only gas / high-voltage / refrigerant are true safety hazards. A part that
+  // is merely not homeowner-serviceable (e.g. a washer transmission) is routed
+  // to a pro but must NOT trigger a red hazard alarm with no explanation.
+  const dangerous = hazardList.some((h) => h === 'gas' || h === 'high_voltage' || h === 'refrigerant');
   const messages = (s.messages || []).map((m) => `<li>${esc(m)}</li>`).join('');
-  const hazards = (s.hazards || [])
+  const hazards = hazardList
     .map((h) => `<span class="hazard-tag">${esc(String(h).replace(/_/g, ' '))}</span>`)
     .join('');
+  const calloutClass = dangerous ? 'callout-danger' : 'callout-info';
+  const role = dangerous ? ' role="alert"' : '';
+  const title = dangerous
+    ? 'Call a licensed professional for this repair'
+    : s.professionalRequired
+      ? 'Professional service recommended'
+      : 'Safety note';
+  const diyNote = s.diySuppressed
+    ? dangerous
+      ? 'We’ve hidden DIY part links because this job carries a safety hazard that warrants a licensed pro.'
+      : 'We’ve hidden DIY part links because this part isn’t homeowner-serviceable — there’s no safe DIY path, so it should go to a professional.'
+    : '';
   return `
     <section class="rr-panel card span-7">
-      <div class="callout callout-danger" role="alert">
+      <div class="callout ${calloutClass}"${role}>
         ${svg('shield', 'callout-icon')}
         <div>
-          <h4>${s.professionalRequired ? 'Call a licensed professional for this repair' : 'Safety note'}</h4>
+          <h4>${title}</h4>
           ${messages ? `<ul>${messages}</ul>` : ''}
-          ${s.diySuppressed ? '<p style="margin-top:var(--sp-2)">We’ve hidden DIY part links because this job carries a hazard that warrants a pro.</p>' : ''}
+          ${diyNote ? `<p style="margin-top:var(--sp-2)">${diyNote}</p>` : ''}
           ${hazards ? `<div class="hazard-tags">${hazards}</div>` : ''}
         </div>
       </div>
@@ -418,7 +457,12 @@ function recallMarkup(r) {
             <span class="rm-num">${esc(m.recallNumber)}</span>
           </div>
           <p class="rm-hazard">${esc(m.hazard)}${m.recallDate ? ` · ${esc(m.recallDate)}` : ''}</p>
-          ${m.url ? `<a href="${esc(m.url)}" target="_blank" rel="noopener noreferrer nofollow">View CPSC notice ${svg('external', 'callout-icon')}</a>` : ''}
+          ${(() => {
+            const h = safeHref(m.url);
+            return m.url && h !== '#'
+              ? `<a href="${esc(h)}" target="_blank" rel="noopener noreferrer nofollow">View CPSC notice ${svg('external', 'callout-icon')}</a>`
+              : '';
+          })()}
         </div>`,
       )
       .join('');
@@ -478,7 +522,7 @@ function monetizationMarkup(r) {
   const unitLinks = links.filter((l) => l.kind === 'new_unit');
 
   const linkEl = (l) => `
-    <a class="mon-link" href="${esc(l.url)}" target="_blank" rel="sponsored nofollow noopener noreferrer">
+    <a class="mon-link" href="${esc(safeHref(l.url))}" target="_blank" rel="sponsored nofollow noopener noreferrer">
       <span>${esc(l.label)}<br><span class="mon-merchant">${esc(l.merchant)}</span></span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON.external}</svg>
     </a>`;
