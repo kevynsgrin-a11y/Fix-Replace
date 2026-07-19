@@ -444,6 +444,18 @@ body::after {
   text-wrap: balance;
 }
 
+/* Links inside running prose must be distinguishable without relying on color
+   (WCAG 1.4.1): underline them so they read as links against body copy. */
+.prose a:not(.btn) {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+.prose a:not(.btn):hover {
+  text-decoration-color: currentColor;
+}
+
 /* Eyebrow tick */
 .eyebrow::before {
   content: "";
@@ -543,4 +555,8 @@ body::before {
 .monetization {
   background: var(--surface) !important;
   box-shadow: none !important;
+}
+/* Small "part / new unit" tag: bump off --muted for WCAG AA on its surface. */
+.mon-tag {
+  color: var(--body);
 }
