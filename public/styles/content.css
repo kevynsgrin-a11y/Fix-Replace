@@ -1,0 +1,457 @@
+/* =============================================================================
+   RepairOrReplace — content-page extras
+   Layered on top of tokens.css + base.css. Only additive classes used by the
+   editorial, methodology, guide, and programmatic-SEO pages. No token or base
+   overrides; every value references a design-system variable.
+   ========================================================================== */
+
+/* --- Page hero -------------------------------------------------------------- */
+.page-hero {
+  padding-block: var(--sp-10) var(--sp-8);
+  border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(120% 140% at 100% 0%, var(--brand-tint) 0%, transparent 55%),
+    var(--canvas);
+}
+.page-hero h1 {
+  max-width: 20ch;
+  margin-top: var(--sp-4);
+}
+.page-hero .lede {
+  max-width: 62ch;
+  margin-top: var(--sp-5);
+}
+.hero-meta {
+  margin-top: var(--sp-6);
+  color: var(--faint);
+  font-size: var(--step--1);
+}
+
+/* --- Breadcrumbs ------------------------------------------------------------ */
+.breadcrumb {
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+.breadcrumb ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.breadcrumb li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.breadcrumb li + li::before {
+  content: "/";
+  color: var(--line-strong);
+}
+.breadcrumb a {
+  color: var(--muted);
+}
+.breadcrumb a:hover {
+  color: var(--ink);
+}
+.breadcrumb [aria-current="page"] {
+  color: var(--body);
+}
+
+/* --- Content width helpers -------------------------------------------------- */
+.prose-wide {
+  max-width: var(--w-content);
+}
+.measure {
+  max-width: 68ch;
+}
+
+/* --- Table of contents ------------------------------------------------------ */
+.toc {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  padding: var(--sp-5) var(--sp-6);
+}
+.toc h2,
+.toc h3 {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+.toc ol {
+  margin: 0;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font-size: var(--step-0);
+}
+
+/* --- Callouts --------------------------------------------------------------- */
+.callout {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--muted);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  padding: var(--sp-5) var(--sp-6);
+}
+.callout > * + * {
+  margin-top: var(--sp-3);
+}
+.callout .callout-title {
+  font-weight: 680;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.callout p {
+  margin: 0;
+}
+.callout-info {
+  border-left-color: var(--info);
+  background: var(--info-tint);
+}
+.callout-info .callout-title {
+  color: var(--info);
+}
+.callout-warn {
+  border-left-color: var(--warn);
+  background: var(--warn-tint);
+}
+.callout-warn .callout-title {
+  color: var(--warn);
+}
+.callout-danger {
+  border-left-color: var(--danger);
+  background: var(--danger-tint);
+}
+.callout-danger .callout-title {
+  color: var(--danger);
+}
+.callout-repair {
+  border-left-color: var(--repair);
+  background: var(--repair-tint);
+}
+.callout-repair .callout-title {
+  color: var(--repair-ink);
+}
+.callout-replace {
+  border-left-color: var(--replace);
+  background: var(--replace-tint);
+}
+.callout-replace .callout-title {
+  color: var(--replace-ink);
+}
+
+/* --- Equations / formulas --------------------------------------------------- */
+.eq {
+  font-family: var(--font-mono);
+  font-size: var(--step-0);
+  color: var(--ink);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--sp-5) var(--sp-6);
+  overflow-x: auto;
+  line-height: 1.9;
+}
+.eq-lead {
+  color: var(--brand-strong);
+  font-weight: 650;
+}
+.eq var {
+  font-style: italic;
+  font-family: var(--font-mono);
+  color: var(--brand-strong);
+}
+.eq sub,
+.eq sup {
+  font-size: 0.72em;
+}
+.frac {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+  text-align: center;
+  margin: 0 0.35em;
+}
+.frac > .num {
+  padding: 0 0.4em 0.15em;
+  border-bottom: 1.5px solid currentColor;
+}
+.frac > .den {
+  padding: 0.15em 0.4em 0;
+}
+.vardefs {
+  list-style: none;
+  padding: 0;
+  margin-top: var(--sp-4);
+  display: grid;
+  gap: var(--sp-2);
+  font-size: var(--step-0);
+}
+.vardefs li {
+  display: grid;
+  grid-template-columns: minmax(3.5em, auto) 1fr;
+  gap: var(--sp-3);
+  padding: 0;
+}
+.vardefs .sym {
+  font-family: var(--font-mono);
+  font-style: italic;
+  color: var(--brand-strong);
+  font-weight: 600;
+}
+
+/* --- Stat rows -------------------------------------------------------------- */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--sp-4);
+}
+.stat {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  padding: var(--sp-5);
+}
+.stat .stat-value {
+  font-size: var(--step-3);
+  font-weight: 750;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.stat .stat-label {
+  margin-top: var(--sp-2);
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+/* --- Guide / link cards ----------------------------------------------------- */
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--sp-5);
+}
+.guide-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-6);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.guide-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--line-strong);
+}
+.guide-card h3 {
+  margin: 0;
+  font-size: var(--step-1);
+  color: var(--ink);
+}
+.guide-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--step-0);
+}
+.guide-card .guide-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-md);
+  background: var(--brand-tint);
+  color: var(--brand-ink);
+}
+.guide-card .guide-meta {
+  margin-top: auto;
+  padding-top: var(--sp-3);
+  font-size: var(--step--1);
+  color: var(--faint);
+  font-weight: 600;
+}
+.card-link {
+  color: inherit;
+}
+.card-link:hover {
+  color: inherit;
+}
+
+/* --- Data / verdict pills in tables ----------------------------------------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: var(--step--1);
+  font-weight: 620;
+  line-height: 1;
+  padding: 0.35em 0.6em;
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+.pill-diy {
+  background: var(--repair-tint);
+  color: var(--repair-ink);
+}
+.pill-pro {
+  background: var(--info-tint);
+  color: var(--info);
+}
+.pill-hazard {
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+.pill-dot::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* --- CTA band --------------------------------------------------------------- */
+.cta-band {
+  border-radius: var(--r-xl);
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(120% 160% at 0% 0%, var(--brand-tint) 0%, transparent 60%),
+    var(--surface);
+  padding: var(--sp-8);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-5);
+}
+.cta-band .cta-copy {
+  max-width: 46ch;
+}
+.cta-band h2 {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--step-2);
+}
+.cta-band p {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* --- FAQ (native disclosure) ------------------------------------------------ */
+.faq {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.faq details {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+.faq summary {
+  cursor: pointer;
+  padding: var(--sp-4) var(--sp-5);
+  font-weight: 640;
+  color: var(--ink);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+.faq summary::after {
+  content: "+";
+  font-size: var(--step-2);
+  font-weight: 400;
+  color: var(--muted);
+  line-height: 1;
+  transition: transform var(--dur) var(--ease-out);
+}
+.faq details[open] summary::after {
+  transform: rotate(45deg);
+}
+.faq .faq-body {
+  padding: 0 var(--sp-5) var(--sp-5);
+  color: var(--body);
+}
+.faq .faq-body > * + * {
+  margin-top: var(--sp-3);
+}
+
+/* --- Provenance / source table emphasis ------------------------------------- */
+.provenance td:first-child {
+  font-weight: 620;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* --- Definition rows (feature lists) ---------------------------------------- */
+.deflist {
+  display: grid;
+  gap: var(--sp-4);
+}
+.deflist .def {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: var(--sp-4);
+  align-items: start;
+}
+.deflist .def-num {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-pill);
+  background: var(--brand-tint);
+  color: var(--brand-ink);
+  font-weight: 700;
+  font-size: var(--step--1);
+}
+.deflist .def h3 {
+  margin: 0 0 var(--sp-1);
+  font-size: var(--step-1);
+}
+.deflist .def p {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* --- Small utilities -------------------------------------------------------- */
+.lead-figure {
+  color: var(--brand-strong);
+  font-weight: 700;
+}
+.section-label {
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+  font-weight: 650;
+}
+.hr-space {
+  margin-block: var(--sp-9);
+}
+.note-small {
+  font-size: var(--step--1);
+  color: var(--faint);
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--sp-5);
+}

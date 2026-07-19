@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Your saved result — RepairOrReplace</title>
+    <meta name="description" content="A saved repair-or-replace analysis from RepairOrReplace." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#0d7c66" />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2040%2040'%3E%3Crect%20width='40'%20height='40'%20rx='11'%20fill='%230d7c66'/%3E%3Cpath%20d='M13%2016h12l-3-3M27%2024H15l3%203'%20stroke='%23fff'%20stroke-width='2.4'%20stroke-linecap='round'%20stroke-linejoin='round'%20fill='none'/%3E%3C/svg%3E"
+    />
+
+    <!-- No-FOUC theme -->
+    <script>
+      try {
+        var t = localStorage.getItem('ror-theme');
+        if (t) document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+
+    <link rel="stylesheet" href="/styles/tokens.css" />
+    <link rel="stylesheet" href="/styles/base.css" />
+    <link rel="stylesheet" href="/styles/calculator.css" />
+      <meta property="og:image" content="https://repairorreplace.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:image" content="https://repairorreplace.app/og.png" />
+</head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the result</a>
+    <div id="rr-live" class="sr-only" role="status" aria-live="polite"></div>
+
+    <main id="main">
+      <section class="section-tight">
+        <div class="container-wide">
+          <div class="section-head" style="margin-bottom: var(--sp-6)">
+            <span class="eyebrow">Saved analysis</span>
+            <h2>Repair-or-replace result</h2>
+            <p class="lede">A shared, read-only copy of a RepairOrReplace analysis.</p>
+          </div>
+          <div id="result-mount"></div>
+        </div>
+      </section>
+    </main>
+
+    <script defer src="/scripts/chrome.js"></script>
+    <script type="module">
+      import { renderResult, renderLoading, renderError } from '/scripts/calculator.js';
+
+      const mount = document.getElementById('result-mount');
+      const id = new URLSearchParams(location.search).get('id');
+
+      const notFound = (msg) =>
+        renderError(mount, msg, {
+          title: 'Result not found',
+          cta: { href: '/#calculator', label: 'Run a new analysis' },
+        });
+
+      if (!id) {
+        notFound('This link is missing a result id. It may have been copied incompletely.');
+      } else {
+        renderLoading(mount);
+        fetch('/api/report?id=' + encodeURIComponent(id))
+          .then(async (res) => {
+            if (res.status === 404) {
+              notFound('This result has expired or was never saved. Saved results are kept for 30 days.');
+              return null;
+            }
+            if (!res.ok) throw new Error('fetch failed');
+            return res.json();
+          })
+          .then((data) => {
+            if (!data) return;
+            if (!data.verdict) {
+              notFound('This saved item does not contain a valid result.');
+              return;
+            }
+            renderResult(data, mount, { shared: true, animate: true });
+          })
+          .catch((err) => {
+            console.error(err);
+            renderError(
+              mount,
+              'We could not load this saved result. Please try again in a moment.',
+              { title: 'Something went wrong', cta: { href: '/#calculator', label: 'Run a new analysis' } },
+            );
+          });
+      }
+    </script>
+  </body>
+</html>

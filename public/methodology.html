@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Methodology &amp; data provenance — RepairOrReplace</title>
+<meta
+  name="description"
+  content="The full methodology behind RepairOrReplace: every model input, its authoritative source (NAHB, InterNACHI, BLS OEWS 49-9031, EIA, CPSC), how regional labor and energy rates are applied, and the no-fake-precision principle."
+/>
+<link rel="canonical" href="https://repairorreplace.app/methodology" />
+<meta name="theme-color" content="#0d7c66" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="RepairOrReplace" />
+<meta property="og:title" content="Methodology &amp; data provenance — RepairOrReplace" />
+<meta property="og:description" content="Every model input and its authoritative source: NAHB, InterNACHI, BLS OEWS 49-9031, EIA, and the CPSC Recall API — plus the no-fake-precision principle." />
+<meta property="og:url" content="https://repairorreplace.app/methodology" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Methodology &amp; data provenance — RepairOrReplace" />
+<meta name="twitter:description" content="Every input, its source, and how we apply regional labor and energy rates — with a full data provenance table." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%230d7c66'/%3E%3Cpath d='M13 16h12l-3-3M27 24H15l3 3' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<script>try{var t=localStorage.getItem('ror-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="stylesheet" href="/styles/tokens.css" />
+<link rel="stylesheet" href="/styles/base.css" />
+<link rel="stylesheet" href="/styles/content.css" />
+<script defer src="/scripts/chrome.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "RepairOrReplace methodology and data provenance",
+  "description": "The authoritative sources behind every input to the repair-or-replace model and how regional labor and energy rates are applied.",
+  "author": { "@type": "Organization", "name": "RepairOrReplace" },
+  "publisher": { "@type": "Organization", "name": "RepairOrReplace" },
+  "mainEntityOfPage": "https://repairorreplace.app/methodology"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://repairorreplace.app/" },
+    { "@type": "ListItem", "position": 2, "name": "Methodology", "item": "https://repairorreplace.app/methodology" }
+  ]
+}
+</script>
+<meta property="og:image" content="https://repairorreplace.app/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:image" content="https://repairorreplace.app/og.png" />
+</head>
+<body>
+<main id="main">
+  <div class="page-hero">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ol>
+          <li><a href="/">Home</a></li>
+          <li><a href="/methodology" aria-current="page">Methodology</a></li>
+        </ol>
+      </nav>
+      <span class="eyebrow" style="margin-top:var(--sp-5)">Methodology</span>
+      <h1>Every number has a source.</h1>
+      <p class="lede">
+        A financial tool is only as trustworthy as its inputs. This page documents where each input comes
+        from, how we turn public data into localized estimates, and the principle we hold above all others:
+        we never invent precision the data can’t support.
+      </p>
+      <p class="hero-meta">Companion to the <a href="/how-it-works">model walkthrough</a> · Sources current to the May 2024 / 2025–2026 releases cited below</p>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="prose">
+      <h2>Data provenance</h2>
+      <p>
+        Each row is one input to the model, the authoritative body it derives from, and how we use it. Where a
+        figure is an estimate consistent with a source rather than a directly published cell, we say so.
+      </p>
+      <div class="table-wrap">
+        <table class="provenance">
+          <thead>
+            <tr>
+              <th scope="col">Model input</th>
+              <th scope="col">Primary source</th>
+              <th scope="col">How we use it</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Appliance lifespans, by brand tier</td>
+              <td>NAHB Study of Life Expectancy of Home Components; InterNACHI Estimated Life Expectancy Chart</td>
+              <td>Low/high year bands per category and tier, interpreted as the 25th–75th percentile of a Weibull failure distribution.</td>
+            </tr>
+            <tr>
+              <td>Regional labor rates</td>
+              <td>BLS Occupational Employment &amp; Wage Statistics, occupation 49-9031 (Home Appliance Repairers), May 2024</td>
+              <td>Area mean hourly wages normalized into a labor multiplier applied only to the labor portion of each repair.</td>
+            </tr>
+            <tr>
+              <td>Residential energy rates</td>
+              <td>EIA residential electricity ($/kWh) and natural gas ($/therm) rates</td>
+              <td>State-level rates drive the operating-cost delta between an aging unit and an efficient replacement.</td>
+            </tr>
+            <tr>
+              <td>Component repair cost bands</td>
+              <td>Field-service price surveys anchored to the strategy brief’s cited part/labor figures</td>
+              <td>National installed-cost bands with a labor share, so only labor scales regionally; also feed the predatory-quote guard.</td>
+            </tr>
+            <tr>
+              <td>Removal &amp; disposal costs</td>
+              <td>National appliance-removal cost survey ($109–$244 typical; complex extractions up to ~$570)</td>
+              <td>Added to the true cost of replacing so the decision isn’t artificially biased toward buying new.</td>
+            </tr>
+            <tr>
+              <td>Safety recalls</td>
+              <td>CPSC SaferProducts.gov Recall API</td>
+              <td>An active match pulls the verdict toward repair — the manufacturer is typically liable for a free remedy.</td>
+            </tr>
+            <tr>
+              <td>Discount rate</td>
+              <td>Macro opportunity cost of capital (default 5%)</td>
+              <td>Discounts every future cash flow to present value in the Net Present Cost comparison.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>From public data to a local estimate</h2>
+      <h3>Labor: a wage becomes a multiplier</h3>
+      <p>
+        BLS publishes an <em>area mean hourly wage</em> for appliance repairers. We divide the local mean by
+        the national mean baseline (<span class="lead-figure">$24.10/hr</span>) to get a multiplier, clamped to
+        0.85–1.50 so no single metro can distort an estimate. Because a repair is part parts and part labor,
+        we only scale the labor share:
+      </p>
+      <div class="eq">
+        <span class="eq-lead">cost<sub>adj</sub></span> = cost · ( 1 − laborShare ) + cost · laborShare · multiplier
+      </div>
+      <p>
+        A few published anchors ground the scale: the national median wage is
+        <span class="lead-figure">$22.68/hr</span> and the 90th percentile
+        <span class="lead-figure">$34.93/hr</span>; Minneapolis–St.&nbsp;Paul averages
+        <span class="lead-figure">$28.51/hr</span> and Miami <span class="lead-figure">$22.87/hr</span> — which
+        is why the identical repair is genuinely cheaper in Miami than in Minneapolis, and why a “fair” price in
+        one metro can look like gouging in another.
+      </p>
+
+      <h3>Energy: state rates, real efficiency deltas</h3>
+      <p>
+        Operating cost is annual consumption times the local rate. State electricity rates range widely — from
+        around <span class="lead-figure">11 ¢/kWh</span> in Washington to
+        <span class="lead-figure">26.49 ¢/kWh</span> in New York and higher still in Hawaii — so the same worn
+        refrigerator costs meaningfully more to keep running in a high-rate state, shortening the payback on an
+        efficient replacement.
+      </p>
+
+      <h3>Lifespans: bands, not point estimates</h3>
+      <p>
+        We never publish “your appliance will last 12.4 years.” Lifespans are bands (e.g. a mid-range
+        dishwasher at 9–12 years, a premium one at 15–20), and the Weibull fit turns those bands into survival
+        probabilities. The math is set out in the <a href="/how-it-works#rul">model walkthrough</a>.
+      </p>
+
+      <h2 id="no-fake-precision">The no-fake-precision principle</h2>
+      <p>
+        The most common failure mode of a decision tool is confident nonsense. We guard against it on purpose:
+      </p>
+      <div class="deflist" style="margin-top:var(--sp-5)">
+        <div class="def">
+          <span class="def-num">1</span>
+          <div>
+            <h3>Suppress when the data is sparse</h3>
+            <p>Missing the failed part, the age, or the location lowers the confidence score and widens — not narrows — the reported range. A low-confidence result says so plainly.</p>
+          </div>
+        </div>
+        <div class="def">
+          <span class="def-num">2</span>
+          <div>
+            <h3>Suppress when a quote is implausible</h3>
+            <p>A quote more than double the regional band withholds the verdict entirely and flags a likely predatory price, instead of laundering a bad number into a clean recommendation.</p>
+          </div>
+        </div>
+        <div class="def">
+          <span class="def-num">3</span>
+          <div>
+            <h3>Ranges, not false decimals</h3>
+            <p>We present cost bands and probability ranges. A single dollar figure to the cent would imply a certainty the underlying public data does not have.</p>
+          </div>
+        </div>
+        <div class="def">
+          <span class="def-num">4</span>
+          <div>
+            <h3>Safety overrides economics</h3>
+            <p>Hazardous repairs are routed to a professional no matter how favorable the dollar math looks. See the <a href="/how-it-works#safety">safety hard-stops</a>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-info" style="margin-top:var(--sp-8)">
+        <p class="callout-title">A note on estimates</p>
+        <p>
+          These figures are decision-grade estimates from public, national datasets — enough to make a
+          confident repair-or-replace call, not a substitute for a technician’s on-site diagnosis. Actual
+          quotes vary with brand, model, part availability, and the specific fault. Read the
+          <a href="/terms">terms</a> for the full disclaimer.
+        </p>
+      </div>
+
+      <div class="cta-band" style="margin-top:var(--sp-9)">
+        <div class="cta-copy">
+          <h2>Run the numbers on your unit</h2>
+          <p>Localized labor and energy rates, applied to your appliance in seconds.</p>
+        </div>
+        <a class="btn btn-primary btn-lg" href="/#calculator">Open the calculator</a>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

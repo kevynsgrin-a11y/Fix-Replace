@@ -10,7 +10,7 @@ import type {
 import { getApplianceMeta } from '../data/appliances.js';
 import { getComponent, getRepairCostBand } from '../data/partCosts.js';
 import { getReplacementAncillary } from '../data/ancillary.js';
-import { resolveLabor } from '../data/laborRates.js';
+import { resolveLabor, type ResolvedLabor } from '../data/laborRates.js';
 import { computeRul } from './weibull.js';
 import { computeRepairCost } from './repairCost.js';
 import { computeEnergy } from './energy.js';
@@ -31,14 +31,13 @@ const DEFAULT_DISCOUNT_RATE = 0.05;
 const money = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`;
 const years = (n: number) => `${n.toFixed(1)} year${Math.abs(n - 1) < 0.05 ? '' : 's'}`;
 
-function resolveInputs(input: CalculationInput): ResolvedInput {
+function resolveInputs(input: CalculationInput, labor: ResolvedLabor): ResolvedInput {
   const meta = getApplianceMeta(input.category);
   const brandTier = input.brandTier ?? 'mid';
   const fuelType: FuelType = meta.fuelDependent
     ? input.fuelType ?? meta.defaultFuel
     : meta.defaultFuel;
   const componentKnown = !!getComponent(input.faultComponent);
-  const labor = resolveLabor(input.location);
 
   return {
     category: input.category,
@@ -60,8 +59,16 @@ export async function calculateDecision(
   options: DecisionOptions = {},
 ): Promise<CalculationResult> {
   const discountRate = options.discountRate ?? DEFAULT_DISCOUNT_RATE;
-  const resolved = resolveInputs(input);
   const labor = resolveLabor(input.location);
+  const resolved = resolveInputs(input, labor);
+
+  // A metro or ZIP implies its state, so energy rates can localize even when
+  // the user only picked a city (labor resolution already derived the state).
+  const effectiveLocation = {
+    zip: input.location?.zip,
+    metro: input.location?.metro,
+    state: resolved.state ?? input.location?.state,
+  };
 
   const rul = computeRul(resolved.category, resolved.brandTier, resolved.ageYears);
   const repairCost = computeRepairCost(
@@ -74,7 +81,7 @@ export async function calculateDecision(
   const energy = computeEnergy(
     resolved.category,
     resolved.fuelType,
-    input.location,
+    effectiveLocation,
     resolved.energyStarReplacement,
   );
   const ancillary = getReplacementAncillary(resolved.category, resolved.fuelType);

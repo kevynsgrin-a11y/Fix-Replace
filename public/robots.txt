@@ -1,0 +1,10 @@
+# RepairOrReplace — robots policy
+# Crawling is welcome across the public site. The /api/ compute layer and
+# dynamic report views hold no crawlable content, so they are excluded.
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /r
+
+Sitemap: https://repairorreplace.app/sitemap.xml

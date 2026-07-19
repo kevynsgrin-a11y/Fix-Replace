@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Local appliance repair costs by metro | RepairOrReplace</title>
+<meta
+  name="description"
+  content="Localized appliance repair costs for major U.S. metros, built from BLS area wage data for appliance repairers (occupation 49-9031). Only metros with sufficient data are indexed."
+/>
+<link rel="canonical" href="https://repairorreplace.app/appliance-repair-cost/" />
+<meta name="theme-color" content="#0d7c66" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="RepairOrReplace" />
+<meta property="og:title" content="Local appliance repair costs by metro" />
+<meta property="og:description" content="Localized appliance repair costs built from BLS area wage data. Only metros with sufficient data are indexed." />
+<meta property="og:url" content="https://repairorreplace.app/appliance-repair-cost/" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Local appliance repair costs by metro" />
+<meta name="twitter:description" content="Localized appliance repair costs built from BLS area wage data." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%230d7c66'/%3E%3Cpath d='M13 16h12l-3-3M27 24H15l3 3' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<script>try{var t=localStorage.getItem('ror-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="stylesheet" href="/styles/tokens.css" />
+<link rel="stylesheet" href="/styles/base.css" />
+<link rel="stylesheet" href="/styles/content.css" />
+<script defer src="/scripts/chrome.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Local appliance repair costs by metro",
+  "description": "Localized appliance repair cost estimates for major U.S. metros, derived from BLS area wage data.",
+  "publisher": { "@type": "Organization", "name": "RepairOrReplace" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://repairorreplace.app/" },
+    { "@type": "ListItem", "position": 2, "name": "Local repair costs", "item": "https://repairorreplace.app/appliance-repair-cost/" }
+  ]
+}
+</script>
+<meta property="og:image" content="https://repairorreplace.app/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:image" content="https://repairorreplace.app/og.png" />
+</head>
+<body>
+<main id="main">
+  <div class="page-hero">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ol>
+          <li><a href="/">Home</a></li>
+          <li><a href="/appliance-repair-cost/" aria-current="page">Local repair costs</a></li>
+        </ol>
+      </nav>
+      <span class="eyebrow" style="margin-top:var(--sp-5)">Local repair costs</span>
+      <h1>What a repair really costs where you live.</h1>
+      <p class="lede">
+        The same repair is priced very differently across the country, because the biggest variable — field
+        labor — tracks the local wage market. We convert BLS area wages for appliance repairers into a
+        localized cost band for each major metro.
+      </p>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="prose prose-wide">
+      <h2>How localized pricing works</h2>
+      <p>
+        The U.S. Bureau of Labor Statistics publishes an area mean hourly wage for Home Appliance Repairers
+        (occupation <strong>49-9031</strong>). We divide each metro’s mean by the national mean baseline of
+        <strong>$24.10/hr</strong> to get a labor multiplier, then apply it only to the labor share of each
+        repair — parts cost the same everywhere; labor does not. For reference, the national median wage is
+        <strong>$22.68/hr</strong> and the 90th percentile is <strong>$34.93/hr</strong>.
+      </p>
+
+      <h2>Indexed metros</h2>
+      <p>Each metro below has enough wage data to publish a reliable localized estimate.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th scope="col">Metro</th><th scope="col">BLS area mean wage (49-9031)</th><th scope="col">Labor multiplier</th><th scope="col">Guide</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>New York, NY</td><td>$28.80/hr</td><td>≈1.20×</td><td><a href="/appliance-repair-cost/new-york">New York costs</a></td></tr>
+            <tr><td>Boston, MA</td><td>$29.60/hr</td><td>≈1.23×</td><td><a href="/appliance-repair-cost/boston">Boston costs</a></td></tr>
+            <tr><td>Minneapolis–St. Paul, MN</td><td>$28.51/hr</td><td>≈1.18×</td><td><a href="/appliance-repair-cost/minneapolis">Minneapolis costs</a></td></tr>
+            <tr><td>Los Angeles, CA</td><td>$26.40/hr</td><td>≈1.10×</td><td><a href="/appliance-repair-cost/los-angeles">Los Angeles costs</a></td></tr>
+            <tr><td>Chicago, IL</td><td>$25.30/hr</td><td>≈1.05×</td><td><a href="/appliance-repair-cost/chicago">Chicago costs</a></td></tr>
+            <tr><td>Miami, FL</td><td>$22.87/hr</td><td>≈0.95×</td><td><a href="/appliance-repair-cost/miami">Miami costs</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-info">
+        <p class="callout-title">The quality gate: no thin pages</p>
+        <p>
+          We only publish and index a metro page when the underlying data supports a trustworthy estimate.
+          Metros without sufficient wage granularity fall back to state or national rates in the calculator and
+          are kept <code>noindex</code> rather than shipped as thin, low-value pages. This is the same
+          <a href="/methodology#no-fake-precision">no-fake-precision</a> principle that governs the whole tool.
+        </p>
+      </div>
+
+      <h2>Why Miami and Boston aren’t the same</h2>
+      <p>
+        Put the extremes side by side: a repair that’s fairly priced in <strong>Miami</strong> (mean wage
+        $22.87/hr) would look about a quarter more expensive in <strong>Boston</strong> (mean wage $29.60/hr)
+        for the same labor. That’s not gouging — it’s the local wage market. A tool that ignores geography will
+        mislabel fair Boston quotes as expensive and predatory Miami quotes as normal. Ours doesn’t.
+      </p>
+
+      <div class="cta-band" style="margin-top:var(--sp-9)">
+        <div class="cta-copy">
+          <h2>Get a localized verdict</h2>
+          <p>Enter your ZIP and the calculator applies your metro’s labor and energy rates automatically.</p>
+        </div>
+        <a class="btn btn-primary btn-lg" href="/#calculator">Open the calculator</a>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>
