@@ -51,7 +51,7 @@
       '<div class="container">' +
       '<a class="brand-mark" href="/" aria-label="RepairOrReplace home">' +
       LOGO +
-      '<span>Repair<span style="color:var(--brand-strong)">or</span>Replace</span></a>' +
+      '<span>Repair<span style="color:var(--brand-strong);padding:0 0.09em">or</span>Replace</span></a>' +
       '<nav class="nav" aria-label="Primary">' +
       links +
       '</nav>' +
@@ -69,7 +69,7 @@
     footer.innerHTML =
       '<div class="container"><div class="footer-grid">' +
       '<div><a class="brand-mark" href="/">' + LOGO +
-      '<span>Repair<span style="color:var(--brand-strong)">or</span>Replace</span></a>' +
+      '<span>Repair<span style="color:var(--brand-strong);padding:0 0.09em">or</span>Replace</span></a>' +
       '<p class="muted" style="margin-top:var(--sp-4);max-width:34ch">The evidence-based way to decide whether to repair or replace a major appliance — no lead-capture wall, no guesswork.</p></div>' +
       '<div><h4>Product</h4><ul>' +
       '<li><a href="/">Calculator</a></li>' +

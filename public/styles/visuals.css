@@ -213,10 +213,34 @@ body::after {
     var(--surface);
 }
 .step-glyph {
-  width: 48px;
-  height: 48px;
-  margin-bottom: var(--sp-4);
-  filter: drop-shadow(0 3px 10px color-mix(in srgb, var(--brand) 16%, transparent));
+  width: 38px;
+  height: 38px;
+  padding: 11px;
+  box-sizing: content-box;
+  margin-bottom: var(--sp-5);
+  background: var(--brand-tint);
+  border-radius: var(--r-md);
+  box-shadow: var(--edge-light);
+}
+/* Connective "process" hairline threading the three steps (wide layout only). */
+@media (min-width: 861px) {
+  .steps {
+    position: relative;
+  }
+  .steps::before {
+    content: "";
+    position: absolute;
+    top: calc(var(--sp-7) + 30px);
+    left: 12%;
+    right: 12%;
+    height: 2px;
+    z-index: 0;
+    background: linear-gradient(90deg, transparent, var(--brand) 18%, var(--brand) 82%, transparent);
+    opacity: 0.35;
+  }
+  .steps > .step {
+    z-index: 1;
+  }
 }
 .step .step-num {
   position: absolute;
@@ -414,18 +438,27 @@ body::after {
 }
 .hero-curve {
   position: absolute;
-  left: -4%;
-  bottom: 9%;
-  width: min(720px, 60%);
+  left: 0;
+  top: 46%;
+  width: min(540px, 46%);
   height: auto;
-  opacity: 0.5;
-  filter: drop-shadow(0 6px 20px color-mix(in srgb, var(--brand) 20%, transparent));
+  opacity: 0.66;
+  filter: drop-shadow(0 8px 22px color-mix(in srgb, var(--brand) 16%, transparent));
 }
 .hero-node {
-  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--brand) 70%, transparent));
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--brand) 75%, transparent));
 }
 @media (max-width: 860px) {
-  .hero-curve { width: 82%; opacity: 0.38; bottom: 2%; }
+  .hero-curve { width: 76%; opacity: 0.4; top: auto; bottom: 1%; }
+}
+
+/* Hero headline hierarchy: the question is secondary; the payoff dominates. */
+.hero-copy h1 .h1-lead {
+  font-size: 0.8em;
+}
+/* Richer, higher-contrast amber for the accent word on light surfaces. */
+.accent-replace {
+  color: var(--replace-ink);
 }
 
 /* Mobile header: the calculator is right below, so drop the header CTA to stop
@@ -545,6 +578,48 @@ body::before {
     from { transform: scaleX(0); }
     to { transform: scaleX(1); }
   }
+}
+
+/* -----------------------------------------------------------------------------
+   G. FIRST-IMPRESSION POLISH (from design review)
+   -------------------------------------------------------------------------- */
+
+/* Tighten the gap between a content-page hero and the first prose block so it
+   never reads as an empty/broken band. */
+.page-hero + .container.section,
+.page-hero + .section {
+  padding-top: var(--sp-9);
+}
+
+/* Hero stats: keep the natural content-width row on desktop, but on narrow
+   phones force a clean 3-up grid so the third stat is never orphaned. */
+@media (max-width: 560px) {
+  .hero-signal {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-3);
+    align-items: start;
+  }
+  .hero-signal .stat span {
+    font-size: 0.76rem;
+  }
+}
+
+/* Result "repeat-failure" note: swap the clip-art warning blob for a restrained
+   amber left-rule stat that matches the instrument vocabulary. */
+.risk-chip {
+  background: var(--warn-tint) !important;
+  border-left: 3px solid var(--warn);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  padding: var(--sp-3) var(--sp-4) !important;
+  align-items: center;
+}
+.risk-chip .callout-icon,
+.risk-chip > svg {
+  width: 22px !important;
+  height: 22px !important;
+  flex: none;
+  color: var(--warn);
 }
 
 /* -----------------------------------------------------------------------------

@@ -118,18 +118,28 @@
       <!-- ===================== HERO + CALCULATOR (above the fold) ============ -->
       <section class="hero">
         <div class="hero-atmos" aria-hidden="true">
-          <svg class="hero-curve" viewBox="0 0 640 260" fill="none" preserveAspectRatio="none">
+          <svg class="hero-curve" viewBox="0 0 560 240" fill="none">
             <defs>
-              <linearGradient id="hcurve" x1="0" y1="0" x2="640" y2="0" gradientUnits="userSpaceOnUse">
+              <linearGradient id="hcurve" x1="0" y1="0" x2="560" y2="0" gradientUnits="userSpaceOnUse">
                 <stop offset="0" stop-color="var(--repair)" />
-                <stop offset="0.55" stop-color="var(--uncertain)" />
+                <stop offset="0.5" stop-color="var(--uncertain)" />
                 <stop offset="1" stop-color="var(--replace)" />
               </linearGradient>
+              <linearGradient id="hfillR" x1="0" y1="0" x2="0" y2="240" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="var(--repair)" stop-opacity="0.26" />
+                <stop offset="1" stop-color="var(--repair)" stop-opacity="0" />
+              </linearGradient>
+              <linearGradient id="hfillA" x1="0" y1="0" x2="0" y2="240" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="var(--replace)" stop-opacity="0.22" />
+                <stop offset="1" stop-color="var(--replace)" stop-opacity="0" />
+              </linearGradient>
             </defs>
-            <path data-draw style="--draw-len: 980"
-                  d="M0 236 C 150 236 224 214 312 154 C 386 104 452 58 640 34"
-                  stroke="url(#hcurve)" stroke-width="3" stroke-linecap="round" />
-            <circle class="hero-node" cx="312" cy="154" r="6" fill="var(--brand)" data-pulse />
+            <path d="M0 66C130 66 205 100 280 132L280 240 0 240Z" fill="url(#hfillR)" />
+            <path d="M280 132C355 164 430 196 560 208L560 240 280 240Z" fill="url(#hfillA)" />
+            <path class="hero-line" data-draw style="--draw-len: 780"
+                  d="M0 66C130 66 205 100 280 132 355 164 430 196 560 208"
+                  stroke="url(#hcurve)" stroke-width="3.5" stroke-linecap="round" />
+            <circle class="hero-node" cx="280" cy="132" r="6.5" fill="var(--brand)" data-pulse />
           </svg>
         </div>
         <div class="container container-wide">
@@ -137,8 +147,8 @@
             <div class="hero-copy">
               <span class="eyebrow">Repair-or-replace, decided</span>
               <h1>
-                <span class="accent-repair">Repair&nbsp;it</span> or
-                <span class="accent-replace">replace&nbsp;it?</span><br />Get a straight answer.
+                <span class="h1-lead"><span class="accent-repair">Repair&nbsp;it</span> or
+                <span class="accent-replace">replace&nbsp;it?</span></span><br />Get a straight answer.
               </h1>
               <p class="lede">
                 Enter your appliance, its age, and the technician's quote. We run the
