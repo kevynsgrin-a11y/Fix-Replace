@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Appliance recalls — how our CPSC check works | RepairOrReplace</title>
+<meta
+  name="description"
+  content="How RepairOrReplace checks your appliance against the CPSC SaferProducts.gov recall database, what an active recall means for your repair-or-replace decision, and why the manufacturer is usually liable for a free remedy."
+/>
+<link rel="canonical" href="https://repairorreplace.app/recalls" />
+<meta name="theme-color" content="#0d7c66" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="RepairOrReplace" />
+<meta property="og:title" content="Appliance recalls — how our CPSC check works" />
+<meta property="og:description" content="What an active recall means for your decision, and why the manufacturer is usually liable for a free repair or replacement." />
+<meta property="og:url" content="https://repairorreplace.app/recalls" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Appliance recalls — how our CPSC check works" />
+<meta name="twitter:description" content="An active recall usually means a free manufacturer remedy. Here's how our check works." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%230d7c66'/%3E%3Cpath d='M13 16h12l-3-3M27 24H15l3 3' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<script>try{var t=localStorage.getItem('ror-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="stylesheet" href="/styles/tokens.css" />
+<link rel="stylesheet" href="/styles/base.css" />
+<link rel="stylesheet" href="/styles/content.css" />
+<script defer src="/scripts/chrome.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "How RepairOrReplace checks for appliance recalls",
+  "description": "The CPSC recall integration and what an active recall means for a repair-or-replace decision.",
+  "author": { "@type": "Organization", "name": "RepairOrReplace" },
+  "publisher": { "@type": "Organization", "name": "RepairOrReplace" },
+  "mainEntityOfPage": "https://repairorreplace.app/recalls"
+}
+</script>
+<meta property="og:image" content="https://repairorreplace.app/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:image" content="https://repairorreplace.app/og.png" />
+  <link rel="stylesheet" href="/styles/visuals.css" />
+</head>
+<body>
+<main id="main">
+  <div class="page-hero">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ol>
+          <li><a href="/">Home</a></li>
+          <li><a href="/recalls" aria-current="page">Recalls</a></li>
+        </ol>
+      </nav>
+      <span class="eyebrow" style="margin-top:var(--sp-5)">Safety recalls</span>
+      <h1>An active recall changes the whole calculation.</h1>
+      <p class="lede">
+        If your appliance is under an open federal recall, you may be entitled to a free repair or replacement.
+        Before you pay a cent, we check — and if there’s a match, our advice is simple: pursue the free remedy.
+      </p>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="prose">
+      <h2>How the check works</h2>
+      <p>
+        Enter your appliance’s UPC and we query the <strong>CPSC SaferProducts.gov Recall API</strong> — the
+        U.S. Consumer Product Safety Commission’s official recall database. To keep it fast and resilient, we
+        cache recall data at the edge and refresh it daily, so a lookup is instant and the economic verdict
+        never has to wait on an external service.
+      </p>
+      <div class="deflist" style="margin-top:var(--sp-5)">
+        <div class="def">
+          <span class="def-num">1</span>
+          <div>
+            <h3>You provide a UPC</h3>
+            <p>The barcode number on your appliance. It’s used for the lookup and discarded — for anonymous users it’s never linked to you.</p>
+          </div>
+        </div>
+        <div class="def">
+          <span class="def-num">2</span>
+          <div>
+            <h3>We match against CPSC records</h3>
+            <p>We check the official recall database for an active recall covering your product.</p>
+          </div>
+        </div>
+        <div class="def">
+          <span class="def-num">3</span>
+          <div>
+            <h3>A match reshapes the verdict</h3>
+            <p>An active recall pulls the recommendation firmly toward “repair” — because the manufacturer, not you, typically owes the fix.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2>What an active recall means</h2>
+      <div class="callout callout-repair">
+        <p class="callout-title">Pursue the free remedy first</p>
+        <p>
+          When a product is recalled, the manufacturer is generally responsible for making it right — at no
+          cost to you — through a free repair, a replacement, or a refund. That’s almost always a better outcome
+          than either a paid repair or buying new, so it takes priority over the economic math.
+        </p>
+      </div>
+      <p>Concretely, if we find an active recall:</p>
+      <ul>
+        <li><strong>Stop before you pay.</strong> Don’t authorize a paid repair for the recalled defect until you’ve checked the remedy.</li>
+        <li><strong>Contact the manufacturer</strong> or follow the official recall notice to claim your free repair, replacement, or refund.</li>
+        <li><strong>Mind the safety guidance.</strong> Some recalls advise you to stop using the product until it’s remedied — follow the notice.</li>
+      </ul>
+
+      <h2>Why this matters for repair-or-replace</h2>
+      <p>
+        A recall isn’t just a safety issue — it’s a financial one. A defect that would otherwise cost you a
+        repair bill (or push you toward an expensive replacement) may be fully covered. Folding the recall check
+        into the decision means you don’t accidentally pay for something the manufacturer already owes you.
+      </p>
+
+      <div class="callout callout-info">
+        <p class="callout-title">Coverage and limits</p>
+        <p>
+          Recall data can be incomplete or delayed, and a “no match” result is not a guarantee that no recall
+          exists. Always confirm directly with the manufacturer or at the official CPSC notice. Our recall check
+          is an aid, not a legal determination — see the <a href="/terms">terms</a>.
+        </p>
+      </div>
+
+      <div class="cta-band" style="margin-top:var(--sp-9)">
+        <div class="cta-copy">
+          <h2>Check your appliance</h2>
+          <p>Add your UPC in the calculator to include a recall check with your verdict.</p>
+        </div>
+        <a class="btn btn-primary btn-lg" href="/#calculator">Open the calculator</a>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

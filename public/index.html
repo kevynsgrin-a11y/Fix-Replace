@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RepairOrReplace — Should you repair or replace your appliance?</title>
+    <meta
+      name="description"
+      content="A free, evidence-based decision tool that tells you whether to repair or replace a major household appliance — using net-present-cost math, Weibull lifespan models, and real BLS, EIA and CPSC data. No sign-up."
+    />
+    <meta name="theme-color" content="#0d7c66" />
+    <link rel="canonical" href="https://repairorreplace.app/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RepairOrReplace" />
+    <meta property="og:url" content="https://repairorreplace.app/" />
+    <meta property="og:title" content="RepairOrReplace — Repair it or replace it? Get a straight answer." />
+    <meta
+      property="og:description"
+      content="Enter your appliance, its age, and the repair quote. We run the net-present-cost math on real data and give you an honest repair-or-replace verdict — free, no sign-up."
+    />
+    <meta property="og:image" content="https://repairorreplace.app/og.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="RepairOrReplace — Should you repair or replace your appliance?" />
+    <meta
+      name="twitter:description"
+      content="Free, evidence-based repair-vs-replace verdicts for major home appliances. Net-present-cost math on real BLS, EIA and CPSC data. No sign-up."
+    />
+    <meta name="twitter:image" content="https://repairorreplace.app/og.png" />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2040%2040'%3E%3Crect%20width='40'%20height='40'%20rx='11'%20fill='%230d7c66'/%3E%3Cpath%20d='M13%2016h12l-3-3M27%2024H15l3%203'%20stroke='%23fff'%20stroke-width='2.4'%20stroke-linecap='round'%20stroke-linejoin='round'%20fill='none'/%3E%3C/svg%3E"
+    />
+
+    <!-- No-FOUC theme -->
+    <script>
+      try {
+        var t = localStorage.getItem('ror-theme');
+        if (t) document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+
+    <link rel="stylesheet" href="/styles/tokens.css" />
+    <link rel="stylesheet" href="/styles/base.css" />
+    <link rel="stylesheet" href="/styles/calculator.css" />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "RepairOrReplace",
+        "url": "https://repairorreplace.app/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "description": "An evidence-based decision utility that tells homeowners whether to repair or replace a major household appliance, using net-present-cost analysis, Weibull remaining-useful-life modeling, localized labor and energy rates, and federal recall data.",
+        "featureList": [
+          "Repair-vs-replace verdict with a confidence score",
+          "Net present cost comparison over the unit's life",
+          "Weibull remaining-useful-life estimate",
+          "Localized labor and energy rates",
+          "CPSC federal recall lookup"
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How does RepairOrReplace decide between repairing and replacing?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "We compare the net present cost of repairing and keeping your current unit against buying a new one over the same horizon. The math includes your repair quote, the risk of a follow-on failure, energy costs at local rates, disposal, and a salvage credit — then discounts everything to today's dollars."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is there a sign-up or paywall?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. The calculator is free and requires no account or email. Partner links appear only after your verdict, are clearly labeled, and never change the result."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What data does the tool use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Appliance lifespans from NAHB and InterNACHI, regional labor rates from BLS OEWS, energy rates from the EIA, and recall data from the CPSC SaferProducts database."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What if the repair quote looks too high?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "If a quote is far outside the normal range for that repair, we withhold a definitive verdict and recommend getting a second opinion rather than showing false precision."
+            }
+          }
+        ]
+      }
+    </script>
+    <link rel="stylesheet" href="/styles/visuals.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#calculator">Skip to the calculator</a>
+    <div id="rr-live" class="sr-only" role="status" aria-live="polite"></div>
+
+    <main id="main">
+      <!-- ===================== HERO + CALCULATOR (above the fold) ============ -->
+      <section class="hero">
+        <div class="hero-atmos" aria-hidden="true">
+          <svg class="hero-curve" viewBox="0 0 560 240" fill="none">
+            <defs>
+              <linearGradient id="hcurve" x1="0" y1="0" x2="560" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="var(--repair)" />
+                <stop offset="0.5" stop-color="var(--uncertain)" />
+                <stop offset="1" stop-color="var(--replace)" />
+              </linearGradient>
+              <linearGradient id="hfillR" x1="0" y1="0" x2="0" y2="240" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="var(--repair)" stop-opacity="0.26" />
+                <stop offset="1" stop-color="var(--repair)" stop-opacity="0" />
+              </linearGradient>
+              <linearGradient id="hfillA" x1="0" y1="0" x2="0" y2="240" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="var(--replace)" stop-opacity="0.22" />
+                <stop offset="1" stop-color="var(--replace)" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <path d="M0 66C130 66 205 100 280 132L280 240 0 240Z" fill="url(#hfillR)" />
+            <path d="M280 132C355 164 430 196 560 208L560 240 280 240Z" fill="url(#hfillA)" />
+            <path class="hero-line" data-draw style="--draw-len: 780"
+                  d="M0 66C130 66 205 100 280 132 355 164 430 196 560 208"
+                  stroke="url(#hcurve)" stroke-width="3.5" stroke-linecap="round" />
+            <circle class="hero-node" cx="280" cy="132" r="6.5" fill="var(--brand)" data-pulse />
+          </svg>
+        </div>
+        <div class="container container-wide">
+          <div class="hero-grid">
+            <div class="hero-copy">
+              <span class="eyebrow">Repair-or-replace, decided</span>
+              <h1>
+                <span class="h1-lead"><span class="accent-repair">Repair&nbsp;it</span> or
+                <span class="accent-replace">replace&nbsp;it?</span></span><br />Get a straight answer.
+              </h1>
+              <p class="lede">
+                Enter your appliance, its age, and the technician's quote. We run the
+                net-present-cost math on real data and hand you an honest verdict — no
+                guesswork, no lead-capture wall.
+              </p>
+
+              <div class="cluster trust-chips" aria-label="What backs the tool">
+                <span class="trust-chip">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/></svg>
+                  NAHB · InterNACHI · BLS · EIA · CPSC data
+                </span>
+                <span class="trust-chip">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                  No sign-up
+                </span>
+                <span class="trust-chip">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M6 8h9a3 3 0 0 1 0 6H8"/></svg>
+                  Free
+                </span>
+              </div>
+
+              <div class="hero-signal">
+                <div class="stat"><b class="tnum">12</b><span>major appliance types</span></div>
+                <div class="stat"><b class="tnum">22</b><span>metro labor markets</span></div>
+                <div class="stat"><b>&lt;60s</b><span>to a verdict</span></div>
+              </div>
+            </div>
+
+            <!-- Calculator card -->
+            <div class="calc-card card" id="calculator">
+              <div class="calc-head">
+                <div>
+                  <h2>Should you repair or replace?</h2>
+                  <p>Answer a few questions for an evidence-based verdict.</p>
+                </div>
+                <span class="badge badge-brand calc-badge">Free</span>
+              </div>
+              <form id="intake-form" novalidate>
+                <p id="calc-intro" class="muted" style="padding: var(--sp-6) 0; text-align: center;">
+                  Loading the calculator…
+                </p>
+              </form>
+              <noscript>
+                <p class="muted">This calculator needs JavaScript enabled to run the analysis.</p>
+              </noscript>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== RESULT REGION ================================= -->
+      <section id="result-region" class="section-tight result-region" hidden aria-label="Your result">
+        <div class="container container-wide">
+          <div id="result-mount"></div>
+        </div>
+      </section>
+
+      <!-- ===================== HOW IT WORKS ================================= -->
+      <section class="section-tight" id="how-it-works">
+        <div class="container">
+          <div class="section-head ro-reveal">
+            <span class="eyebrow">How it works</span>
+            <h2>A real cost model — not a rule of thumb.</h2>
+            <p class="lede">
+              The tired "if the repair costs more than half a new unit, replace it" rule
+              ignores energy, risk of re-failure, and the time value of money. We don't.
+            </p>
+          </div>
+          <div class="steps">
+            <div class="step card ro-reveal">
+              <svg class="step-glyph" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <rect x="7" y="4" width="18" height="24" rx="3" stroke="var(--ink-instrument)" stroke-width="1.75" />
+                <path d="M11 11h10M11 16h10M11 21h6" stroke="var(--ink-instrument)" stroke-width="1.75" stroke-linecap="round" />
+                <circle cx="22" cy="21" r="2" fill="var(--brand)" />
+              </svg>
+              <div class="step-num">1</div>
+              <h3>Describe the unit</h3>
+              <p>
+                Appliance, build tier, age, the failed part, and the repair quote. Add
+                your metro or ZIP to localize labor and energy — or skip it for national
+                averages.
+              </p>
+            </div>
+            <div class="step card ro-reveal" style="--reveal-delay: 90ms">
+              <svg class="step-glyph" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <path d="M7 6v20h20" stroke="var(--ink-instrument)" stroke-width="1.75" stroke-linecap="round" />
+                <path d="M8 24c5 0 8-6 12-12 1.6-2.4 3.4-3.6 5-4.2" stroke="var(--brand)" stroke-width="1.75" stroke-linecap="round" />
+                <circle cx="20" cy="12" r="2" fill="var(--replace)" />
+              </svg>
+              <div class="step-num">2</div>
+              <h3>We run the math</h3>
+              <p>
+                A Weibull model estimates remaining life; a net-present-cost model prices
+                repairing-and-keeping against replacing — including energy, disposal,
+                salvage, and the odds of a second failure.
+              </p>
+            </div>
+            <div class="step card ro-reveal" style="--reveal-delay: 180ms">
+              <svg class="step-glyph" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <path d="M6 23a10 10 0 0 1 10-10" stroke="var(--repair)" stroke-width="1.75" stroke-linecap="round" />
+                <path d="M16 13a10 10 0 0 1 10 10" stroke="var(--replace)" stroke-width="1.75" stroke-linecap="round" />
+                <line x1="16" y1="23" x2="21" y2="17.5" stroke="var(--ink)" stroke-width="1.75" stroke-linecap="round" />
+                <circle cx="16" cy="23" r="2" fill="var(--brand)" />
+              </svg>
+              <div class="step-num">3</div>
+              <h3>Get an honest verdict</h3>
+              <p>
+                A clear repair-or-replace call with a confidence score, break-even point,
+                safety flags, and a recall check. If your quote looks predatory, we say so.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== WHY TRUST ==================================== -->
+      <section class="section-tight" id="why-trust">
+        <div class="container">
+          <div class="section-head ro-reveal">
+            <span class="eyebrow">Why you can trust it</span>
+            <h2>Neutral by design.</h2>
+            <p class="lede">
+              The verdict is computed before any partner link exists — and those links live
+              in a clearly separated block that can never change your result.
+            </p>
+          </div>
+          <div class="trust-grid">
+            <div class="trust-item card ro-reveal">
+              <svg class="trust-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M12 6l7 2M12 6 5 8m0 0-3 7a4 4 0 0 0 6 0l-3-7Zm14 0-3 7a4 4 0 0 0 6 0l-3-7ZM6 21h12"/></svg>
+              <h3>Transparent math</h3>
+              <p>
+                Every figure comes with a "How we calculated this" panel citing its source —
+                no black box, no fabricated precision.
+              </p>
+            </div>
+            <div class="trust-item card ro-reveal" style="--reveal-delay: 90ms">
+              <svg class="trust-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/><circle cx="12" cy="12" r="10"/></svg>
+              <h3>No lead-capture wall</h3>
+              <p>
+                No email, no account, no "unlock your result." You see the full analysis the
+                moment it's ready.
+              </p>
+            </div>
+            <div class="trust-item card ro-reveal" style="--reveal-delay: 180ms">
+              <svg class="trust-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+              <h3>Real, cited data</h3>
+              <p>
+                Lifespans, wages, energy rates, and recalls come from public authorities —
+                keyed to build tier and region, not one blunt average.
+              </p>
+            </div>
+          </div>
+
+          <div class="source-strip ro-reveal">
+            <span class="ss-label">Sources</span>
+            <span class="ss-item">NAHB</span>
+            <span class="ss-item">InterNACHI</span>
+            <span class="ss-item">BLS OEWS</span>
+            <span class="ss-item">EIA</span>
+            <span class="ss-item">CPSC SaferProducts</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== FAQ ========================================== -->
+      <section class="section-tight" id="faq">
+        <div class="container">
+          <div class="section-head ro-reveal" style="text-align: center; margin-inline: auto">
+            <span class="eyebrow">FAQ</span>
+            <h2>Common questions</h2>
+          </div>
+          <div class="faq ro-reveal">
+            <details class="faq-item">
+              <summary>How does it decide between repairing and replacing?</summary>
+              <div class="faq-body">
+                We compare the net present cost of repairing and keeping your current unit
+                against buying new over the same horizon. That includes your quote, the risk
+                of a follow-on failure, energy at local rates, disposal, and a salvage
+                credit — all discounted to today's dollars.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Is there a sign-up or paywall?</summary>
+              <div class="faq-body">
+                No. The calculator is free and needs no account or email. Partner links
+                appear only after your verdict, are clearly labeled, and never influence the
+                result.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>What data does the tool use?</summary>
+              <div class="faq-body">
+                Appliance lifespans from NAHB and InterNACHI, regional labor rates from BLS
+                OEWS (occupation 49-9031), energy rates from the EIA, and recall data from
+                the CPSC SaferProducts database.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>What happens if my repair quote looks too high?</summary>
+              <div class="faq-body">
+                If a quote is far outside the normal range for that repair, we withhold a
+                definitive verdict and recommend a second opinion instead of showing false
+                precision. A realistic number gets you a real verdict.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Is this a substitute for a technician's diagnosis?</summary>
+              <div class="faq-body">
+                No — it's a financial and lifespan decision aid, not a safety certification
+                or repair diagnosis. Always follow a licensed professional's guidance for
+                gas, refrigerant, or high-voltage work.
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script defer src="/scripts/chrome.js"></script>
+    <script type="module" src="/scripts/calculator.js"></script>
+  </body>
+</html>

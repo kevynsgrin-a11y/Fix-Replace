@@ -1,0 +1,637 @@
+/* =============================================================================
+   RepairOrReplace — Visual layer ("The Verdict Engine" / Instrument Line)
+   Loaded LAST on every page. Additive only: new tokens + paint-only overrides
+   of existing selectors + a few new utilities. Never touches layout/geometry
+   that calculator.js or chrome.js rely on. Zero new JS. Every expensive effect
+   is gated behind @supports and/or prefers-reduced-motion.
+   ========================================================================== */
+
+/* -----------------------------------------------------------------------------
+   A. TOKEN EXTENSIONS  (new names only — never redefine existing tokens)
+   -------------------------------------------------------------------------- */
+:root {
+  /* Aurora atmosphere, all derived from the meaningful brand hues */
+  --aurora-teal: color-mix(in srgb, var(--brand) 55%, transparent);
+  --aurora-jade: color-mix(in srgb, var(--repair) 45%, transparent);
+  --aurora-amber: color-mix(in srgb, var(--replace) 22%, transparent);
+  --aurora-mist: color-mix(in srgb, var(--surface) 88%, transparent);
+
+  /* Gradients */
+  --grad-brand: linear-gradient(180deg, var(--brand) 0%, var(--brand-strong) 100%);
+  --grad-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 42%);
+  --grad-verdict-repair: linear-gradient(135deg, color-mix(in srgb, var(--repair) 16%, var(--surface)) 0%, var(--surface) 60%);
+  --grad-verdict-replace: linear-gradient(135deg, color-mix(in srgb, var(--replace) 16%, var(--surface)) 0%, var(--surface) 60%);
+
+  /* Instrument ink for hairlines / ticks / line-art */
+  --ink-instrument: color-mix(in srgb, var(--ink) 52%, var(--line));
+
+  /* Colored glows */
+  --glow-brand: 0 0 0 1px color-mix(in srgb, var(--brand) 35%, transparent),
+    0 8px 30px color-mix(in srgb, var(--brand) 28%, transparent);
+  --glow-repair: 0 0 22px color-mix(in srgb, var(--repair) 40%, transparent);
+  --glow-replace: 0 0 22px color-mix(in srgb, var(--replace) 40%, transparent);
+
+  /* Elevation extensions */
+  --shadow-xl: 0 32px 80px rgba(14, 23, 38, 0.16), 0 12px 28px rgba(14, 23, 38, 0.1);
+  --shadow-float: 0 20px 44px rgba(14, 23, 38, 0.12), 0 4px 12px rgba(14, 23, 38, 0.07);
+  --shadow-brand: 0 24px 60px color-mix(in srgb, var(--brand) 22%, transparent),
+    0 6px 18px rgba(14, 23, 38, 0.1);
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+
+  --tracking-display: -0.035em;
+  --dur-slower: 720ms;
+  --ease-spring: cubic-bezier(0.22, 1.2, 0.36, 1);
+
+  --grain-opacity: 0.035;
+  --grain-blend: overlay;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --aurora-teal: color-mix(in srgb, var(--brand) 42%, transparent);
+    --aurora-jade: color-mix(in srgb, var(--repair) 34%, transparent);
+    --aurora-amber: color-mix(in srgb, var(--replace) 20%, transparent);
+    --aurora-mist: color-mix(in srgb, var(--surface-2) 82%, transparent);
+    --grad-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 42%);
+    --grad-verdict-repair: linear-gradient(135deg, color-mix(in srgb, var(--repair) 20%, var(--surface)) 0%, var(--surface) 62%);
+    --grad-verdict-replace: linear-gradient(135deg, color-mix(in srgb, var(--replace) 20%, var(--surface)) 0%, var(--surface) 62%);
+    --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --shadow-brand: 0 26px 64px rgba(0, 0, 0, 0.55), 0 0 40px color-mix(in srgb, var(--brand) 20%, transparent);
+    --grain-opacity: 0.055;
+    --grain-blend: soft-light;
+  }
+}
+:root[data-theme="dark"] {
+  --aurora-teal: color-mix(in srgb, var(--brand) 42%, transparent);
+  --aurora-jade: color-mix(in srgb, var(--repair) 34%, transparent);
+  --aurora-amber: color-mix(in srgb, var(--replace) 20%, transparent);
+  --aurora-mist: color-mix(in srgb, var(--surface-2) 82%, transparent);
+  --grad-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 42%);
+  --grad-verdict-repair: linear-gradient(135deg, color-mix(in srgb, var(--repair) 20%, var(--surface)) 0%, var(--surface) 62%);
+  --grad-verdict-replace: linear-gradient(135deg, color-mix(in srgb, var(--replace) 20%, var(--surface)) 0%, var(--surface) 62%);
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-brand: 0 26px 64px rgba(0, 0, 0, 0.55), 0 0 40px color-mix(in srgb, var(--brand) 20%, transparent);
+  --grain-opacity: 0.055;
+  --grain-blend: soft-light;
+}
+
+/* -----------------------------------------------------------------------------
+   B. GLOBAL ATMOSPHERE  (no markup needed — body pseudo-layers behind content)
+   -------------------------------------------------------------------------- */
+body::before {
+  /* Aurora field */
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 55% at 82% -8%, var(--aurora-teal) 0%, transparent 60%),
+    radial-gradient(50% 50% at 8% 4%, var(--aurora-jade) 0%, transparent 55%),
+    radial-gradient(55% 60% at 20% 108%, var(--aurora-amber) 0%, transparent 60%);
+}
+body::after {
+  /* Fine grain — kills gradient banding, adds tactility */
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* -----------------------------------------------------------------------------
+   C. COMPONENT ENHANCEMENTS  (paint-only overrides of existing selectors)
+   -------------------------------------------------------------------------- */
+
+/* Sticky header → frosted instrument bar */
+@supports (backdrop-filter: blur(1px)) {
+  .site-header {
+    background: color-mix(in srgb, var(--canvas) 72%, transparent);
+    backdrop-filter: blur(16px) saturate(1.5);
+    box-shadow: var(--edge-light);
+  }
+}
+
+/* Lit glass cards */
+.card,
+.step,
+.trust-item,
+.faq-item {
+  position: relative;
+  box-shadow: var(--shadow-sm), var(--edge-light);
+}
+.card:hover,
+.trust-item:hover {
+  box-shadow: var(--shadow-float), var(--edge-light);
+}
+
+/* The calculator card — the centerpiece "lit glass instrument" */
+.calc-card {
+  position: relative;
+  background:
+    var(--grad-sheen),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, var(--brand)) 0%, var(--surface) 40%);
+  box-shadow: var(--shadow-brand), var(--edge-light);
+  border: 1px solid color-mix(in srgb, var(--brand) 14%, var(--line));
+  transition: box-shadow var(--dur) var(--ease-out);
+}
+.calc-card:focus-within {
+  box-shadow: var(--shadow-brand), var(--glow-brand), var(--edge-light);
+}
+/* Corner-tick brackets framing the instrument */
+.calc-card::before,
+.calc-card::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid color-mix(in srgb, var(--brand) 55%, transparent);
+  pointer-events: none;
+}
+.calc-card::before {
+  top: 12px;
+  left: 12px;
+  border-right: 0;
+  border-bottom: 0;
+  border-top-left-radius: 6px;
+}
+.calc-card::after {
+  bottom: 12px;
+  right: 12px;
+  border-left: 0;
+  border-top: 0;
+  border-bottom-right-radius: 6px;
+}
+
+/* Verdict / result hero reads as a financial instrument */
+.rr-verdict {
+  position: relative;
+  box-shadow: var(--shadow-float), var(--edge-light);
+  overflow: hidden;
+}
+.rr-verdict[data-verdict="repair"] {
+  background: var(--grad-verdict-repair);
+}
+.rr-verdict[data-verdict="replace"] {
+  background: var(--grad-verdict-replace);
+}
+.rr-verdict::before {
+  /* plotted-chart hairline ground */
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--ink-instrument) 22%, transparent) 1px, transparent 1px);
+  background-size: 100% 30px;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 78%);
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 78%);
+}
+.rr-verdict > * {
+  position: relative;
+  z-index: 1;
+}
+/* Gauge glow keyed to verdict */
+.rr-verdict[data-verdict="repair"] .gauge-readout b {
+  text-shadow: var(--glow-repair);
+}
+.rr-verdict[data-verdict="replace"] .gauge-readout b {
+  text-shadow: var(--glow-replace);
+}
+
+/* Step cards → spec cards with a glowing numbered node + connecting hairline */
+.steps {
+  position: relative;
+}
+.step {
+  background:
+    var(--grad-sheen),
+    var(--surface);
+}
+.step-glyph {
+  width: 38px;
+  height: 38px;
+  padding: 11px;
+  box-sizing: content-box;
+  margin-bottom: var(--sp-5);
+  background: var(--brand-tint);
+  border-radius: var(--r-md);
+  box-shadow: var(--edge-light);
+}
+/* Connective "process" hairline threading the three steps (wide layout only). */
+@media (min-width: 861px) {
+  .steps {
+    position: relative;
+  }
+  .steps::before {
+    content: "";
+    position: absolute;
+    top: calc(var(--sp-7) + 30px);
+    left: 12%;
+    right: 12%;
+    height: 2px;
+    z-index: 0;
+    background: linear-gradient(90deg, transparent, var(--brand) 18%, var(--brand) 82%, transparent);
+    opacity: 0.35;
+  }
+  .steps > .step {
+    z-index: 1;
+  }
+}
+.step .step-num {
+  position: absolute;
+  top: var(--sp-6);
+  right: var(--sp-6);
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--step--1);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 12%, transparent),
+    0 6px 16px color-mix(in srgb, var(--brand) 24%, transparent);
+}
+
+/* Trust icons on a faint grid ground */
+.trust-ico {
+  box-shadow: var(--glow-brand);
+}
+
+/* Source-strip → tactile provenance rail */
+.source-strip {
+  border-top: 1px solid transparent;
+  border-image: linear-gradient(90deg, transparent, var(--line-strong) 20%, var(--line-strong) 80%, transparent) 1;
+}
+.ss-item + .ss-item {
+  position: relative;
+}
+
+/* -----------------------------------------------------------------------------
+   D. NEW UTILITIES
+   -------------------------------------------------------------------------- */
+
+/* Monospaced "data voice" for figures the instrument reads out */
+.data-readout,
+.gauge-readout b,
+.npc-amount,
+.conf-score,
+.stat-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Aurora block (scoped decorative background for a section) */
+.aurora {
+  position: relative;
+  isolation: isolate;
+}
+.aurora::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(50% 60% at 85% 0%, var(--aurora-teal) 0%, transparent 60%),
+    radial-gradient(45% 55% at 5% 100%, var(--aurora-amber) 0%, transparent 60%);
+}
+
+/* Instrument grid ground */
+.instrument-grid {
+  position: relative;
+}
+.instrument-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.6;
+  background-image:
+    radial-gradient(color-mix(in srgb, var(--ink-instrument) 30%, transparent) 1px, transparent 1.4px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(80% 80% at 50% 40%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(80% 80% at 50% 40%, #000 30%, transparent 75%);
+}
+
+/* Frosted glass instrument surface */
+.glass-instrument {
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  box-shadow: var(--shadow-float), var(--edge-light);
+  border: 1px solid color-mix(in srgb, var(--line-strong) 70%, transparent);
+}
+@supports (backdrop-filter: blur(1px)) {
+  .glass-instrument {
+    backdrop-filter: blur(14px) saturate(1.3);
+  }
+}
+
+/* Hairline divider with a centered measurement tick */
+.hairline-rule {
+  position: relative;
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, var(--line-strong) 25%, var(--line-strong) 75%, transparent);
+  margin-block: var(--sp-9);
+}
+.hairline-rule::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+  transform: translate(-50%, -50%);
+  box-shadow: var(--glow-brand);
+}
+
+/* Art-directed photo frame (for ORIGINAL / user-supplied local images only).
+   Any image dropped in is normalized into the brand palette so it can never
+   look like raw stock. */
+.media-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-float), var(--edge-light);
+  aspect-ratio: 16 / 10;
+  background: var(--surface-2);
+}
+.media-frame > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.media-frame.duotone > img {
+  filter: grayscale(1) contrast(1.05) brightness(1.02);
+}
+.media-frame.duotone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: color;
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-strong) 100%);
+  opacity: 0.55;
+}
+.media-frame .figure-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--step--1);
+  color: #fff;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.55), transparent);
+}
+
+/* Content-page hero → restrained aurora + grid + room for a spot illustration */
+.page-hero {
+  position: relative;
+  overflow: hidden;
+}
+.page-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(55% 120% at 92% -20%, var(--aurora-teal) 0%, transparent 55%),
+    radial-gradient(40% 90% at 0% 120%, var(--aurora-amber) 0%, transparent 55%);
+}
+.page-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Hero signature plane — verdict curve behind the copy (never over the card) */
+.hero {
+  position: relative;
+  isolation: isolate;
+}
+.hero-atmos {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-atmos::before {
+  /* faint instrument dot-grid, radial-masked */
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  background-image: radial-gradient(color-mix(in srgb, var(--ink-instrument) 26%, transparent) 1px, transparent 1.4px);
+  background-size: 30px 30px;
+  -webkit-mask-image: radial-gradient(70% 70% at 30% 42%, #000 20%, transparent 72%);
+  mask-image: radial-gradient(70% 70% at 30% 42%, #000 20%, transparent 72%);
+}
+.hero-curve {
+  position: absolute;
+  left: 0;
+  top: 46%;
+  width: min(540px, 46%);
+  height: auto;
+  opacity: 0.66;
+  filter: drop-shadow(0 8px 22px color-mix(in srgb, var(--brand) 16%, transparent));
+}
+.hero-node {
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--brand) 75%, transparent));
+}
+@media (max-width: 860px) {
+  .hero-curve { width: 76%; opacity: 0.4; top: auto; bottom: 1%; }
+}
+
+/* Hero headline hierarchy: the question is secondary; the payoff dominates. */
+.hero-copy h1 .h1-lead {
+  font-size: 0.8em;
+}
+/* Richer, higher-contrast amber for the accent word on light surfaces. */
+.accent-replace {
+  color: var(--replace-ink);
+}
+
+/* Mobile header: the calculator is right below, so drop the header CTA to stop
+   it overflowing narrow viewports; brand + theme toggle remain. */
+@media (max-width: 560px) {
+  .site-header .header-actions .btn {
+    display: none;
+  }
+}
+
+/* Display type refinement */
+.hero-copy h1,
+.page-hero h1 {
+  letter-spacing: var(--tracking-display);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+/* Links inside running prose must be distinguishable without relying on color
+   (WCAG 1.4.1): underline them so they read as links against body copy. */
+.prose a:not(.btn) {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+.prose a:not(.btn):hover {
+  text-decoration-color: currentColor;
+}
+
+/* Eyebrow tick */
+.eyebrow::before {
+  content: "";
+  width: 14px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--brand);
+}
+
+/* -----------------------------------------------------------------------------
+   E. MOTION  (transform/opacity only; all disabled under reduced motion)
+   -------------------------------------------------------------------------- */
+@keyframes ror-aurora-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -1.4%, 0) scale(1.04); }
+}
+@keyframes ror-node-pulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+@keyframes ror-draw-on {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes ror-sheen-sweep {
+  0% { transform: translateX(-120%) skewX(-16deg); }
+  100% { transform: translateX(220%) skewX(-16deg); }
+}
+
+body::before {
+  will-change: transform;
+  animation: ror-aurora-drift 52s ease-in-out infinite;
+}
+
+/* Primary button sheen sweep on hover */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: translateX(-140%) skewX(-16deg);
+}
+.btn-primary:hover::after {
+  animation: ror-sheen-sweep 0.7s var(--ease-out);
+}
+
+/* Draw-on for any inline SVG signature art marked data-draw */
+[data-draw] {
+  stroke-dasharray: var(--draw-len, 1200);
+  stroke-dashoffset: var(--draw-len, 1200);
+  animation: ror-draw-on var(--dur-slower) var(--ease-out) 0.15s forwards;
+}
+[data-pulse] {
+  animation: ror-node-pulse 3.2s ease-in-out 1s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
+  .btn-primary:hover::after { animation: none; }
+  [data-draw] { stroke-dashoffset: 0; animation: none; }
+  [data-pulse] { animation: none; }
+}
+
+/* Scroll-progress hairline under the header (progressive enhancement) */
+@supports (animation-timeline: scroll()) {
+  .site-header::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    height: 2px;
+    width: 100%;
+    transform-origin: 0 50%;
+    background: var(--grad-brand);
+    animation: ror-scrollbar linear;
+    animation-timeline: scroll(root);
+  }
+  @keyframes ror-scrollbar {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   G. FIRST-IMPRESSION POLISH (from design review)
+   -------------------------------------------------------------------------- */
+
+/* Tighten the gap between a content-page hero and the first prose block so it
+   never reads as an empty/broken band. */
+.page-hero + .container.section,
+.page-hero + .section {
+  padding-top: var(--sp-9);
+}
+
+/* Hero stats: keep the natural content-width row on desktop, but on narrow
+   phones force a clean 3-up grid so the third stat is never orphaned. */
+@media (max-width: 560px) {
+  .hero-signal {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-3);
+    align-items: start;
+  }
+  .hero-signal .stat span {
+    font-size: 0.76rem;
+  }
+}
+
+/* Result "repeat-failure" note: swap the clip-art warning blob for a restrained
+   amber left-rule stat that matches the instrument vocabulary. */
+.risk-chip {
+  background: var(--warn-tint) !important;
+  border-left: 3px solid var(--warn);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  padding: var(--sp-3) var(--sp-4) !important;
+  align-items: center;
+}
+.risk-chip .callout-icon,
+.risk-chip > svg {
+  width: 22px !important;
+  height: 22px !important;
+  flex: none;
+  color: var(--warn);
+}
+
+/* -----------------------------------------------------------------------------
+   F. MONETIZATION — deliberately withheld from premium treatment (trust)
+   -------------------------------------------------------------------------- */
+.rr-monetize,
+.mon-group,
+.monetization {
+  background: var(--surface) !important;
+  box-shadow: none !important;
+}
+/* Small "part / new unit" tag: bump off --muted for WCAG AA on its surface. */
+.mon-tag {
+  color: var(--body);
+}

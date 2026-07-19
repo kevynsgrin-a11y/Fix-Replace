@@ -13,7 +13,7 @@ INSERT OR REPLACE INTO labor_rates (metro_slug, metro_name, state, mean_hourly_w
   ('miami',         'Miami, FL',                 'FL', 22.87, 0.949),
   ('seattle',       'Seattle, WA',               'WA', 29.10, 1.207),
   ('dallas',        'Dallas, TX',                'TX', 23.40, 0.971),
-  ('houston',       'Houston, TX',               'TX', 23.10, 0.958),
+  ('houston',       'Houston, TX',               'TX', 23.10, 0.959),
   ('atlanta',       'Atlanta, GA',               'GA', 23.00, 0.954),
   ('denver',        'Denver, CO',                'CO', 25.60, 1.062),
   ('phoenix',       'Phoenix, AZ',               'AZ', 23.30, 0.967),
