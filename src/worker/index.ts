@@ -3,7 +3,7 @@ import { getCatalog } from '../core/catalog.js';
 import type { ApplianceCategory, CalculationInput } from '../core/types.js';
 import { APPLIANCES } from '../data/appliances.js';
 import { getComponent } from '../data/partCosts.js';
-import { checkRecall, ingestRecentRecalls } from '../recalls/cpsc.js';
+import { checkRecall, fetchRecallsByUpc, ingestRecentRecalls } from '../recalls/cpsc.js';
 
 /**
  * RepairOrReplace edge Worker.
@@ -16,11 +16,22 @@ import { checkRecall, ingestRecentRecalls } from '../recalls/cpsc.js';
 
 export interface Env {
   ASSETS: Fetcher;
-  DB: D1Database;
-  CACHE: KVNamespace;
-  REPORTS: R2Bucket;
+  /** Optional — Phase 2 (accounts + inventories). Absent until provisioned. */
+  DB?: D1Database;
+  /** Optional — enables result sharing, recall caching, and the daily cron. */
+  CACHE?: KVNamespace;
+  /** Optional — Phase 3 (generated PDF reports). */
+  REPORTS?: R2Bucket;
   DISCOUNT_RATE: string;
   CPSC_API_BASE: string;
+}
+
+/** Recall lookup that uses the KV cache when provisioned, else hits CPSC directly. */
+function recallLookup(env: Env, upc: string) {
+  if (env.CACHE) {
+    return checkRecall({ CACHE: env.CACHE, CPSC_API_BASE: env.CPSC_API_BASE }, upc);
+  }
+  return fetchRecallsByUpc(env.CPSC_API_BASE, upc);
 }
 
 const SECURITY_HEADERS: Record<string, string> = {
@@ -126,7 +137,7 @@ async function handleCalculate(request: Request, env: Env): Promise<Response> {
   const discountRate = Number.parseFloat(env.DISCOUNT_RATE);
   const result = await calculateDecision(parsed.value, {
     discountRate: Number.isFinite(discountRate) ? discountRate : undefined,
-    recallLookup: (upc) => checkRecall(env, upc),
+    recallLookup: (upc) => recallLookup(env, upc),
   });
   return json(result);
 }
@@ -136,11 +147,14 @@ async function handleRecall(url: URL, env: Env): Promise<Response> {
   if (!upc || !UPC_RE.test(upc)) {
     return json({ error: 'A valid "upc" (8–14 digits) query parameter is required.' }, { status: 400 });
   }
-  const result = await checkRecall(env, upc);
+  const result = await recallLookup(env, upc);
   return json(result);
 }
 
 async function handleReportSave(request: Request, env: Env): Promise<Response> {
+  if (!env.CACHE) {
+    return json({ error: 'Sharing is temporarily unavailable on this deployment.' }, { status: 503 });
+  }
   // Bound the payload before touching KV: the endpoint is unauthenticated, so a
   // size cap + shape check keep it from being abused to flood the namespace.
   const declared = Number(request.headers.get('content-length') ?? '');
@@ -175,6 +189,9 @@ async function handleReportSave(request: Request, env: Env): Promise<Response> {
 }
 
 async function handleReportGet(url: URL, env: Env): Promise<Response> {
+  if (!env.CACHE) {
+    return json({ error: 'Sharing is temporarily unavailable on this deployment.' }, { status: 503 });
+  }
   const id = url.searchParams.get('id');
   if (!id || !UUID_RE.test(id)) return json({ error: 'A valid report "id" is required.' }, { status: 400 });
   const stored = await env.CACHE.get(`report:${id}`);
@@ -218,6 +235,8 @@ export default {
   },
 
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(ingestRecentRecalls(env));
+    // Recall ingestion needs the KV cache; no-op until it is provisioned.
+    if (!env.CACHE) return;
+    ctx.waitUntil(ingestRecentRecalls({ CACHE: env.CACHE, CPSC_API_BASE: env.CPSC_API_BASE }));
   },
 };
