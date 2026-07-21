@@ -2,14 +2,26 @@
   // RepairOrReplace — Cloudflare Worker configuration.
   // A single Worker serves the static frontend (via the Assets binding) and the
   // /api/* compute layer (NPC + Weibull algorithms, CPSC recall lookups).
+  //
+  // This config deploys OUT OF THE BOX with zero provisioned resources: the
+  // Worker degrades gracefully when the optional KV/D1/R2 bindings are absent
+  // (result-sharing returns 503, recall lookups skip caching, the cron no-ops).
+  // To enable full functionality, create the resources and uncomment the
+  // binding blocks below — see docs/DEPLOYMENT.md.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "repair-or-replace",
   "main": "src/worker/index.ts",
   "compatibility_date": "2024-09-23",
   "compatibility_flags": ["nodejs_compat"],
 
-  // Static frontend (Cloudflare Pages-equivalent). The Worker runs first and
-  // falls through to these assets for any non-/api route.
+  // Production custom domains (zone must live in the same Cloudflare account).
+  "routes": [
+    { "pattern": "repair-or-replace.net", "custom_domain": true },
+    { "pattern": "www.repair-or-replace.net", "custom_domain": true }
+  ],
+
+  // Static frontend. The Worker runs first and falls through to these assets
+  // for any non-/api route.
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
@@ -21,34 +33,35 @@
     "enabled": true
   },
 
-  // Serverless SQL at the edge: user accounts, saved appliance inventories,
-  // and the zip -> BLS labor-rate grid.
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "repair_or_replace",
-      "database_id": "00000000-0000-0000-0000-000000000000",
-      "migrations_dir": "migrations"
-    }
-  ],
-
-  // Hot cache for slow-changing federal data: CPSC recalls + labor averages.
-  "kv_namespaces": [
-    {
-      "binding": "CACHE",
-      "id": "0000000000000000000000000000000000"
-    }
-  ],
-
-  // Object storage for generated PDF reports (professional tier) + asset images.
-  "r2_buckets": [
-    {
-      "binding": "REPORTS",
-      "bucket_name": "repair-or-replace-reports"
-    }
-  ],
+  // --- Optional resources -----------------------------------------------------
+  // Uncomment after creating each resource and pasting its real id.
+  //
+  // Hot cache + shared-result store (enables /api/report sharing, recall
+  // caching, and the daily recall ingestion):
+  //   npx wrangler kv namespace create CACHE
+  // "kv_namespaces": [
+  //   { "binding": "CACHE", "id": "<paste-kv-namespace-id>" }
+  // ],
+  //
+  // Serverless SQL (Phase 2: accounts + appliance inventories):
+  //   npx wrangler d1 create repair_or_replace
+  // "d1_databases": [
+  //   {
+  //     "binding": "DB",
+  //     "database_name": "repair_or_replace",
+  //     "database_id": "<paste-d1-database-id>",
+  //     "migrations_dir": "migrations"
+  //   }
+  // ],
+  //
+  // Object storage (Phase 3: generated PDF reports):
+  //   npx wrangler r2 bucket create repair-or-replace-reports
+  // "r2_buckets": [
+  //   { "binding": "REPORTS", "bucket_name": "repair-or-replace-reports" }
+  // ],
 
   // Daily worker that ingests fresh CPSC recalls into KV (03:15 UTC).
+  // Harmless no-op until the CACHE binding above is enabled.
   "triggers": {
     "crons": ["15 3 * * *"]
   },
