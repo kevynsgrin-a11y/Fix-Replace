@@ -595,3 +595,21 @@ Drawn from the phase markers in the code and migrations:
 ## License
 
 MIT.
+
+## Front-end tooling
+
+The site ships as hand-written HTML with no build step, so three small scripts
+keep 26 pages honest. Run them before shipping:
+
+| Command | What it does |
+| --- | --- |
+| `npm run chrome` | Stamps the canonical header, drawer, skip link and footer (`tools/site-chrome.mjs`) into every page under `public/`. Idempotent. |
+| `npm run chrome:check` | Fails if any page's chrome has drifted from the template. |
+| `npm run check:pages` | Asserts meta/title lengths, unique per-page social cards, favicon + manifest links, keyboard-reachable tables, heading order, valid JSON-LD and no dead internal links. |
+| `npm run social` | Re-renders `public/social/og-*.png` from `tools/social-card-template.html` and refreshes `public/og.png`. |
+| `npm run icons` | Re-renders the favicon/app-icon set. |
+
+**The site chrome is static, not injected.** It is the entire internal link
+graph and it owns the page landmarks, so it has to be in the served HTML —
+editing a header link means editing `tools/site-chrome.mjs` and re-running
+`npm run chrome`, never editing one page's markup by hand.

@@ -37,41 +37,59 @@
   stroke: var(--ink-instrument);
 }
 
-/* --- Placement: sits in the empty right column of the hero, behind the copy
-   (copy is .page-hero > * { z-index:1 } from visuals.css). Decorative + inert. */
+/* --- Placement: the empty right column of the hero. The offset is measured
+   from the CONTENT COLUMN, not the viewport — anchored to the window the
+   figure drifted a further ~100px away from the copy at every width above
+   1280px, and its left edge crossed into the H1 line box. */
 .page-hero .hero-figure {
   position: absolute;
   z-index: 0;
   top: 50%;
-  right: clamp(8px, 4vw, 60px);
-  width: clamp(190px, 26vw, 340px);
+  right: max(var(--sp-6), calc((100vw - var(--w-content)) / 2 + var(--sp-6)));
+  width: clamp(190px, 22vw, 300px);
   transform: translateY(-50%);
   opacity: 0.92;
   pointer-events: none;
 }
+/* The copy column must stop before the figure. Without this the .lede's 62ch
+   measure ran 64px under the illustration at 1440. Scoped with :has() so the
+   guide hub — which carries no figure — keeps the full width; browsers
+   without :has() simply keep the previous behaviour. */
+@media (min-width: 901px) {
+  .page-hero:has(.hero-figure) .container > * {
+    max-width: calc(100% - clamp(190px, 22vw, 300px) - var(--sp-8));
+  }
+  .page-hero:has(.hero-figure--city) .container > * {
+    max-width: calc(100% - clamp(150px, 18vw, 232px) - var(--sp-8));
+  }
+}
+
 /* City pages: a lighter, smaller touch. */
 .page-hero .hero-figure--city {
-  width: clamp(150px, 20vw, 244px);
+  width: clamp(150px, 18vw, 232px);
   opacity: 0.82;
 }
 
-/* Below the two-column threshold the copy uses the full width, so the figure
-   recedes to a faint instrument watermark that can never fight the text. */
+/* Below the two-column threshold there is no right column to sit in. The old
+   rule kept the figure absolute at 9-12% opacity behind the breadcrumb and
+   H1 — 31px of it cropped off-screen and composited at ~1.05:1, which is a
+   smudge, not an illustration. It becomes a legible badge above the eyebrow
+   instead, reusing the guide-hub chip language. */
 @media (max-width: 900px) {
-  .page-hero .hero-figure {
-    top: 0;
-    right: -8%;
-    width: clamp(240px, 60vw, 420px);
-    opacity: 0.12;
-    transform: translateY(16%);
+  .page-hero {
+    display: flex;
+    flex-direction: column;
   }
+  .page-hero .hero-figure,
   .page-hero .hero-figure--city {
-    width: clamp(200px, 48vw, 340px);
-    opacity: 0.1;
+    order: -1;
+    position: static;
+    width: 104px;
+    padding-inline: var(--sp-6);
+    margin-bottom: var(--sp-2);
+    opacity: 1;
+    transform: none;
   }
-}
-@media (max-width: 560px) {
-  .page-hero .hero-figure { opacity: 0.09; }
 }
 
 /* --- Guide-hub cards: small matching Instrument-Line glyph in the .guide-icon
