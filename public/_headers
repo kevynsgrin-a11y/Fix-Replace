@@ -17,11 +17,6 @@
 /scripts/*
   Cache-Control: public, max-age=600, stale-while-revalidate=86400
 
-# Illustration CSS + SVG art: referenced by 16 pages and previously falling
-# through to max-age=0, costing a real round trip per navigation.
-/art/*
-  Cache-Control: public, max-age=604800
-
 # Icons and the manifest change only with a rebrand.
 /icon.svg
   Cache-Control: public, max-age=604800

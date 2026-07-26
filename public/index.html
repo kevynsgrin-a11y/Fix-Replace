@@ -63,6 +63,34 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://repair-or-replace.net/#org",
+            "name": "RepairOrReplace",
+            "url": "https://repair-or-replace.net/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://repair-or-replace.net/icon-512.png",
+              "width": 512,
+              "height": 512
+            },
+            "description": "An independent, evidence-based decision utility for repair-or-replace calls on major household appliances."
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://repair-or-replace.net/#website",
+            "url": "https://repair-or-replace.net/",
+            "name": "RepairOrReplace",
+            "publisher": { "@id": "https://repair-or-replace.net/#org" },
+            "inLanguage": "en-US"
+          }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "RepairOrReplace",
         "url": "https://repair-or-replace.net/",
@@ -402,7 +430,7 @@
               <div class="faq-body">
                 Appliance lifespans from NAHB and InterNACHI, regional labor rates from BLS
                 OEWS (occupation 49-9031), energy rates from the EIA, and recall data from
-                the CPSC SaferProducts database — each one cited on the
+                the <a href="/recalls">CPSC SaferProducts database</a> — each one cited on the
                 <a href="/methodology">methodology page</a>. Rates are also broken out by
                 <a href="/appliance-repair-cost/">metro area</a>.
               </div>

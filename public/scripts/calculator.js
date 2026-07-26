@@ -231,6 +231,64 @@ function gaugeMarkup(pos) {
     </div>`;
 }
 
+/**
+ * Compose one plain sentence explaining WHY the verdict came out the way it
+ * did, from the largest contributing terms in the response.
+ *
+ * The result view is otherwise eight panels and a dozen numbers with no
+ * sentence in it — a dashboard, not an answer. Everything here is already in
+ * the payload; nothing is invented, and each figure links to the panel that
+ * proves it.
+ */
+function verdictNarrative(r) {
+  const npc = r.npc || {};
+  const repair = num(npc.repair);
+  const replace = num(npc.replace);
+  if (!repair || !replace) return '';
+
+  const repairWins = repair <= replace;
+  const gap = Math.abs(repair - replace);
+  const horizon = fmtYears(npc.horizonYears);
+  const parts = [];
+
+  // Lead with the decision and its size.
+  const lead = repairWins
+    ? `Repairing comes out <b class="tnum">${fmtMoney(gap)}</b> cheaper over ${esc(horizon)}`
+    : `Replacing comes out <b class="tnum">${fmtMoney(gap)}</b> cheaper over ${esc(horizon)}`;
+
+  // Then the two largest drivers behind it.
+  const energy = r.energy || {};
+  const annual = num(energy.annualSavings);
+  if (Math.abs(annual) >= 15) {
+    parts.push(
+      annual > 0
+        ? `a new unit cuts <b class="tnum">${fmtMoney(annual)}</b>/yr in energy`
+        : `a new unit would add <b class="tnum">${fmtMoney(Math.abs(annual))}</b>/yr in energy`,
+    );
+  }
+
+  const rc = r.repairCost || {};
+  const repeat = num(rc.repeatFailureProbability);
+  if (repeat >= 0.15) {
+    // Phrased without an article: "a 85%" / "an 85%" is a coin-flip the
+    // number decides at runtime, and getting it wrong reads as a bug.
+    parts.push(`another failure is <b class="tnum">${fmtPct(repeat)}</b> likely within two years`);
+  }
+
+  const rul = r.rul || {};
+  const remaining = num(rul.medianRemainingYears);
+  if (remaining > 0 && remaining < 4) {
+    parts.push(`the unit has about <b class="tnum">${esc(fmtYears(remaining))}</b> of median life left`);
+  } else if (remaining >= 8) {
+    parts.push(`the unit still has about <b class="tnum">${esc(fmtYears(remaining))}</b> of median life left`);
+  }
+
+  const because = parts.length
+    ? ` — mostly because ${parts.slice(0, 2).join(', and ')}.`
+    : '.';
+  return `<p class="verdict-why">${lead}${because}</p>`;
+}
+
 function verdictMarkup(r) {
   const meta = VERDICT_META[r.verdict] || VERDICT_META.uncertain;
   let visual;
@@ -265,6 +323,7 @@ function verdictMarkup(r) {
         <span class="verdict-eyebrow">${svg(meta.icon, 'panel-icon')} ${esc(meta.eyebrow)}</span>
         <h2 class="verdict-headline" id="verdict-headline" tabindex="-1">${esc(r.verdictHeadline)}</h2>
         <p class="verdict-explain">${esc(r.verdictExplanation)}</p>
+        ${r.verdict === 'uncertain' || (r.confidence && r.confidence.level === 'suppressed') ? '' : verdictNarrative(r)}
         ${verdictTags(r)}
         ${warnings}
       </div>

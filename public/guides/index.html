@@ -33,7 +33,7 @@
   "@type": "CollectionPage",
   "name": "Appliance repair-or-replace cost guides",
   "description": "Cost guides for every major appliance, covering lifespans, common failures, and repair-vs-replace guidance.",
-  "publisher": { "@type": "Organization", "name": "RepairOrReplace" }
+  "publisher": { "@id": "https://repair-or-replace.net/#org" }
 }
 </script>
 <script type="application/ld+json">
@@ -54,7 +54,6 @@
 <meta name="twitter:image" content="https://repair-or-replace.net/social/og-guides.png" />
 <meta name="twitter:image:alt" content="RepairOrReplace cost-guides card reading “Know before you get the quote.” over typical repair costs, lifespans and break-even points for 8 major appliances." />
   <link rel="stylesheet" href="/styles/visuals.css" />
-  <link rel="stylesheet" href="/art/guide-figures.css" />
 </head>
 <body>
 <!-- ror:chrome:top -->
@@ -103,13 +102,31 @@
         repairing beats replacing. Real figures, sourced from NAHB, InterNACHI, BLS, and EIA data.
       </p>
     </div>
+    <div class="hero-figure" aria-hidden="true">
+      <svg viewBox="0 0 240 220">
+        <path class="accent" d="M46 48V34h13"/>
+        <path class="accent" d="M194 172v14h-13"/>
+        <path d="M40 182h160"/>
+        <rect x="52" y="60" width="44" height="122" rx="9"/>
+        <path d="M52 108h44"/>
+        <circle class="node" cx="86" cy="86" r="3"/>
+        <rect x="106" y="80" width="48" height="102" rx="9"/>
+        <circle cx="130" cy="134" r="19"/>
+        <circle class="wash" cx="130" cy="134" r="19"/>
+        <path class="accent" d="M116 96h10"/>
+        <rect x="164" y="96" width="42" height="86" rx="9"/>
+        <path d="M164 122h42"/>
+        <circle class="node" cx="174" cy="109" r="2.6"/>
+        <circle class="node" cx="186" cy="109" r="2.6"/>
+      </svg>
+    </div>
   </div>
 
   <div class="container section">
     <div class="prose prose-wide">
       <p>
-        Pick your appliance. Every guide ends with a link into the calculator so you can run your exact unit,
-        age, and quote for a personalized verdict.
+        Every guide ends with a link into the calculator, so you can run your exact unit, age and quote for a
+        personalized verdict.
       </p>
     </div>
 
@@ -122,7 +139,7 @@
         <span class="guide-meta">Mid-tier lifespan 11–15 yrs</span>
       </a>
       <a class="card-link guide-card" href="/guides/washing-machine">
-        <span class="guide-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 8h17"/><circle cx="12" cy="14" r="4.6"/><circle class="node" cx="17.5" cy="5.7" r="0.9"/></svg></span>
+        <span class="guide-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 8h17"/><rect class="accent" x="5.2" y="4.7" width="6.4" height="2.6" rx="0.9"/><circle cx="12" cy="14" r="4.6"/><circle cx="12" cy="14" r="2.1"/><circle class="node" cx="17.5" cy="5.7" r="0.9"/></svg></span>
         <h3>Washing machines</h3>
         <p>Drain pumps, bearings, and transmissions across front- and top-load designs.</p>
         <span class="guide-meta">Mid-tier lifespan 10–14 yrs</span>
@@ -134,7 +151,7 @@
         <span class="guide-meta">Mid-tier lifespan 9–12 yrs</span>
       </a>
       <a class="card-link guide-card" href="/guides/dryer">
-        <span class="guide-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 8h17"/><circle cx="12" cy="14" r="4.6"/><path class="accent" d="M12 14v-2.6"/><circle class="node" cx="6.3" cy="5.7" r="0.9"/></svg></span>
+        <span class="guide-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 8h17"/><path class="accent" d="M20.5 5.6h3"/><circle cx="12" cy="14" r="4.6"/><path class="accent" d="M9.5 14a2.5 2.5 0 0 1 5 0"/><circle class="node" cx="6.3" cy="5.7" r="0.9"/></svg></span>
         <h3>Dryers</h3>
         <p>Thermal fuses and heating elements are cheap; bearings and gas valves aren’t.</p>
         <span class="guide-meta">Mid-tier lifespan 11–14 yrs</span>
