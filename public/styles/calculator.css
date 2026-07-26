@@ -5,25 +5,28 @@
    supporting homepage sections. Never hardcodes color — tokens only.
    ========================================================================== */
 
-/* --- Reveal-on-scroll (self-contained; respects reduced motion) ------------- */
+/* --- Reveal-on-scroll -------------------------------------------------------
+   The hiding is gated on `.js-reveal`, which is set by the same function in
+   chrome.js that removes it again. If that script never runs — 404, parse
+   error, JS disabled — the content simply renders. Hiding unconditionally
+   used to strand 2,090px of the homepage at opacity:0 whenever the module
+   that unhid it failed to load. */
 .ro-reveal {
-  opacity: 0;
-  transform: translateY(18px);
   transition: opacity var(--dur-slow) var(--ease-out),
     transform var(--dur-slow) var(--ease-out);
   transition-delay: var(--reveal-delay, 0ms);
+}
+.js-reveal .ro-reveal {
+  opacity: 0;
+  transform: translateY(18px);
   will-change: opacity, transform;
 }
-.ro-reveal.is-in {
+.js-reveal .ro-reveal.is-in {
   opacity: 1;
   transform: none;
-}
-@media (prefers-reduced-motion: reduce) {
-  .ro-reveal {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
+  /* Release the promoted layer once the animation is done — 11 permanently
+     promoted layers cost ~6MB of compositor memory for nothing. */
+  will-change: auto;
 }
 
 /* =============================================================================
@@ -31,7 +34,7 @@
    ========================================================================== */
 .hero {
   position: relative;
-  padding-block: var(--sp-9) var(--sp-8);
+  padding-block: var(--sp-7) var(--sp-8);
   overflow: clip;
 }
 .hero::before {
@@ -64,8 +67,10 @@
   align-items: start;
 }
 .hero-copy {
-  padding-top: var(--sp-5);
-  max-width: 46ch;
+  padding-top: var(--sp-6);
+  /* 52ch, not 46ch: at 46ch the H1's third line sat at 96% occupancy and
+     stranded a single word onto a fourth line. */
+  max-width: 52ch;
 }
 .hero-copy h1 {
   margin-top: var(--sp-4);
@@ -97,6 +102,15 @@
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
+  /* A pill that wraps internally reads as a broken component: the long
+     sources chip used to become a 2-line 342px block beside two 34px
+     siblings. That chip is now a caption line below the row. */
+  white-space: nowrap;
+}
+.chip-sources {
+  margin-top: var(--sp-3);
+  font-size: var(--step--1);
+  color: var(--faint);
 }
 .trust-chip svg {
   width: 15px;
@@ -123,6 +137,93 @@
 .hero-signal .stat span {
   font-size: var(--step--1);
   color: var(--faint);
+}
+
+/* --- Worked-example instrument ---------------------------------------------
+   Fills the ~300px the copy column used to leave ragged beside the calculator
+   and, more usefully, shows a new visitor an actual verdict before they type
+   anything. Every figure is real /api/calculate output. */
+.hero-proof {
+  margin-top: var(--sp-7);
+  padding: var(--sp-5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+.hp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+.hp-dots {
+  display: flex;
+  gap: 6px;
+}
+.hp-dots button {
+  width: 22px;
+  height: 22px;
+  padding: 8px 5px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  box-sizing: content-box;
+}
+.hp-dots button::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--line-strong);
+  transition: background var(--dur) var(--ease-out);
+}
+.hp-dots button[aria-selected="true"]::before {
+  background: var(--brand);
+}
+.hp-body {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+}
+.hp-gauge {
+  width: 108px;
+  flex: none;
+}
+.hp-gauge [data-hp-needle] {
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+.hp-copy {
+  min-width: 0;
+}
+.hp-case {
+  font-size: var(--step--1);
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.hp-verdict {
+  margin-top: 2px;
+  font-size: var(--step-0);
+  color: var(--body);
+}
+.hp-verdict b {
+  color: var(--ink);
+  font-weight: 700;
+}
+.hero-proof[data-verdict="repair"] .hp-verdict b {
+  color: var(--repair-ink);
+}
+.hero-proof[data-verdict="replace"] .hp-verdict b {
+  color: var(--replace-ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hp-gauge [data-hp-needle] { transition: none; }
+}
+@media (max-width: 560px) {
+  .hp-body { gap: var(--sp-4); }
+  .hp-gauge { width: 84px; }
 }
 
 /* --- The calculator card ---------------------------------------------------- */
@@ -341,8 +442,78 @@
   margin-top: var(--sp-3);
 }
 
+/* The submit button used to sit 114px below the fold on desktop and 991px
+   below it on a phone — the user had to scroll more than a full viewport
+   before any button existed. Pinning the commit bar to the bottom of the card
+   keeps the primary action permanently in reach without touching the field
+   order (brand tier and location are what make the verdict non-generic). */
 .calc-actions {
   margin-top: var(--sp-5);
+  position: sticky;
+  bottom: 0;
+  margin-inline: calc(var(--sp-6) * -1);
+  margin-bottom: calc(var(--sp-6) * -1);
+  padding: var(--sp-4) var(--sp-6);
+  background: linear-gradient(to bottom, transparent, var(--surface) 38%);
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
+
+/* Reserve the form's real height so the card doesn't grow 202px -> 1019px
+   when the catalog lands. Rendered height is not monotonic in viewport width,
+   so each breakpoint carries its own measured value. */
+#intake-form {
+  min-height: 900px;
+}
+@media (max-width: 1199px) {
+  #intake-form { min-height: 975px; }
+}
+@media (max-width: 900px) {
+  #intake-form { min-height: 845px; }
+}
+@media (max-width: 560px) {
+  #intake-form { min-height: 1085px; }
+}
+
+/* Skeleton shown until the catalog resolves. */
+.calc-skeleton {
+  display: grid;
+  gap: var(--sp-4);
+}
+.calc-skeleton .sk-row {
+  display: grid;
+  gap: var(--sp-2);
+}
+.calc-skeleton .sk-label {
+  height: 12px;
+  width: 34%;
+  border-radius: var(--r-xs);
+  background: var(--surface-2);
+}
+.calc-skeleton .sk-field {
+  height: 46px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+.calc-skeleton .sk-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-4);
+}
+@media (max-width: 560px) {
+  .calc-skeleton .sk-pair { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .calc-skeleton .sk-label,
+  .calc-skeleton .sk-field {
+    background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 37%, var(--surface-2) 63%);
+    background-size: 400% 100%;
+    animation: sk-shimmer 1.5s ease-in-out infinite;
+  }
+  @keyframes sk-shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: 0 0; }
+  }
 }
 .calc-submit {
   position: relative;
@@ -391,6 +562,10 @@
 /* =============================================================================
    RESULT REGION
    ========================================================================== */
+#result-region:focus,
+#verdict-headline:focus {
+  outline: none;
+}
 .result-region {
   scroll-margin-top: calc(var(--header-h) + var(--sp-4));
 }
@@ -648,7 +823,25 @@
   font-size: var(--step-1);
   white-space: nowrap;
 }
-.npc-row.is-winner .npc-name::after {
+.npc-row.is-winner .npc-track::after {
+  content: "Lower cost";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--brand-ink);
+  background: var(--surface);
+  padding: 0.2em 0.5em;
+  border-radius: var(--r-pill);
+  pointer-events: none;
+}
+.npc-row.is-winner .npc-name--legacy::after {
   content: "Lower cost";
   display: inline-block;
   margin-left: var(--sp-2);
@@ -930,8 +1123,15 @@
   border-radius: var(--r-md);
   border: 1px solid transparent;
 }
-.callout .callout-icon {
+/* Sized on the class itself. As a descendant-only rule this collapsed the
+   moment the icon was used outside a .callout: the share glyph in the result
+   footer rendered at 921x921px and the provenance glyph at 104x104px. */
+.callout-icon {
   flex: none;
+  width: 20px;
+  height: 20px;
+}
+.callout .callout-icon {
   width: 22px;
   height: 22px;
   margin-top: 1px;
@@ -997,7 +1197,7 @@
   padding: 0.25em 0.6em;
   border-radius: var(--r-pill);
   background: color-mix(in srgb, var(--danger) 14%, transparent);
-  color: var(--danger);
+  color: var(--danger-ink);
 }
 
 /* recall matches */
@@ -1308,7 +1508,10 @@
 
 .steps {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* auto-fit, not a hard 3-up with a 1-up fallback: a fixed 3->1 collapse at
+     980px produced a 4.3:1 letterbox slab holding one 38px icon. 260px is the
+     verified floor — 3-up down to 980, 2-up to 560, 1-up below. */
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: var(--sp-5);
   counter-reset: step;
 }
@@ -1326,7 +1529,6 @@
   color: var(--brand-ink);
   font-weight: 750;
   font-size: var(--step-1);
-  margin-bottom: var(--sp-4);
 }
 .step h3 {
   font-size: var(--step-1);
@@ -1339,17 +1541,24 @@
 
 .trust-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: var(--sp-5);
 }
 .trust-item {
   padding: var(--sp-6);
 }
+/* Matches .step-glyph so the page carries one icon system, not two. The old
+   rule left the SVG transparent with a 1px-spread brand shadow, which painted
+   a hard green rectangle around each icon. */
 .trust-item .trust-ico {
   width: 34px;
   height: 34px;
+  padding: 11px;
+  box-sizing: content-box;
   color: var(--brand-strong);
-  margin-bottom: var(--sp-4);
+  background: var(--brand-tint);
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-5);
 }
 .trust-item h3 {
   font-size: var(--step-1);
@@ -1380,6 +1589,17 @@
 .source-strip .ss-item {
   font-weight: 650;
   color: var(--body);
+}
+.source-strip .ss-more {
+  margin-left: auto;
+  font-weight: 620;
+  font-size: var(--step--1);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+.source-strip .ss-more:hover {
+  text-decoration-color: currentColor;
 }
 
 .faq {
@@ -1458,10 +1678,6 @@
   .rr-analysis > .span-6 {
     grid-column: span 12;
   }
-  .steps,
-  .trust-grid {
-    grid-template-columns: 1fr;
-  }
 }
 @media (max-width: 560px) {
   .calc-grid {
@@ -1472,6 +1688,11 @@
   }
   .calc-card {
     padding: var(--sp-5) var(--sp-4);
+  }
+  .calc-actions {
+    margin-inline: calc(var(--sp-4) * -1);
+    margin-bottom: calc(var(--sp-5) * -1);
+    padding: var(--sp-4);
   }
   .rr-verdict,
   .rr-panel,
@@ -1496,4 +1717,127 @@
   .skel-grid {
     grid-template-columns: 1fr;
   }
+}
+
+
+/* --- Provisional analysis ---------------------------------------------------
+   When the verdict is withheld, the panels below it are context, not an
+   answer. They used to render at full confidence directly under a headline
+   saying we could not stand behind them. */
+.rr-analysis.is-provisional {
+  position: relative;
+  opacity: 0.78;
+}
+.rr-analysis.is-provisional::before {
+  content: "Shown for reference only — we can't stand behind these figures with the quote you entered.";
+  grid-column: span 12;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--uncertain-tint);
+  border: 1px dashed var(--line-strong);
+  color: var(--uncertain-ink);
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+
+/* --- Share failure ---------------------------------------------------------- */
+.rr-share-error {
+  flex-basis: 100%;
+  margin-top: var(--sp-3);
+  font-size: var(--step--1);
+  color: var(--body);
+}
+
+/* =============================================================================
+   PRINT — people take this result to a technician, a landlord or an insurer.
+   Print the analysis as a document: no chrome, no bars, real tables, sources
+   expanded, and every safety warning preserved.
+   ========================================================================== */
+@media print {
+  /* Reveal-on-scroll must never withhold content from paper. */
+  .js-reveal .ro-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .site-header,
+  .site-drawer,
+  .drawer-scrim,
+  .site-footer,
+  .skip-link,
+  .rr-share,
+  .rr-monetize,
+  .calc-actions,
+  .hero-atmos,
+  .hero-proof {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #111;
+  }
+  body::before,
+  body::after {
+    display: none !important;
+  }
+
+  .rr-panel,
+  .rr-verdict,
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    background: #fff !important;
+    break-inside: avoid;
+  }
+
+  /* Bars carry no information on paper — print the figures instead. */
+  .npc-track,
+  .survival,
+  .conf-meter,
+  .gauge-svg {
+    display: none !important;
+  }
+  .npc-row {
+    grid-template-columns: 1fr auto !important;
+  }
+
+  /* Sources and the line-item breakdown are the whole point in print. */
+  .rr-details > div,
+  .rr-details > ul {
+    display: block !important;
+  }
+  details {
+    display: block !important;
+  }
+  details > summary {
+    list-style: none;
+    font-weight: 700;
+  }
+  details:not([open]) > *:not(summary) {
+    display: revert !important;
+  }
+
+  .callout {
+    border: 1px solid #666 !important;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: #555;
+  }
+}
+
+/* One plain sentence under the headline saying WHY. Without it the result is a
+   dashboard — eight panels and a dozen figures, no answer. */
+.verdict-why {
+  margin-top: var(--sp-3);
+  font-size: var(--step-0);
+  color: var(--body);
+  max-width: 54ch;
+}
+.verdict-why b {
+  color: var(--ink);
+  font-weight: 680;
 }

@@ -42,8 +42,7 @@
   --dur-slower: 720ms;
   --ease-spring: cubic-bezier(0.22, 1.2, 0.36, 1);
 
-  --grain-opacity: 0.035;
-  --grain-blend: overlay;
+  --grain-opacity: 0.03;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -57,8 +56,7 @@
     --grad-verdict-replace: linear-gradient(135deg, color-mix(in srgb, var(--replace) 20%, var(--surface)) 0%, var(--surface) 62%);
     --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.08);
     --shadow-brand: 0 26px 64px rgba(0, 0, 0, 0.55), 0 0 40px color-mix(in srgb, var(--brand) 20%, transparent);
-    --grain-opacity: 0.055;
-    --grain-blend: soft-light;
+    --grain-opacity: 0.045;
   }
 }
 :root[data-theme="dark"] {
@@ -71,8 +69,7 @@
   --grad-verdict-replace: linear-gradient(135deg, color-mix(in srgb, var(--replace) 20%, var(--surface)) 0%, var(--surface) 62%);
   --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --shadow-brand: 0 26px 64px rgba(0, 0, 0, 0.55), 0 0 40px color-mix(in srgb, var(--brand) 20%, transparent);
-  --grain-opacity: 0.055;
-  --grain-blend: soft-light;
+  --grain-opacity: 0.045;
 }
 
 /* -----------------------------------------------------------------------------
@@ -97,8 +94,10 @@ body::after {
   inset: 0;
   z-index: -1;
   pointer-events: none;
+  /* Plain alpha, not mix-blend-mode: a full-viewport fixed blended layer cost
+     ~33ms per scroll frame on its own (50.0ms median -> 16.7ms once removed)
+     and held ~50MB of compositor backing store. */
   opacity: var(--grain-opacity);
-  mix-blend-mode: var(--grain-blend);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -223,14 +222,16 @@ body::after {
   box-shadow: var(--edge-light);
 }
 /* Connective "process" hairline threading the three steps (wide layout only). */
-@media (min-width: 861px) {
+@media (min-width: 1000px) {
   .steps {
     position: relative;
   }
   .steps::before {
     content: "";
     position: absolute;
-    top: calc(var(--sp-7) + 30px);
+    /* Glyph centre (55px) minus half the 2px rule. The old value ran the
+       connector 8px below the glyphs it claims to thread. */
+    top: calc(var(--sp-6) + 30px);
     left: 12%;
     right: 12%;
     height: 2px;
@@ -257,9 +258,11 @@ body::after {
     0 6px 16px color-mix(in srgb, var(--brand) 24%, transparent);
 }
 
-/* Trust icons on a faint grid ground */
-.trust-ico {
-  box-shadow: var(--glow-brand);
+/* Sizing/surface for .trust-ico lives in calculator.css (.trust-item
+   .trust-ico) — the glow that used to live here painted a hard-edged green
+   rectangle around a transparent, zero-radius SVG. */
+.trust-item .trust-ico {
+  box-shadow: var(--edge-light);
 }
 
 /* Source-strip → tactile provenance rail */
@@ -436,21 +439,10 @@ body::after {
   -webkit-mask-image: radial-gradient(70% 70% at 30% 42%, #000 20%, transparent 72%);
   mask-image: radial-gradient(70% 70% at 30% 42%, #000 20%, transparent 72%);
 }
-.hero-curve {
-  position: absolute;
-  left: 0;
-  top: 46%;
-  width: min(540px, 46%);
-  height: auto;
-  opacity: 0.66;
-  filter: drop-shadow(0 8px 22px color-mix(in srgb, var(--brand) 16%, transparent));
-}
-.hero-node {
-  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--brand) 75%, transparent));
-}
-@media (max-width: 860px) {
-  .hero-curve { width: 76%; opacity: 0.4; top: auto; bottom: 1%; }
-}
+/* The decorative verdict curve was removed: at every width it ran straight
+   through the lede, and a graphic that has to dodge the copy is not a
+   signature. The hero now carries a real worked example instead
+   (.hero-proof in calculator.css). */
 
 /* Hero headline hierarchy: the question is secondary; the payoff dominates. */
 .hero-copy h1 .h1-lead {
@@ -501,10 +493,6 @@ body::after {
 /* -----------------------------------------------------------------------------
    E. MOTION  (transform/opacity only; all disabled under reduced motion)
    -------------------------------------------------------------------------- */
-@keyframes ror-aurora-drift {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(0, -1.4%, 0) scale(1.04); }
-}
 @keyframes ror-node-pulse {
   0%, 100% { opacity: 0.85; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.12); }
@@ -517,10 +505,9 @@ body::after {
   100% { transform: translateX(220%) skewX(-16deg); }
 }
 
-body::before {
-  will-change: transform;
-  animation: ror-aurora-drift 52s ease-in-out infinite;
-}
+/* The aurora no longer drifts: a 52s infinite transform on a fixed full-screen
+   layer kept it permanently promoted (21MB) and committed on every frame for
+   motion nobody perceives. The gradient itself stays. */
 
 /* Primary button sheen sweep on hover */
 .btn-primary {
@@ -554,7 +541,6 @@ body::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body::before { animation: none; }
   .btn-primary:hover::after { animation: none; }
   [data-draw] { stroke-dashoffset: 0; animation: none; }
   [data-pulse] { animation: none; }

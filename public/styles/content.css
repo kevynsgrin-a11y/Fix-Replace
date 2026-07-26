@@ -64,9 +64,6 @@
 .prose-wide {
   max-width: var(--w-content);
 }
-.measure {
-  max-width: 68ch;
-}
 
 /* --- Table of contents ------------------------------------------------------ */
 .toc {
@@ -172,7 +169,7 @@
 }
 .eq sub,
 .eq sup {
-  font-size: 0.72em;
+  font-size: max(12px, 0.72em);
 }
 .frac {
   display: inline-flex;
@@ -212,7 +209,9 @@
 /* --- Stat rows -------------------------------------------------------------- */
 .stat-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  /* min(140px, 100%) so the track can still shrink below its floor at 320px —
+     a bare 140px floor overflowed the container on the narrowest phones. */
+  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
   gap: var(--sp-4);
 }
 .stat {
@@ -222,11 +221,13 @@
   padding: var(--sp-5);
 }
 .stat .stat-value {
-  font-size: var(--step-3);
+  /* "$25.30/hr" used to overflow its 121px padding box by 19px. */
+  font-size: clamp(var(--step-1), 5.2vw, var(--step-3));
   font-weight: 750;
   color: var(--ink);
   letter-spacing: -0.02em;
   line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 .stat .stat-label {
   margin-top: var(--sp-2);
@@ -237,7 +238,9 @@
 /* --- Guide / link cards ----------------------------------------------------- */
 .guide-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  /* auto-fill resolved to four tracks at 1120px and stranded an empty cell on
+     any 3-card grid. auto-fit collapses the empty track instead. */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: var(--sp-5);
 }
 .guide-card {
@@ -302,6 +305,11 @@
   border-radius: var(--r-pill);
   white-space: nowrap;
 }
+@media (max-width: 699px) {
+  .pill {
+    white-space: normal;
+  }
+}
 .pill-diy {
   background: var(--repair-tint);
   color: var(--repair-ink);
@@ -338,6 +346,9 @@
 }
 .cta-band .cta-copy {
   max-width: 46ch;
+  /* min(…, 100%) so the flex item can still shrink below its floor on a
+     360px phone — a bare 32ch pushed the band 26px past the viewport. */
+  min-width: min(32ch, 100%);
 }
 .cta-band h2 {
   margin: 0 0 var(--sp-2);
@@ -397,7 +408,50 @@
 .provenance td:first-child {
   font-weight: 620;
   color: var(--ink);
-  white-space: nowrap;
+}
+@media (min-width: 900px) {
+  .provenance td:first-child {
+    white-space: nowrap;
+  }
+}
+/* Below 700px the three columns cannot coexist: column 1 alone measured 334px
+   of a 340px viewport, pushing "Primary source" and "How we use it" entirely
+   off-screen. Stack each row into a labelled block instead — this table is the
+   exception; every other table gets the horizontal scroll affordance. */
+@media (max-width: 699px) {
+  .provenance,
+  .provenance tbody,
+  .provenance tr,
+  .provenance td {
+    display: block;
+    width: 100%;
+  }
+  .provenance thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+  .provenance tr {
+    padding: var(--sp-4) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .provenance td {
+    border: 0;
+    padding: var(--sp-1) var(--sp-4);
+  }
+  .provenance td:not(:first-child)::before {
+    content: attr(data-label);
+    display: block;
+    font-size: var(--step--1);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--faint);
+    font-weight: 650;
+    margin-bottom: 2px;
+  }
 }
 
 /* --- Definition rows (feature lists) ---------------------------------------- */
@@ -454,4 +508,151 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: var(--sp-5);
+}
+
+/* --- Hero figure badge ------------------------------------------------------
+   Below 900px the figure leaves the hero's right column and becomes a badge
+   above the eyebrow (see the spot-illustration section below). */
+@media (max-width: 900px) {
+  .page-hero .hero-figure svg {
+    stroke-width: 2.6;
+  }
+}
+
+
+/* =============================================================================
+   INSTRUMENT-LINE SPOT ILLUSTRATIONS
+   Folded in from art/guide-figures.css: that file was render-blocking on 16
+   pages and every one of them already loads this stylesheet, so the extra
+   request bought nothing. Themes automatically — every colour resolves to a
+   design token.
+
+   Vocabulary (applied to inline SVGs):
+     .hero-figure           positioned decorative wrapper (aria-hidden)
+     .hero-figure svg       default = thin instrument hairline
+     .node / .node-*        filled measurement dots (brand / repair / replace)
+     .accent / .accent-2    brand-coloured strokes (spec ticks, dimension lines)
+     .wash / .wash-2        low-alpha brand washes (never a flat heavy fill)
+     .glass                 faint glazed panel (window / display)
+   ========================================================================== */
+
+/* --- Inline hero figure: strokes inherit, so structure needs no per-node color */
+.hero-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  fill: none;
+  stroke: var(--ink-instrument);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hero-figure .node { fill: var(--brand); stroke: none; }
+.hero-figure .node-repair { fill: var(--repair); stroke: none; }
+.hero-figure .node-replace { fill: var(--replace); stroke: none; }
+.hero-figure .accent { stroke: var(--brand); }
+.hero-figure .accent-2 { stroke: var(--brand-strong); }
+.hero-figure .accent-replace { stroke: var(--replace); }
+.hero-figure .accent-repair { stroke: var(--repair); }
+.hero-figure .wash { fill: color-mix(in srgb, var(--brand) 10%, transparent); stroke: none; }
+.hero-figure .wash-2 { fill: color-mix(in srgb, var(--brand) 15%, transparent); stroke: none; }
+.hero-figure .glass {
+  fill: color-mix(in srgb, var(--ink-instrument) 8%, transparent);
+  stroke: var(--ink-instrument);
+}
+
+/* --- Placement: the empty right column of the hero. The offset is measured
+   from the CONTENT COLUMN, not the viewport — anchored to the window the
+   figure drifted a further ~100px away from the copy at every width above
+   1280px, and its left edge crossed into the H1 line box. */
+.page-hero .hero-figure {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  right: max(var(--sp-6), calc((100vw - var(--w-content)) / 2 + var(--sp-6)));
+  width: clamp(190px, 22vw, 300px);
+  transform: translateY(-50%);
+  opacity: 0.92;
+  pointer-events: none;
+}
+/* The copy column must stop before the figure. Without this the .lede's 62ch
+   measure ran 64px under the illustration at 1440. Scoped with :has() so the
+   guide hub — which carries no figure — keeps the full width; browsers
+   without :has() simply keep the previous behaviour. */
+@media (min-width: 901px) {
+  .page-hero:has(.hero-figure) .container > * {
+    max-width: calc(100% - clamp(190px, 22vw, 300px) - var(--sp-8));
+  }
+  .page-hero:has(.hero-figure--city) .container > * {
+    max-width: calc(100% - clamp(150px, 18vw, 232px) - var(--sp-8));
+  }
+}
+
+/* City pages: a lighter, smaller touch. */
+.page-hero .hero-figure--city {
+  width: clamp(150px, 18vw, 232px);
+  opacity: 0.82;
+}
+
+/* Below the two-column threshold there is no right column to sit in. The old
+   rule kept the figure absolute at 9-12% opacity behind the breadcrumb and
+   H1 — 31px of it cropped off-screen and composited at ~1.05:1, which is a
+   smudge, not an illustration. It becomes a legible badge above the eyebrow
+   instead, reusing the guide-hub chip language. */
+@media (max-width: 900px) {
+  .page-hero {
+    display: flex;
+    flex-direction: column;
+  }
+  .page-hero .hero-figure,
+  .page-hero .hero-figure--city {
+    order: -1;
+    position: static;
+    width: 104px;
+    padding-inline: var(--sp-6);
+    margin-bottom: var(--sp-2);
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Guide-hub cards: small matching Instrument-Line glyph in the .guide-icon
+   chip (chip already sets color: var(--brand-ink), so currentColor themes it). */
+.guide-icon svg {
+  width: 26px;
+  height: 26px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.guide-icon svg .node { fill: currentColor; stroke: none; }
+.guide-icon svg .accent { stroke: currentColor; }
+
+/* --- Metro rail on guide pages ----------------------------------------------
+   The guide vertical and the metro vertical had no route between them; a
+   sentence with one link was doing the work of an index. */
+.metro-rail {
+  margin-top: var(--sp-9);
+  padding: var(--sp-5) var(--sp-6);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+.metro-rail .section-label {
+  margin-bottom: var(--sp-3);
+}
+.metro-rail .btn {
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+.metro-rail .btn:hover {
+  border-color: var(--brand);
+  color: var(--brand-strong);
+}
+.metro-rail-all {
+  font-weight: 680;
+  color: var(--brand-strong);
 }

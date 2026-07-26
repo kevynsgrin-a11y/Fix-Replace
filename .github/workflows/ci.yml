@@ -1,0 +1,41 @@
+name: CI
+
+# The deploy workflow only runs on push-to-main, so until now nothing checked a
+# pull request. These are the same gates the front-end tooling exposes locally.
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      # The header, drawer and footer are static on all 26 pages. This fails if
+      # a page's chrome has drifted from tools/site-chrome.mjs.
+      - name: Site chrome is in sync
+        run: npm run chrome:check
+
+      # Meta/title lengths, unique social cards, favicon + manifest links,
+      # keyboard-reachable tables, heading order, JSON-LD validity, dead links.
+      - name: Page hygiene
+        run: npm run check:pages

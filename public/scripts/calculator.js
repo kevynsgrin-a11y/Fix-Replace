@@ -177,6 +177,17 @@ function verdictTags(r) {
   if (r.recall && r.recall.status === 'active') {
     tags.push('<span class="badge badge-danger badge-dot">Open recall</span>');
   }
+  // A gas / high-voltage / refrigerant job must be legible at the verdict, not
+  // only in the sixth panel of eight.
+  const safety = r.safety || {};
+  const hazardous = (safety.hazards || []).some(
+    (h) => h === 'gas' || h === 'high_voltage' || h === 'refrigerant',
+  );
+  if (hazardous) {
+    tags.push('<span class="badge badge-danger badge-dot">Licensed pro required</span>');
+  } else if (safety.professionalRequired) {
+    tags.push('<span class="badge badge-dot">Professional service</span>');
+  }
   if (r.resolvedInput && r.resolvedInput.underWarranty) {
     tags.push('<span class="badge badge-brand">Under warranty</span>');
   }
@@ -220,6 +231,64 @@ function gaugeMarkup(pos) {
     </div>`;
 }
 
+/**
+ * Compose one plain sentence explaining WHY the verdict came out the way it
+ * did, from the largest contributing terms in the response.
+ *
+ * The result view is otherwise eight panels and a dozen numbers with no
+ * sentence in it — a dashboard, not an answer. Everything here is already in
+ * the payload; nothing is invented, and each figure links to the panel that
+ * proves it.
+ */
+function verdictNarrative(r) {
+  const npc = r.npc || {};
+  const repair = num(npc.repair);
+  const replace = num(npc.replace);
+  if (!repair || !replace) return '';
+
+  const repairWins = repair <= replace;
+  const gap = Math.abs(repair - replace);
+  const horizon = fmtYears(npc.horizonYears);
+  const parts = [];
+
+  // Lead with the decision and its size.
+  const lead = repairWins
+    ? `Repairing comes out <b class="tnum">${fmtMoney(gap)}</b> cheaper over ${esc(horizon)}`
+    : `Replacing comes out <b class="tnum">${fmtMoney(gap)}</b> cheaper over ${esc(horizon)}`;
+
+  // Then the two largest drivers behind it.
+  const energy = r.energy || {};
+  const annual = num(energy.annualSavings);
+  if (Math.abs(annual) >= 15) {
+    parts.push(
+      annual > 0
+        ? `a new unit cuts <b class="tnum">${fmtMoney(annual)}</b>/yr in energy`
+        : `a new unit would add <b class="tnum">${fmtMoney(Math.abs(annual))}</b>/yr in energy`,
+    );
+  }
+
+  const rc = r.repairCost || {};
+  const repeat = num(rc.repeatFailureProbability);
+  if (repeat >= 0.15) {
+    // Phrased without an article: "a 85%" / "an 85%" is a coin-flip the
+    // number decides at runtime, and getting it wrong reads as a bug.
+    parts.push(`another failure is <b class="tnum">${fmtPct(repeat)}</b> likely within two years`);
+  }
+
+  const rul = r.rul || {};
+  const remaining = num(rul.medianRemainingYears);
+  if (remaining > 0 && remaining < 4) {
+    parts.push(`the unit has about <b class="tnum">${esc(fmtYears(remaining))}</b> of median life left`);
+  } else if (remaining >= 8) {
+    parts.push(`the unit still has about <b class="tnum">${esc(fmtYears(remaining))}</b> of median life left`);
+  }
+
+  const because = parts.length
+    ? ` — mostly because ${parts.slice(0, 2).join(', and ')}.`
+    : '.';
+  return `<p class="verdict-why">${lead}${because}</p>`;
+}
+
 function verdictMarkup(r) {
   const meta = VERDICT_META[r.verdict] || VERDICT_META.uncertain;
   let visual;
@@ -241,7 +310,7 @@ function verdictMarkup(r) {
       ? `<div class="callout callout-warn" role="note" style="margin-top:var(--sp-2)">
            ${svg('alert', 'callout-icon')}
            <div>
-             <h4>Why we're holding back</h4>
+             <h3>Why we're holding back</h3>
              <ul>${r.confidence.warnings.map((w) => `<li>${esc(w)}</li>`).join('')}</ul>
            </div>
          </div>`
@@ -252,15 +321,16 @@ function verdictMarkup(r) {
       ${visual}
       <div class="verdict-body">
         <span class="verdict-eyebrow">${svg(meta.icon, 'panel-icon')} ${esc(meta.eyebrow)}</span>
-        <h2 class="verdict-headline" id="verdict-headline">${esc(r.verdictHeadline)}</h2>
+        <h2 class="verdict-headline" id="verdict-headline" tabindex="-1">${esc(r.verdictHeadline)}</h2>
         <p class="verdict-explain">${esc(r.verdictExplanation)}</p>
+        ${r.verdict === 'uncertain' || (r.confidence && r.confidence.level === 'suppressed') ? '' : verdictNarrative(r)}
         ${verdictTags(r)}
         ${warnings}
       </div>
     </section>`;
 }
 
-function npcMarkup(r) {
+function npcMarkup(r, provisional) {
   const npc = r.npc || {};
   const repair = Math.max(0, num(npc.repair));
   const replace = Math.max(0, num(npc.replace));
@@ -272,13 +342,21 @@ function npcMarkup(r) {
       ? 'Replacing never fully pays back within the horizon.'
       : `Replacing breaks even in <b>${esc(be)}</b>.`;
 
-  const bd = (title, b) => `
+  // Zero rows are noise, not information: salvage and risk are 0 for most
+  // inputs, so half the breakdown used to read "$0" with no total to tie it
+  // back to the headline figure.
+  const line = (label, value, negate) =>
+    value
+      ? `<div class="breakdown-line"><span>${label}</span><b class="tnum">${negate ? '−' : ''}${fmtMoney(value)}</b></div>`
+      : '';
+  const bd = (title, b, total) => `
     <div class="breakdown-col">
       <h4>${title}</h4>
-      <div class="breakdown-line"><span>Upfront</span><b class="tnum">${fmtMoney(b.upfront)}</b></div>
-      <div class="breakdown-line"><span>Energy (present value)</span><b class="tnum">${fmtMoney(b.energyPresentValue)}</b></div>
-      <div class="breakdown-line"><span>Salvage credit</span><b class="tnum">${b.salvageCredit ? '−' + fmtMoney(b.salvageCredit) : fmtMoney(0)}</b></div>
-      <div class="breakdown-line"><span>Risk adjustment</span><b class="tnum">${fmtMoney(b.riskAdjustment)}</b></div>
+      ${line('Upfront', num(b.upfront))}
+      ${line('Energy (present value)', num(b.energyPresentValue))}
+      ${line('Salvage credit', num(b.salvageCredit), true)}
+      ${line('Risk adjustment', num(b.riskAdjustment))}
+      <div class="breakdown-line is-total"><span>Net present cost</span><b class="tnum">${fmtMoney(total)}</b></div>
     </div>`;
 
   return `
@@ -300,15 +378,19 @@ function npcMarkup(r) {
         </div>
       </div>
       <div class="npc-meta">
-        <span>${beText}</span>
+        ${provisional ? '<span>Break-even is not meaningful at this quote.</span>' : `<span>${beText}</span>`}
         <span>Discount rate <b class="tnum">${fmtPct(npc.discountRate, 1)}</b></span>
-        <span>Advantage <b class="tnum">${fmtMoney(Math.abs(npc.advantageOfReplacing ?? 0))}</b> to ${repairWins ? 'repairing' : 'replacing'}</span>
+        ${
+          provisional
+            ? ''
+            : `<span>Advantage <b class="tnum">${fmtMoney(Math.abs(npc.advantageOfReplacing ?? 0))}</b> to ${repairWins ? 'repairing' : 'replacing'}</span>`
+        }
       </div>
       <details class="rr-details">
         <summary>See the line-item breakdown</summary>
         <div class="breakdown">
-          ${bd('Repair &amp; keep', npc.repairBreakdown || {})}
-          ${bd('Replace now', npc.replaceBreakdown || {})}
+          ${bd('Repair &amp; keep', npc.repairBreakdown || {}, repair)}
+          ${bd('Replace now', npc.replaceBreakdown || {}, replace)}
         </div>
       </details>
     </section>`;
@@ -321,6 +403,27 @@ function rulMarkup(r) {
     { cap: '24 mo', v: rul.survival24Months },
     { cap: '36 mo', v: rul.survival36Months },
   ];
+  // Past the modelled life the honest reading is "it is living on borrowed
+  // time", not a 0-year counter over three 0% bar stubs.
+  const spent = num(rul.medianRemainingYears) < 0.6 && surv.every((s) => num(s.v) < 0.06);
+  if (spent) {
+    return `
+    <section class="rr-panel card span-5">
+      <div class="panel-head">
+        <h3>${svg('clock')} Remaining useful life</h3>
+        <p>Weibull survival model</p>
+      </div>
+      <div class="rr-stat">
+        <span class="stat-value">Past expected life</span>
+        <span class="stat-label">The model gives this unit no meaningful remaining life</span>
+      </div>
+      <p class="muted" style="font-size:var(--step--1);margin-top:var(--sp-4)">
+        Under a &lt;6% chance of surviving another year, any repair is buying
+        months, not years. Shape β&nbsp;<b class="tnum">${num(rul.shape).toFixed(2)}</b>
+        (&gt;1 = wear-out), scale η&nbsp;<b class="tnum">${num(rul.scaleYears).toFixed(1)}</b>&nbsp;yrs.
+      </p>
+    </section>`;
+  }
   return `
     <section class="rr-panel card span-5">
       <div class="panel-head">
@@ -396,7 +499,11 @@ function energyMarkup(r) {
       </div>
       <div class="rate-grid">
         <div class="rate"><b class="tnum">$${num(e.electricityRate).toFixed(3)}</b><span>per kWh electricity</span></div>
-        <div class="rate"><b class="tnum">$${num(e.gasRate).toFixed(2)}</b><span>per therm gas</span></div>
+        ${
+          num(e.gasRate) > 0
+            ? `<div class="rate"><b class="tnum">$${num(e.gasRate).toFixed(2)}</b><span>per therm gas</span></div>`
+            : ''
+        }
       </div>
       ${e.localized ? '' : '<p class="muted" style="font-size:var(--step--1);margin-top:var(--sp-3)">Add a location above for rates specific to your state.</p>'}
     </section>`;
@@ -421,7 +528,7 @@ function confidenceMarkup(r, wide) {
     </section>`;
 }
 
-function safetyMarkup(r) {
+function safetyMarkup(r, wide) {
   const s = r.safety || {};
   if (!(s.professionalRequired || (s.messages && s.messages.length))) return '';
   const hazardList = s.hazards || [];
@@ -446,7 +553,7 @@ function safetyMarkup(r) {
       : 'We’ve hidden DIY part links because this part isn’t homeowner-serviceable — there’s no safe DIY path, so it should go to a professional.'
     : '';
   return `
-    <section class="rr-panel card span-7">
+    <section class="rr-panel card ${wide ? 'span-12' : 'span-7'}">
       <div class="callout ${calloutClass}"${role}>
         ${svg('shield', 'callout-icon')}
         <div>
@@ -491,6 +598,23 @@ function recallMarkup(r) {
         </div>
       </section>`;
   }
+  // "Unavailable" reads as a system outage. Nothing is unavailable when the
+  // user simply never supplied a UPC — which is the default for almost
+  // everyone. Only a genuine lookup failure earns that word.
+  const askedFor = !!(r.resolvedInput && r.resolvedInput.upc);
+  if (rec.status !== 'clear' && !askedFor) {
+    return `
+    <section class="rr-panel card span-6">
+      <div class="callout callout-info">
+        ${svg('info', 'callout-icon')}
+        <div>
+          <h4>Check this unit for open recalls</h4>
+          <p>Add the UPC from the model plate and we'll query the federal CPSC database.</p>
+          <p style="margin-top:var(--sp-2)"><button class="btn" type="button" data-add-upc>Add a UPC</button></p>
+        </div>
+      </div>
+    </section>`;
+  }
   const cls = rec.status === 'clear' ? 'callout-clear' : 'callout-info';
   const icon = rec.status === 'clear' ? 'check' : 'info';
   const title = rec.status === 'clear' ? 'No open recalls found' : 'Recall check unavailable';
@@ -498,9 +622,9 @@ function recallMarkup(r) {
     rec.note ||
     (rec.status === 'clear'
       ? 'This unit did not match any active federal recall.'
-      : 'Provide a UPC to check for open federal recalls.');
+      : 'We could not reach the CPSC database for this lookup.');
   return `
-    <section class="rr-panel card span-12">
+    <section class="rr-panel card span-6">
       <div class="callout ${cls}">
         ${svg(icon, 'callout-icon')}
         <div><h4>${esc(title)}</h4><p>${esc(note)}</p></div>
@@ -613,21 +737,36 @@ export function renderResult(result, mount, opts = {}) {
   const safetyPresent =
     result.safety && (result.safety.professionalRequired || (result.safety.messages || []).length > 0);
 
-  const analysis = [
-    npcMarkup(result),
-    rulMarkup(result),
-    repairCostMarkup(result),
-    energyMarkup(result),
-    confidenceMarkup(result, !safetyPresent),
-    safetyMarkup(result),
-    recallMarkup(result),
-    provenanceMarkup(result),
-  ].join('');
+  const provisional =
+    result.verdict === 'uncertain' ||
+    (result.confidence && result.confidence.level === 'suppressed');
+
+  // A safety hazard outranks the cost analysis: it used to sit sixth of eight.
+  const panels = safetyPresent
+    ? [
+        safetyMarkup(result, true),
+        npcMarkup(result, provisional),
+        rulMarkup(result),
+        repairCostMarkup(result),
+        energyMarkup(result),
+        confidenceMarkup(result, false),
+        recallMarkup(result),
+        provenanceMarkup(result),
+      ]
+    : [
+        npcMarkup(result, provisional),
+        rulMarkup(result),
+        repairCostMarkup(result),
+        energyMarkup(result),
+        confidenceMarkup(result, true),
+        recallMarkup(result),
+        provenanceMarkup(result),
+      ];
 
   mount.innerHTML = `
     <div class="rr ${animate ? 'rr-enter' : ''}">
       ${verdictMarkup(result)}
-      <div class="rr-analysis">${analysis}</div>
+      <div class="rr-analysis${provisional ? ' is-provisional' : ''}">${panels.join('')}</div>
       ${monetizationMarkup(result)}
       ${shareMarkup(shared)}
     </div>`;
@@ -640,6 +779,7 @@ export function renderResult(result, mount, opts = {}) {
   }
 
   runResultEffects(mount, animate);
+  wireAddUpc(mount);
   if (!shared) wireShare(mount, result);
 }
 
@@ -681,7 +821,9 @@ function runResultEffects(mount, animate) {
   if (animate) requestAnimationFrame(() => requestAnimationFrame(grow));
   else grow();
 
-  // Count-up numbers.
+  // Count-up numbers. Reserve the final width first — otherwise the digits
+  // grow while the bar track beside them shrinks to compensate, and the whole
+  // row visibly jerks as the number lands.
   mount.querySelectorAll('[data-count]').forEach((el) => {
     const to = Number(el.dataset.to) || 0;
     const kind = el.dataset.kind || 'money';
@@ -689,8 +831,29 @@ function runResultEffects(mount, animate) {
     if (kind === 'years') render = (v) => fmtYears(v);
     else if (kind === 'int') render = (v) => String(Math.round(v));
     else render = (v) => fmtMoney(v);
-    if (animate) countUp(el, to, render);
-    else el.textContent = render(to);
+    if (animate) {
+      el.textContent = render(to);
+      el.style.minWidth = `${el.getBoundingClientRect().width}px`;
+      el.textContent = render(0);
+      countUp(el, to, render);
+    } else {
+      el.textContent = render(to);
+    }
+  });
+}
+
+/** Open the advanced disclosure and focus the UPC field. */
+function wireAddUpc(mount) {
+  const btn = mount.querySelector('[data-add-upc]');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const details = document.querySelector('.calc-advanced');
+    const field = document.getElementById('f-upc');
+    if (details) details.open = true;
+    if (field) {
+      field.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      field.focus({ preventScroll: true });
+    }
   });
 }
 
@@ -702,6 +865,24 @@ function wireShare(mount, result) {
   const copyBtn = mount.querySelector('[data-copy-btn]');
   const label = btn.querySelector('.btn-label');
 
+  const live = document.getElementById('rr-live');
+  const say = (msg) => {
+    if (live) live.textContent = msg;
+  };
+  const showError = (msg, permanent) => {
+    let box = mount.querySelector('.rr-share-error');
+    if (!box) {
+      box = document.createElement('p');
+      box.className = 'rr-share-error';
+      box.setAttribute('role', 'alert');
+      btn.parentNode.appendChild(box);
+    }
+    box.textContent = msg;
+    say(msg);
+    btn.disabled = !!permanent;
+    label.textContent = permanent ? 'Unavailable' : 'Try again';
+  };
+
   btn.addEventListener('click', async () => {
     if (input && input.value) {
       urlBox.hidden = false;
@@ -709,7 +890,6 @@ function wireShare(mount, result) {
       return;
     }
     btn.disabled = true;
-    const prev = label.textContent;
     label.textContent = 'Creating…';
     try {
       const res = await fetch('/api/report', {
@@ -717,7 +897,25 @@ function wireShare(mount, result) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(result),
       });
-      if (!res.ok) throw new Error('save failed');
+      if (!res.ok) {
+        // 503 means sharing is switched off for this deployment — a "try
+        // again" button there loops the user forever.
+        let detail = '';
+        try {
+          const body = await res.json();
+          if (body && typeof body.error === 'string') detail = body.error;
+        } catch (e) {}
+        if (res.status === 503) {
+          showError(
+            detail ||
+              "Sharing is turned off on this deployment. Your result is still on screen — print it or take a screenshot.",
+            true,
+          );
+        } else {
+          showError("We couldn't save this result just now. Please try again in a moment.", false);
+        }
+        return;
+      }
       const data = await res.json();
       const full = new URL(data.url, location.origin).href;
       input.value = full;
@@ -725,10 +923,11 @@ function wireShare(mount, result) {
       input.focus();
       input.select();
       label.textContent = 'Link ready';
+      say('Share link ready.');
+      const stale = mount.querySelector('.rr-share-error');
+      if (stale) stale.remove();
     } catch (err) {
-      label.textContent = 'Try again';
-      btn.disabled = false;
-      console.error('Share failed:', err);
+      showError("We couldn't reach our servers. Check your connection and try again.", false);
       return;
     }
     btn.disabled = false;
@@ -771,28 +970,68 @@ export function renderLoading(mount) {
           <div class="skel skel-row"></div>
         </div>
       </div>
-      <p class="sr-only" role="status">Calculating your result…</p>
     </div>`;
+  // A live region has to exist before it is populated, so announce through the
+  // one that was in the document at parse time rather than injecting a new
+  // role="status" that already contains its text.
+  const live = document.getElementById('rr-live');
+  if (live) live.textContent = 'Calculating your result…';
 }
 
 export function renderError(mount, message, opts = {}) {
   if (!mount) return;
+  const cta = opts.cta;
+  const ctaHtml = !cta
+    ? ''
+    : cta.onClick
+      ? `<button class="btn btn-primary" type="button" data-error-retry style="margin-top:var(--sp-3)">${esc(cta.label)}</button>`
+      : `<a class="btn btn-primary" href="${esc(safeHref(cta.href))}" style="margin-top:var(--sp-3)">${esc(cta.label)}</a>`;
   mount.innerHTML = `
     <div class="rr">
       <section class="rr-panel card">
         <div class="rr-state" role="alert">
           <svg class="state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON.alert}</svg>
-          <h3>${esc(opts.title || 'Something went wrong')}</h3>
+          <h3 tabindex="-1" data-error-title>${esc(opts.title || 'Something went wrong')}</h3>
           <p>${esc(message || 'Please try again in a moment.')}</p>
-          ${opts.cta ? `<a class="btn btn-primary" href="${esc(opts.cta.href)}" style="margin-top:var(--sp-3)">${esc(opts.cta.label)}</a>` : ''}
+          ${ctaHtml}
         </div>
       </section>
     </div>`;
+  if (cta && cta.onClick) {
+    const btn = mount.querySelector('[data-error-retry]');
+    if (btn) btn.addEventListener('click', cta.onClick);
+  }
+  const live = document.getElementById('rr-live');
+  if (live) live.textContent = `${opts.title || 'Something went wrong'}. ${message || ''}`;
+  const heading = mount.querySelector('[data-error-title]');
+  if (heading) heading.focus({ preventScroll: true });
 }
 
 /* --------------------------------------------------------------------------
    Homepage calculator (form build + submit) — runs only when #intake-form exists
    -------------------------------------------------------------------------- */
+
+/**
+ * Turn a thrown value into copy a person can act on. `err.message` must never
+ * be shown: a network failure renders as the literal string "Failed to fetch",
+ * and a 5xx body carries internal service text.
+ */
+function describeFailure(err) {
+  if (err instanceof TypeError) {
+    return "We couldn't reach our servers. Check your connection and try again.";
+  }
+  if (err && err.status >= 500) {
+    return 'Our pricing service is having a moment. Please try again in a minute.';
+  }
+  if (err && err.userMessage) return err.userMessage;
+  return "We couldn't compute a result. Please check your inputs and try again.";
+}
+
+/** Send focus to the verdict so a keyboard user isn't stranded at the form. */
+function focusResult(mount, region) {
+  const target = mount.querySelector('#verdict-headline') || region;
+  if (target && target.focus) target.focus({ preventScroll: true });
+}
 
 function el(tag, attrs = {}, html) {
   const node = document.createElement(tag);
@@ -944,14 +1183,17 @@ function populateFuel(fuelField, fuelSeg, category) {
 function serialize(form, catalogById) {
   const fd = new FormData(form);
   const category = fd.get('category');
+  // "" and "0" are different answers: a blank age means we should say so and
+  // drop confidence, while a typed 0 means the unit is brand new.
+  const rawAge = String(fd.get('ageYears') ?? '').trim();
   const input = {
     category,
     brandTier: fd.get('brandTier') || 'mid',
-    ageYears: Number(fd.get('ageYears') || 0),
     repairQuote: Number(fd.get('repairQuote') || 0),
     underWarranty: fd.get('underWarranty') === 'on',
     energyStarReplacement: fd.get('energyStarReplacement') === 'on',
   };
+  if (rawAge !== '' && Number.isFinite(Number(rawAge))) input.ageYears = Number(rawAge);
 
   const comp = fd.get('faultComponent');
   if (comp) input.faultComponent = comp;
@@ -1028,9 +1270,16 @@ function initCalculator() {
           form.querySelectorAll('[data-loc]').forEach((b) =>
             b.setAttribute('aria-pressed', String(b.dataset.loc === mode)),
           );
+          let revealed = null;
           form.querySelectorAll('[data-loc-input]').forEach((inp) => {
             inp.hidden = inp.dataset.locInput !== mode;
+            if (!inp.hidden) revealed = inp;
           });
+          // Retarget the visible label: it used to keep pointing at the
+          // hidden <select>, so clicking "Location" focused nothing.
+          const locLabel = form.querySelector('#f-loc-label');
+          if (locLabel && revealed) locLabel.setAttribute('for', revealed.id);
+          if (revealed) revealed.focus();
         });
       });
 
@@ -1051,6 +1300,7 @@ function initCalculator() {
         const input = serialize(form, catalogById);
         const btn = form.querySelector('.calc-submit');
         const label = btn.querySelector('.btn-label');
+        const prevLabel = label.textContent;
         btn.disabled = true;
         btn.classList.add('is-busy');
         label.innerHTML = '<span class="spinner" aria-hidden="true"></span> Calculating…';
@@ -1059,24 +1309,43 @@ function initCalculator() {
         renderLoading(mount);
         if (!REDUCED_MOTION) region.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+        let ok = false;
         try {
           const res = await fetch('/api/calculate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(input),
           });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data && data.error ? data.error : 'Calculation failed');
+          let data = null;
+          try {
+            data = await res.json();
+          } catch (e) {
+            /* non-JSON body — handled below */
+          }
+          if (!res.ok) {
+            const e = new Error('http');
+            e.status = res.status;
+            // Only 4xx bodies describe something the user can act on; a 5xx
+            // body is an internal string and must never reach the page.
+            e.userMessage = res.status < 500 && data && data.error ? data.error : null;
+            throw e;
+          }
           renderResult(data, mount, { animate: true });
+          focusResult(mount, region);
+          ok = true;
         } catch (err) {
-          renderError(mount, (err && err.message) || 'We couldn’t compute a result. Please check your inputs and try again.', {
+          renderError(mount, describeFailure(err), {
             title: 'Calculation failed',
+            cta: { label: 'Try again', onClick: submit },
           });
           console.error(err);
         } finally {
           btn.disabled = false;
           btn.classList.remove('is-busy');
-          label.textContent = 'Recalculate';
+          // The old code relabelled to "Recalculate" on both paths, so a
+          // failure left a button claiming a result exists.
+          if (ok) label.textContent = 'Recalculate';
+          else label.textContent = prevLabel === 'Recalculate' ? 'Recalculate' : 'Get my verdict';
         }
       }
     })
@@ -1088,41 +1357,14 @@ function initCalculator() {
 }
 
 /* --------------------------------------------------------------------------
-   Scroll reveal (homepage) — progressive enhancement
-   -------------------------------------------------------------------------- */
-function initReveal() {
-  const els = document.querySelectorAll('.ro-reveal');
-  if (!els.length) return;
-  if (REDUCED_MOTION || !('IntersectionObserver' in window)) {
-    els.forEach((e) => e.classList.add('is-in'));
-    return;
-  }
-  const io = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-in');
-          io.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
-  );
-  els.forEach((e) => io.observe(e));
-}
-
-/* --------------------------------------------------------------------------
    Bootstrap (homepage only)
-   -------------------------------------------------------------------------- */
-function boot() {
-  initCalculator();
-  initReveal();
-}
 
-if (document.getElementById('intake-form')) {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
-}
+   Scroll-reveal deliberately lives in chrome.js, not here: marketing content
+   must never be hidden behind a class that only the calculator module can
+   remove.
+
+   No DOMContentLoaded gate — module scripts are deferred by spec, so the DOM
+   is already parsed by the time this runs. Waiting for the event pushed the
+   /api/catalog request ~240ms later, behind four blocking stylesheets.
+   -------------------------------------------------------------------------- */
+if (document.getElementById('intake-form')) initCalculator();
