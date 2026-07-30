@@ -1,6 +1,6 @@
-import type { ApplianceCategory, BrandTier, RepairCostResult } from './types.js';
-import { conditionalSurvival, fitWeibull } from './weibull.js';
-import { CATEGORY_DEFAULT_REPAIR } from '../data/partCosts.js';
+import type { ApplianceCategory, BrandTier, RepairCostResult } from './types';
+import { conditionalSurvival, fitWeibull } from './weibull';
+import { CATEGORY_DEFAULT_REPAIR } from '../data/partCosts';
 
 /**
  * Expected (risk-adjusted) cost of authorizing the repair.

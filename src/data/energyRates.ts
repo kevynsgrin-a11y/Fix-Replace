@@ -1,4 +1,4 @@
-import type { LocationInput } from '../core/types.js';
+import type { LocationInput } from '../core/types';
 
 /**
  * Localized energy rates. High utility costs shorten the break-even period on a

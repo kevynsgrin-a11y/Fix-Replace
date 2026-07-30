@@ -3,9 +3,9 @@ import type {
   BrandTier,
   NpcBreakdown,
   NpcResult,
-} from './types.js';
-import type { ReplacementAncillary } from '../data/ancillary.js';
-import { getExpectedLifespanYears } from '../data/lifespans.js';
+} from './types';
+import type { ReplacementAncillary } from '../data/ancillary';
+import { getExpectedLifespanYears } from '../data/lifespans';
 
 /**
  * Net Present Cost comparison, replace-now vs. repair-and-run.

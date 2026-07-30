@@ -6,18 +6,18 @@ import type {
   RecallResult,
   ResolvedInput,
   Verdict,
-} from './types.js';
-import { getApplianceMeta } from '../data/appliances.js';
-import { getComponent, getRepairCostBand } from '../data/partCosts.js';
-import { getReplacementAncillary } from '../data/ancillary.js';
-import { resolveLabor, type ResolvedLabor } from '../data/laborRates.js';
-import { computeRul } from './weibull.js';
-import { computeRepairCost } from './repairCost.js';
-import { computeEnergy } from './energy.js';
-import { computeNpc } from './npc.js';
-import { evaluateSafety } from './safety.js';
-import { evaluateConfidence } from './confidence.js';
-import { buildMonetization } from './monetization.js';
+} from './types';
+import { getApplianceMeta } from '../data/appliances';
+import { getComponent, getRepairCostBand } from '../data/partCosts';
+import { getReplacementAncillary } from '../data/ancillary';
+import { resolveLabor, type ResolvedLabor } from '../data/laborRates';
+import { computeRul } from './weibull';
+import { computeRepairCost } from './repairCost';
+import { computeEnergy } from './energy';
+import { computeNpc } from './npc';
+import { evaluateSafety } from './safety';
+import { evaluateConfidence } from './confidence';
+import { buildMonetization } from './monetization';
 
 export interface DecisionOptions {
   /** Macro discount rate (opportunity cost of capital). Defaults to 5%. */

@@ -1,5 +1,5 @@
-import type { ApplianceCategory, SafetyResult } from './types.js';
-import { getComponent, type Hazard } from '../data/partCosts.js';
+import type { ApplianceCategory, SafetyResult } from './types';
+import { getComponent, type Hazard } from '../data/partCosts';
 
 /**
  * Trust & safety hard-stops. Providing diagnostic advice on gas, high-voltage,

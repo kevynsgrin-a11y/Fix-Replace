@@ -1,4 +1,4 @@
-import type { ApplianceCategory, BrandTier, FuelType } from '../core/types.js';
+import type { ApplianceCategory, BrandTier, FuelType } from '../core/types';
 
 /**
  * Per-category reference data: human labels, whether the category's running

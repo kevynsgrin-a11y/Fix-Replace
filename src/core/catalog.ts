@@ -1,8 +1,8 @@
-import type { ApplianceCategory, BrandTier } from './types.js';
-import { APPLIANCES } from '../data/appliances.js';
-import { componentsForCategory } from '../data/partCosts.js';
-import { METROS } from '../data/laborRates.js';
-import { getLifespanBand } from '../data/lifespans.js';
+import type { ApplianceCategory, BrandTier } from './types';
+import { APPLIANCES } from '../data/appliances';
+import { componentsForCategory } from '../data/partCosts';
+import { METROS } from '../data/laborRates';
+import { getLifespanBand } from '../data/lifespans';
 
 /**
  * UI catalog. The frontend fetches this once to build the intake form

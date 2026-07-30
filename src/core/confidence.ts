@@ -1,5 +1,5 @@
-import type { ApplianceCategory, ConfidenceResult } from './types.js';
-import { getRepairCostBand } from '../data/partCosts.js';
+import type { ApplianceCategory, ConfidenceResult } from './types';
+import { getRepairCostBand } from '../data/partCosts';
 
 /**
  * Confidence scoring and suppression logic — the guard against "fake precision".

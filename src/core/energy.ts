@@ -3,9 +3,9 @@ import type {
   EnergyResult,
   FuelType,
   LocationInput,
-} from './types.js';
-import { resolveEnergyProfile } from '../data/appliances.js';
-import { resolveEnergyRates } from '../data/energyRates.js';
+} from './types';
+import { resolveEnergyProfile } from '../data/appliances';
+import { resolveEnergyRates } from '../data/energyRates';
 
 /**
  * Localized energy sub-model. Replacing an aging unit with a modern efficient
