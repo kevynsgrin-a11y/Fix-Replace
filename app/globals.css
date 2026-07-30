@@ -1,0 +1,260 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ *
+ * RepairOrReplace design tokens
+ * Precision instrument meets financial report.
+ * Full light + dark, both first-class. Numbers are the product.
+ * ------------------------------------------------------------------ */
+
+@theme inline {
+  /* Brand */
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-tint: var(--brand-tint);
+
+  /* Semantic verdict pair — carries the product */
+  --color-repair: var(--repair);
+  --color-repair-ink: var(--repair-ink);
+  --color-repair-tint: var(--repair-tint);
+  --color-replace: var(--replace);
+  --color-replace-ink: var(--replace-ink);
+  --color-replace-tint: var(--replace-tint);
+
+  /* Status */
+  --color-uncertain: var(--uncertain);
+  --color-danger: var(--danger);
+  --color-danger-ink: var(--danger-ink);
+  --color-warn: var(--warn);
+
+  /* Surfaces */
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  /* Text */
+  --color-ink: var(--ink);
+  --color-body: var(--body);
+  --color-muted: var(--muted);
+
+  /* Lines / borders */
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  /* Focus */
+  --color-ring: var(--ring);
+
+  /* Aliases so Tailwind semantic tokens resolve */
+  --color-background: var(--canvas);
+  --color-foreground: var(--ink);
+  --color-border: var(--line);
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  /* Fluid type scale — 8 steps, clamp() */
+  --text-2xs: clamp(0.6875rem, 0.66rem + 0.14vw, 0.75rem);
+  --text-xs: clamp(0.75rem, 0.72rem + 0.16vw, 0.8125rem);
+  --text-sm: clamp(0.8125rem, 0.78rem + 0.18vw, 0.875rem);
+  --text-base: clamp(0.9375rem, 0.9rem + 0.2vw, 1rem);
+  --text-lg: clamp(1.0625rem, 1rem + 0.32vw, 1.1875rem);
+  --text-xl: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --text-2xl: clamp(1.625rem, 1.42rem + 1vw, 2.125rem);
+  --text-3xl: clamp(2.1rem, 1.7rem + 2vw, 3rem);
+  --text-4xl: clamp(2.6rem, 1.9rem + 3.4vw, 4rem);
+
+  /* Radii */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
+  --radius-pill: 999px;
+
+  /* Elevation — restrained */
+  --shadow-xs: 0 1px 2px 0 color-mix(in oklab, var(--shadow-color) 60%, transparent);
+  --shadow-sm: 0 1px 2px 0 color-mix(in oklab, var(--shadow-color) 50%, transparent),
+    0 2px 6px -2px color-mix(in oklab, var(--shadow-color) 40%, transparent);
+  --shadow-md: 0 4px 12px -2px color-mix(in oklab, var(--shadow-color) 45%, transparent),
+    0 2px 6px -2px color-mix(in oklab, var(--shadow-color) 35%, transparent);
+  --shadow-lg: 0 12px 32px -8px color-mix(in oklab, var(--shadow-color) 55%, transparent),
+    0 4px 12px -4px color-mix(in oklab, var(--shadow-color) 35%, transparent);
+
+  /* Motion */
+  --ease-out-quint: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+  --duration-slow: 420ms;
+
+  /* Content widths */
+  --container-content: 1120px;
+  --container-wide: 1280px;
+
+  /* Custom breakpoint: the desktop header can't fit its own content in the
+   * 760–1000px band, so the drawer takes over below 1000px (not lg/1024). */
+  --breakpoint-nav: 1000px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Light theme (default / first-class)
+ * ------------------------------------------------------------------ */
+:root {
+  --brand: #0d7c66;
+  --brand-strong: #0a6353;
+  --brand-ink: #064e40;
+  --brand-tint: #e4f3ef;
+
+  --repair: #0f9d6a;
+  --repair-ink: #0a6b48;
+  --repair-tint: #e6f6ee;
+  --replace: #d97a06;
+  --replace-ink: #9a5602;
+  --replace-tint: #fcf0dc;
+
+  --uncertain: #5b6b82;
+  --danger: #c4212b;
+  --danger-ink: #9b1119;
+  --warn: #8c5400;
+
+  --canvas: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f1f3f7;
+  --surface-3: #e9edf3;
+
+  --ink: #0e1726;
+  --body: #38455c;
+  --muted: #5b6880; /* AA 4.5:1 on all four light surfaces */
+
+  --line: #dfe4ec;
+  --line-strong: #cbd3df;
+
+  --ring: #0d7c66;
+
+  --shadow-color: #0e172640;
+
+  color-scheme: light;
+}
+
+/* ------------------------------------------------------------------ *
+ * Dark theme (first-class)
+ * ------------------------------------------------------------------ */
+.dark {
+  --brand: #2bb898;
+  --brand-strong: #23a488;
+  --brand-ink: #7fdcc6;
+  --brand-tint: #0e2b26;
+
+  --repair: #24c281;
+  --repair-ink: #7fe0b6;
+  --repair-tint: #0c2b20;
+  --replace: #f0921f;
+  --replace-ink: #f7c07a;
+  --replace-tint: #33220c;
+
+  --uncertain: #8695ab;
+  --danger: #f2555f;
+  --danger-ink: #f9a3a9;
+  --warn: #e2a44a;
+
+  --canvas: #080c14;
+  --surface: #0f1826;
+  --surface-2: #16212f;
+  --surface-3: #1e2b3d;
+
+  --ink: #eef2f8;
+  --body: #b7c1d1;
+  --muted: #8a97ab;
+
+  --line: #24313f;
+  --line-strong: #33404f;
+
+  --ring: #2bb898;
+
+  --shadow-color: #00000080;
+
+  color-scheme: dark;
+}
+
+/* ------------------------------------------------------------------ *
+ * Base
+ * ------------------------------------------------------------------ */
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--body);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    font-feature-settings: "cv01", "ss01";
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--ink);
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  h1 {
+    letter-spacing: -0.03em;
+    font-weight: 640;
+  }
+
+  h2,
+  h3 {
+    letter-spacing: -0.02em;
+    font-weight: 620;
+  }
+
+  /* Tabular numerals — numbers are the product and must align */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .readout {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "zero" 1;
+    letter-spacing: -0.01em;
+  }
+
+  /* Visible, non-suppressed focus ring */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 22%, transparent);
+    color: var(--ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
