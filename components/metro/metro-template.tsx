@@ -47,7 +47,7 @@ export function MetroTemplate({ data }: MetroTemplateProps) {
       {/* 1. Hero */}
       <PageHero
         breadcrumbs={[
-          { label: "Labor costs", href: "/labor-costs" },
+          { label: "Local costs", href: "/local-costs" },
           { label: shortName },
         ]}
         eyebrow="Local labor costs"
@@ -166,7 +166,7 @@ export function MetroTemplate({ data }: MetroTemplateProps) {
                 {siblings.map((s) => (
                   <li key={s.slug}>
                     <Link
-                      href={`/labor-costs/${s.slug}`}
+                      href={`/local-costs/${s.slug}`}
                       className="inline-flex items-center rounded-(--radius-md) border border-(--color-line) bg-(--color-surface) px-3 py-1.5 text-(length:--text-sm) text-(--color-ink) transition-colors hover:border-(--color-brand) hover:text-(--color-brand)"
                     >
                       {s.name.split(",")[0]}

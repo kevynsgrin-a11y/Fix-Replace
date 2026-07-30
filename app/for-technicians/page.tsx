@@ -10,11 +10,11 @@ export const metadata: Metadata = {
   title: "For Appliance Repair Professionals — RepairOrReplace.net",
   description:
     "Hand a customer a link to their result. Reference our cost guides in your estimates. Technicians, inspectors, and service companies — here is how to use this tool professionally.",
-  alternates: { canonical: `${SITE}/for-pros` },
+  alternates: { canonical: `${SITE}/for-technicians` },
   openGraph: {
     title: "For Appliance Repair Professionals",
     description: "How technicians, home inspectors, and service companies can use RepairOrReplace.net with customers.",
-    url: `${SITE}/for-pros`,
+    url: `${SITE}/for-technicians`,
     images: [{ url: `${SITE}/og?type=editorial&slug=for-pros`, width: 1200, height: 630, alt: "RepairOrReplace.net for appliance repair professionals" }],
   },
   twitter: { card: "summary_large_image" },
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 export default function ForProsPage() {
   const ldBc = breadcrumbList([
     { name: "Home", url: SITE },
-    { name: "For professionals", url: `${SITE}/for-pros` },
+    { name: "For professionals", url: `${SITE}/for-technicians` },
   ])
   return (
     <>
@@ -31,13 +31,13 @@ export default function ForProsPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldBc) }} />
 
       <PageHero
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "For professionals" }]}
+        crumbs={[{ label: "Home", href: "/" }, { label: "For professionals" }]}
         eyebrow="For technicians &amp; inspectors"
         title="A neutral third party you can hand to your customer"
         lede="The hardest conversation in appliance repair is explaining why the honest answer is &ldquo;replace it.&rdquo; A neutral, cite-everything tool makes that conversation easier."
       />
 
-      <Container asChild>
+      <Container>
         <main className="mt-12 pb-24">
           <div className="mx-auto max-w-[72ch] space-y-12">
 
@@ -80,7 +80,7 @@ export default function ForProsPage() {
               <p className="mt-3 text-(length:--text-sm) leading-relaxed text-(--color-muted)">
                 The calculator checks the CPSC SaferProducts database when a UPC or model
                 number is provided. If you are on-site without network access, the{" "}
-                <Link href="/recalls" className="text-(--color-brand) underline underline-offset-2">recalls page</Link>{" "}
+                <Link href="/recall-checks" className="text-(--color-brand) underline underline-offset-2">recalls page</Link>{" "}
                 links directly to the CPSC lookup tool so you can check any unit.
               </p>
             </section>

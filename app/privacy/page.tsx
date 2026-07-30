@@ -30,14 +30,14 @@ export default function PrivacyPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldBc) }} />
 
       <PageHero
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Privacy" }]}
+        crumbs={[{ label: "Home", href: "/" }, { label: "Privacy" }]}
         eyebrow="Privacy policy"
         title="We do not collect your data"
         lede="Short version: your inputs stay in your browser. Nothing is stored on our servers. No account, no email, no tracking."
         provenance="Last updated July 19, 2026"
       />
 
-      <Container asChild>
+      <Container>
         <main className="mt-12 pb-24">
           <div className="mx-auto max-w-[72ch] space-y-10 text-(length:--text-sm) leading-relaxed text-(--color-muted)">
 

@@ -1,4 +1,5 @@
 import * as React from "react"
+import Link from "next/link"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
@@ -42,15 +43,26 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {}
+    VariantProps<typeof buttonVariants> {
+  /** When provided, renders a Next.js Link instead of a button. */
+  href?: string
+}
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, block, type = "button", ...props }, ref) => {
+  ({ className, variant, size, block, href, type = "button", ...props }, ref) => {
+    const cls = cn(buttonVariants({ variant, size, block }), className)
+    if (href) {
+      return (
+        <Link href={href} className={cls}>
+          {props.children}
+        </Link>
+      )
+    }
     return (
       <button
         ref={ref}
         type={type}
-        className={cn(buttonVariants({ variant, size, block }), className)}
+        className={cls}
         {...props}
       />
     )

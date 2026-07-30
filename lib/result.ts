@@ -243,6 +243,9 @@ export async function postReport(
 export const money = (n: number) =>
   `$${Math.round(n).toLocaleString("en-US")}`
 
+/** Alias used by the guide/metro templates. */
+export const fmtUSD = money
+
 export const moneyCents = (n: number) =>
   `$${n.toLocaleString("en-US", {
     minimumFractionDigits: 2,

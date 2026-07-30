@@ -50,7 +50,7 @@ export default function LocalCostsHubPage() {
       <JsonLd data={breadcrumbList(crumbs)} />
 
       <PageHero
-        breadcrumbs={crumbs}
+        crumbs={crumbs}
         eyebrow="Local repair costs"
         title="What a repair visit costs where you live"
         lede="Labor is the biggest variable in any repair quote. These markets are benchmarked against the $24.10/hr national mean for appliance repairers (BLS OEWS 49-9031, May 2025)."

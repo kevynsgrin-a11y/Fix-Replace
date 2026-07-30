@@ -57,14 +57,14 @@ export default function RecallsPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldBc) }} />
 
       <PageHero
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Recalls" }]}
+        crumbs={[{ label: "Home", href: "/" }, { label: "Recalls" }]}
         eyebrow="Safety"
         title="Check your appliance for open recalls"
         lede="If a recall exists for your appliance, stop using it and contact the manufacturer. These are the official federal resources — no account required."
         provenance="CPSC database · Live recall data · Updated continuously"
       />
 
-      <Container asChild>
+      <Container>
         <main className="mt-12 pb-24">
           <div className="mx-auto max-w-[72ch]">
 

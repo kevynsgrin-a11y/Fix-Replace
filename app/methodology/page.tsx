@@ -83,14 +83,14 @@ export default function MethodologyPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldBc) }} />
 
       <PageHero
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Methodology" }]}
+        crumbs={[{ label: "Home", href: "/" }, { label: "Methodology" }]}
         eyebrow="Data sources"
         title="Where every number comes from"
         lede="We cite every data point. If a source updates, the model updates. Nothing is invented."
         provenance="Last reviewed July 19, 2026"
       />
 
-      <Container asChild>
+      <Container>
         <main className="mt-12 pb-24">
           <div className="mx-auto max-w-[90ch]">
 

@@ -31,14 +31,14 @@ export default function HowItWorksPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldBc) }} />
 
       <PageHero
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "How it works" }]}
+        crumbs={[{ label: "Home", href: "/" }, { label: "How it works" }]}
         eyebrow="Methodology overview"
         title="The math behind the verdict"
         lede="RepairOrReplace.net runs a net-present cost comparison between keeping-and-repairing and replacing now. Here is every formula, assumption, and data source in plain language."
         provenance="Model reviewed July 2026 · BLS OEWS 49-9031 · EIA RECS · NAHB · InterNACHI"
       />
 
-      <Container asChild>
+      <Container>
         <main className="mt-12 pb-24">
           <div className="mx-auto max-w-[72ch] space-y-16">
 

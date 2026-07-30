@@ -31,13 +31,13 @@ export default function AboutPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldBc) }} />
 
       <PageHero
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "About" }]}
+        crumbs={[{ label: "Home", href: "/" }, { label: "About" }]}
         eyebrow="About"
         title="Neutral by design"
         lede="RepairOrReplace.net exists because the appliance industry has a structural incentive to push you toward replacement. We have no such incentive."
       />
 
-      <Container asChild>
+      <Container>
         <main className="mt-12 pb-24">
           <div className="mx-auto max-w-[72ch] space-y-10 text-(length:--text-base) leading-relaxed text-(--color-muted)">
 
@@ -91,7 +91,7 @@ export default function AboutPage() {
               <p>
                 If you are a technician, home inspector, or service company and want
                 to embed the calculator or reference our data, see the{" "}
-                <Link href="/for-pros" className="text-(--color-brand) underline underline-offset-2">For professionals</Link>{" "}
+                <Link href="/for-technicians" className="text-(--color-brand) underline underline-offset-2">For professionals</Link>{" "}
                 page.
               </p>
             </div>

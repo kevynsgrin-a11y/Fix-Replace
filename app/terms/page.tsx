@@ -31,14 +31,14 @@ export default function TermsPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldBc) }} />
 
       <PageHero
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Terms" }]}
+        crumbs={[{ label: "Home", href: "/" }, { label: "Terms" }]}
         eyebrow="Terms of use"
         title="Estimates, not advice"
         lede="RepairOrReplace.net produces statistical estimates based on public data. It does not inspect your appliance and cannot replace a qualified technician."
         provenance="Last updated July 19, 2026"
       />
 
-      <Container asChild>
+      <Container>
         <main className="mt-12 pb-24">
           <div className="mx-auto max-w-[72ch] space-y-10 text-(length:--text-sm) leading-relaxed text-(--color-muted)">
 

@@ -32,7 +32,7 @@ export function generateMetadata(): Metadata {
 
 export default function SharedResultPage() {
   return (
-    <Container asChild>
+    <Container>
       <main className="py-10 pb-24">
         {/* Breadcrumb-style back link */}
         <nav aria-label="Breadcrumb" className="mb-8">
@@ -63,8 +63,8 @@ export default function SharedResultPage() {
             This result was shared with you. Run your own numbers — free, no sign-up.
           </p>
           <div className="mt-5 flex justify-center">
-            <Button asChild size="lg">
-              <Link href="/">Open the calculator</Link>
+            <Button href="/" size="lg">
+              Open the calculator
             </Button>
           </div>
         </div>

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 const QUICK_LINKS = [
   { href: "/", label: "Calculator — get a verdict" },
   { href: "/cost-guides", label: "Cost guides by appliance" },
-  { href: "/local-rates", label: "Local labor rates by metro" },
+  { href: "/local-costs", label: "Local labor rates by metro" },
   { href: "/how-it-works", label: "How the math works" },
   { href: "/methodology", label: "Data sources" },
 ]
@@ -21,13 +21,13 @@ export default function NotFound() {
   return (
     <>
       <PageHero
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "404" }]}
+        crumbs={[{ label: "Home", href: "/" }, { label: "404" }]}
         eyebrow="404"
-        title="Nothing here"
-        lede="The page you requested does not exist. It may have moved, or the link may be wrong. Here are some useful starting points."
+        heading="Nothing here"
+        lede="The page you requested does not exist. It may have moved, or the link may be wrong."
       />
 
-      <Container asChild>
+      <Container>
         <main className="mt-12 pb-24">
           <div className="mx-auto max-w-[52ch]">
             <nav aria-label="Suggested pages">
@@ -47,8 +47,8 @@ export default function NotFound() {
             </nav>
 
             <div className="mt-8">
-              <Button asChild size="lg" block>
-                <Link href="/">Go to the calculator</Link>
+              <Button href="/" size="lg" block>
+                Go to the calculator
               </Button>
             </div>
           </div>
