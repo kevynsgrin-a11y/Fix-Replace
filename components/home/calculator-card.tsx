@@ -3,6 +3,7 @@
 import * as React from "react"
 import useSWR from "swr"
 import { fetchCatalog, type Catalog } from "@/lib/catalog"
+import type { CalculatePayload } from "@/lib/result"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Field, Label, FieldHint, Input, Select } from "@/components/ui/field"
@@ -34,7 +35,14 @@ function validateQuote(value: string): string | null {
   return null
 }
 
-export function CalculatorCard() {
+interface CalculatorCardProps {
+  onSubmit: (payload: CalculatePayload) => void
+  submitting: boolean
+  /** True only after a successful verdict — drives the "Recalculate" relabel. */
+  submitted: boolean
+}
+
+export function CalculatorCard({ onSubmit, submitting, submitted }: CalculatorCardProps) {
   const { data: catalog, isLoading } = useSWR<Catalog>(
     "/api/catalog",
     fetchCatalog,
@@ -71,13 +79,28 @@ export function CalculatorCard() {
       {isLoading || !catalog ? (
         <FormSkeleton />
       ) : (
-        <CalculatorForm catalog={catalog} />
+        <CalculatorForm
+          catalog={catalog}
+          onSubmit={onSubmit}
+          submitting={submitting}
+          submitted={submitted}
+        />
       )}
     </section>
   )
 }
 
-function CalculatorForm({ catalog }: { catalog: Catalog }) {
+function CalculatorForm({
+  catalog,
+  onSubmit,
+  submitting,
+  submitted,
+}: {
+  catalog: Catalog
+  onSubmit: (payload: CalculatePayload) => void
+  submitting: boolean
+  submitted: boolean
+}) {
   const firstCategory = catalog.categories[0]
 
   const [form, setForm] = React.useState<FormState>(() => ({
@@ -95,7 +118,6 @@ function CalculatorForm({ catalog }: { catalog: Catalog }) {
     upc: "",
   }))
   const [quoteError, setQuoteError] = React.useState<string | null>(null)
-  const [status, setStatus] = React.useState<string | null>(null)
 
   const activeCategory =
     catalog.categories.find((c) => c.id === form.category) ?? firstCategory
@@ -143,7 +165,7 @@ function CalculatorForm({ catalog }: { catalog: Catalog }) {
 
     // Build the request payload for the verdict engine. A blank age is omitted
     // entirely; a typed 0 is sent as 0 — they are different answers.
-    const payload: Record<string, unknown> = {
+    const payload: CalculatePayload = {
       category: form.category,
       tier: form.tier,
       quote: Number(form.quote),
@@ -159,7 +181,7 @@ function CalculatorForm({ catalog }: { catalog: Catalog }) {
     if (activeCategory.fuelDependent) payload.fuel = form.fuel
     if (form.upc.trim() !== "") payload.upc = form.upc.trim()
 
-    setStatus("Inputs look good — the verdict view connects in the next step.")
+    onSubmit(payload)
   }
 
   const locationLabelFor =
@@ -368,7 +390,10 @@ function CalculatorForm({ catalog }: { catalog: Catalog }) {
         </div>
 
         {/* Advanced — recall check */}
-        <details className="group rounded-(--radius-md) border border-(--color-line) bg-(--color-surface) [&_summary::-webkit-details-marker]:hidden">
+        <details
+          id="advanced-recall"
+          className="group rounded-(--radius-md) border border-(--color-line) bg-(--color-surface) [&_summary::-webkit-details-marker]:hidden"
+        >
           <summary className="flex cursor-pointer items-center justify-between gap-2 rounded-(--radius-md) px-4 py-3 text-(length:--text-sm) font-medium text-(--color-ink) focus-visible:outline-2 focus-visible:outline-(--color-ring)">
             <span>Advanced — recall check</span>
             <svg
@@ -407,18 +432,22 @@ function CalculatorForm({ catalog }: { catalog: Catalog }) {
           className="pointer-events-none absolute inset-x-0 bottom-full h-8 bg-gradient-to-t from-(--color-surface) to-transparent"
         />
         <div className="rounded-b-(--radius-lg) border-t border-(--color-line) bg-(--color-surface) px-6 pb-6 pt-4">
-          <Button type="submit" size="lg" block>
-            Get my verdict
+          <Button type="submit" size="lg" block disabled={submitting}>
+            {submitting
+              ? "Running the numbers…"
+              : submitted
+                ? "Recalculate"
+                : "Get my verdict"}
           </Button>
           <p
-            role="status"
-            aria-live="polite"
             className={cn(
               "mt-2 min-h-4 text-center text-(length:--text-xs)",
-              status ? "text-(--color-brand-ink)" : "text-(--color-muted)",
+              submitting ? "text-(--color-brand-ink)" : "text-(--color-muted)",
             )}
           >
-            {status ?? "Free. No sign-up. Your answer stays on this page."}
+            {submitting
+              ? "Crunching net-present cost on real data."
+              : "Free. No sign-up. Your answer stays on this page."}
           </p>
         </div>
       </div>

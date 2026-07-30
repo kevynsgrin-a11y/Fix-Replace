@@ -6,12 +6,18 @@ import { usePrefersReducedMotion } from "@/lib/use-reduced-motion"
 
 interface CountUpProps {
   value: number
-  /** Format the numeric value into its display string. */
-  format: (n: number) => string
+  /** Format the numeric value into its display string. Overrides prefix/suffix/decimals. */
+  format?: (n: number) => string
+  /** Convenience formatter: fixed decimals with a prefix and/or suffix. */
+  decimals?: number
+  prefix?: string
+  suffix?: string
   /** Animation duration in ms. */
   durationMs?: number
   /** Delay before starting, in ms (lets the gauge lead). */
   delayMs?: number
+  /** When false, renders the final value immediately (no count). */
+  animate?: boolean
   className?: string
 }
 
@@ -24,16 +30,30 @@ interface CountUpProps {
 export function CountUp({
   value,
   format,
+  decimals,
+  prefix = "",
+  suffix = "",
   durationMs = 900,
   delayMs = 240,
+  animate = true,
   className,
 }: CountUpProps) {
   const reduced = usePrefersReducedMotion()
-  const [display, setDisplay] = React.useState(() => (reduced ? value : 0))
+  const fmt = React.useCallback(
+    (n: number) =>
+      format
+        ? format(n)
+        : `${prefix}${n.toLocaleString("en-US", {
+            minimumFractionDigits: decimals ?? 0,
+            maximumFractionDigits: decimals ?? 0,
+          })}${suffix}`,
+    [format, prefix, suffix, decimals],
+  )
+  const [display, setDisplay] = React.useState(() => (reduced || !animate ? value : 0))
   const rafRef = React.useRef<number | null>(null)
 
   React.useEffect(() => {
-    if (reduced) {
+    if (reduced || !animate) {
       setDisplay(value)
       return
     }
@@ -55,17 +75,17 @@ export function CountUp({
       window.clearTimeout(timer)
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
-  }, [value, durationMs, delayMs, reduced])
+  }, [value, durationMs, delayMs, reduced, animate])
 
   return (
     <span className={cn("relative inline-grid", className)}>
       {/* Width reservation: the final string, laid out but invisible. */}
       <span aria-hidden className="invisible col-start-1 row-start-1 whitespace-nowrap">
-        {format(value)}
+        {fmt(value)}
       </span>
       {/* Live animated value, overlaid in the same grid cell. */}
       <span className="col-start-1 row-start-1 whitespace-nowrap tabular-nums">
-        {format(display)}
+        {fmt(display)}
       </span>
     </span>
   )

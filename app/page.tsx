@@ -1,33 +1,35 @@
 import Link from "next/link"
 import { Container } from "@/components/ui/container"
-import { Pill } from "@/components/ui/pill"
-import { buttonVariants } from "@/components/ui/button"
+import { Hero } from "@/components/home/hero"
+import { WorkedExample } from "@/components/home/worked-example"
+import { CalculatorExperience } from "@/components/home/calculator-experience"
+import { HowItWorks } from "@/components/home/how-it-works"
+import { TrustSection } from "@/components/home/trust-section"
+import { FaqSection } from "@/components/home/faq-section"
+import { ConversionBand } from "@/components/home/conversion-band"
 
 export default function HomePage() {
   return (
-    <Container className="flex min-h-[60vh] flex-col items-start justify-center py-20">
-        <Pill variant="brand">Design system · Batch 1</Pill>
-        <h1 className="mt-5 max-w-3xl text-(length:--text-4xl)">
-          The chrome is in place. The verdict comes next.
-        </h1>
-        <p className="mt-5 max-w-xl text-(length:--text-lg) text-(--color-muted)">
-          Site chrome and design system for RepairOrReplace are ready. Page
-          content ships in the next batch.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/components"
-            className={buttonVariants({ variant: "primary", size: "lg" })}
-          >
-            View the component library
-          </Link>
-          <Link
-            href="/calculator"
-            className={buttonVariants({ variant: "outline", size: "lg" })}
-          >
-            Get my verdict
-          </Link>
+    <>
+      {/* Above the fold: the 3-second test. Hero left, calculator right. */}
+      <Container className="py-10 lg:py-16">
+        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-12">
+          {/* Left column: pitch + worked example */}
+          <div className="flex flex-col gap-8">
+            <Hero />
+            <WorkedExample />
+          </div>
+
+          {/* Right column: the calculator (and, after submit, the result) */}
+          <CalculatorExperience />
         </div>
-    </Container>
+      </Container>
+
+      {/* Below the fold: trust, method, FAQ, and a final conversion band. */}
+      <HowItWorks />
+      <TrustSection />
+      <FaqSection />
+      <ConversionBand />
+    </>
   )
 }
