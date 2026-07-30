@@ -52,7 +52,7 @@ export function TableWrapper({
       <div
         aria-hidden="true"
         className={cn(
-          "pointer-events-none absolute inset-y-0 left-0 z-10 w-8 rounded-l-[--radius-md] transition-opacity [transition-duration:var(--duration-base)]",
+          "pointer-events-none absolute inset-y-0 left-0 z-10 w-8 rounded-l-(--radius-md) transition-opacity [transition-duration:var(--duration-base)]",
           "bg-gradient-to-r from-[color-mix(in_oklab,var(--color-ink)_14%,transparent)] to-transparent",
           edges.left ? "opacity-100" : "opacity-0",
         )}
@@ -61,7 +61,7 @@ export function TableWrapper({
       <div
         aria-hidden="true"
         className={cn(
-          "pointer-events-none absolute inset-y-0 right-0 z-10 w-8 rounded-r-[--radius-md] transition-opacity [transition-duration:var(--duration-base)]",
+          "pointer-events-none absolute inset-y-0 right-0 z-10 w-8 rounded-r-(--radius-md) transition-opacity [transition-duration:var(--duration-base)]",
           "bg-gradient-to-l from-[color-mix(in_oklab,var(--color-ink)_14%,transparent)] to-transparent",
           edges.right ? "opacity-100" : "opacity-0",
         )}
@@ -71,7 +71,7 @@ export function TableWrapper({
         role="region"
         tabIndex={0}
         aria-label={ariaLabel}
-        className="overflow-x-auto rounded-[--radius-md] border border-[--color-line]"
+        className="overflow-x-auto rounded-(--radius-md) border border-(--color-line)"
         {...props}
       >
         {children}
@@ -87,7 +87,7 @@ function Table({
   return (
     <table
       className={cn(
-        "w-full border-collapse text-[length:var(--text-sm)]",
+        "w-full border-collapse text-(length:--text-sm)",
         className,
       )}
       {...props}
@@ -102,7 +102,7 @@ function Th({
   return (
     <th
       className={cn(
-        "border-b border-[--color-line] bg-[--color-surface-2] px-4 py-2.5 text-left font-semibold text-[--color-ink]",
+        "border-b border-(--color-line) bg-(--color-surface-2) px-4 py-2.5 text-left font-semibold text-(--color-ink)",
         className,
       )}
       {...props}
@@ -117,7 +117,7 @@ function Td({
   return (
     <td
       className={cn(
-        "border-b border-[--color-line] px-4 py-2.5 text-[--color-body]",
+        "border-b border-(--color-line) px-4 py-2.5 text-(--color-body)",
         className,
       )}
       {...props}

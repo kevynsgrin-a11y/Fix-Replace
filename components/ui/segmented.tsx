@@ -34,7 +34,7 @@ export function Segmented({
       role="radiogroup"
       aria-label={props["aria-label"]}
       className={cn(
-        "inline-flex rounded-[--radius-sm] border border-[--color-line] bg-[--color-surface-2] p-1",
+        "inline-flex rounded-(--radius-sm) border border-(--color-line) bg-(--color-surface-2) p-1",
         className,
       )}
     >
@@ -46,12 +46,12 @@ export function Segmented({
             key={opt.value}
             htmlFor={id}
             className={cn(
-              "relative cursor-pointer rounded-[calc(var(--radius-sm)-3px)] px-3.5 py-1.5 text-[length:var(--text-sm)] font-medium",
+              "relative cursor-pointer rounded-[calc(var(--radius-sm)-3px)] px-3.5 py-1.5 text-(length:--text-sm) font-medium",
               "transition-colors [transition-duration:var(--duration-fast)] [transition-timing-function:var(--ease-out-quint)]",
-              "has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[--color-ring]",
+              "has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--color-ring)",
               checked
-                ? "bg-[--color-surface] text-[--color-ink] shadow-[--shadow-xs]"
-                : "text-[--color-muted] hover:text-[--color-body]",
+                ? "bg-(--color-surface) text-(--color-ink) shadow-(--shadow-xs)"
+                : "text-(--color-muted) hover:text-(--color-body)",
             )}
           >
             <input

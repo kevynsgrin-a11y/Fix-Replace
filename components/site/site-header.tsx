@@ -15,7 +15,7 @@ export function SiteHeader() {
   const triggerRef = React.useRef<HTMLButtonElement>(null)
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[--color-line] bg-[color-mix(in_oklab,var(--color-canvas)_82%,transparent)] backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-(--color-line) bg-[color-mix(in_oklab,var(--color-canvas)_82%,transparent)] backdrop-blur-md">
       <Container
         wide
         as="div"
@@ -36,7 +36,7 @@ export function SiteHeader() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="inline-flex items-center whitespace-nowrap rounded-[--radius-sm] px-3 py-2 text-[length:var(--text-sm)] font-medium text-[--color-body] transition-colors [transition-duration:var(--duration-fast)] hover:bg-[--color-surface-2] hover:text-[--color-ink]"
+                  className="inline-flex items-center whitespace-nowrap rounded-(--radius-sm) px-3 py-2 text-(length:--text-sm) font-medium text-(--color-body) transition-colors [transition-duration:var(--duration-fast)] hover:bg-(--color-surface-2) hover:text-(--color-ink)"
                 >
                   {link.label}
                 </Link>
@@ -66,7 +66,7 @@ export function SiteHeader() {
             aria-haspopup="dialog"
             aria-expanded={open}
             aria-label="Open menu"
-            className="inline-flex size-10 items-center justify-center rounded-[--radius-sm] border border-[--color-line] bg-[--color-surface] text-[--color-body] transition-colors hover:bg-[--color-surface-2] hover:text-[--color-ink]"
+            className="inline-flex size-10 items-center justify-center rounded-(--radius-sm) border border-(--color-line) bg-(--color-surface) text-(--color-body) transition-colors hover:bg-(--color-surface-2) hover:text-(--color-ink)"
           >
             <Menu aria-hidden="true" className="size-[18px]" />
           </button>

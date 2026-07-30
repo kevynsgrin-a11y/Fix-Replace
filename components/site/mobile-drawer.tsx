@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { createPortal } from "react-dom"
 import Link from "next/link"
 import { X } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
@@ -20,6 +21,10 @@ const FOCUSABLE =
 
 export function MobileDrawer({ open, onClose, triggerRef }: MobileDrawerProps) {
   const panelRef = React.useRef<HTMLDivElement>(null)
+
+  /* Portal target — only available after mount (SSR-safe). */
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => setMounted(true), [])
 
   /* Body scroll lock + inert the main content while open. */
   React.useEffect(() => {
@@ -82,10 +87,14 @@ export function MobileDrawer({ open, onClose, triggerRef }: MobileDrawerProps) {
     [onClose],
   )
 
-  return (
+  if (!mounted) return null
+
+  return createPortal(
     <div
       className={cn(
-        "fixed inset-0 z-50 nav:hidden",
+        // overflow-hidden clips the off-screen (translate-x-full) panel when
+        // closed so it can't extend the document and cause horizontal scroll.
+        "fixed inset-0 z-50 overflow-hidden nav:hidden",
         open ? "pointer-events-auto" : "pointer-events-none",
       )}
       // When closed, remove the whole overlay (and its links) from the tab
@@ -96,7 +105,7 @@ export function MobileDrawer({ open, onClose, triggerRef }: MobileDrawerProps) {
       <div
         onClick={onClose}
         className={cn(
-          "absolute inset-0 bg-[color-mix(in_oklab,var(--color-ink)_55%,transparent)] transition-opacity [transition-duration:var(--duration-base)] [transition-timing-function:var(--ease-out-quint)]",
+          "absolute inset-0 bg-(--color-scrim) transition-opacity [transition-duration:var(--duration-base)] [transition-timing-function:var(--ease-out-quint)]",
           open ? "opacity-100" : "opacity-0",
         )}
       />
@@ -109,20 +118,20 @@ export function MobileDrawer({ open, onClose, triggerRef }: MobileDrawerProps) {
         aria-label="Site menu"
         onKeyDown={onKeyDown}
         className={cn(
-          "absolute inset-y-0 right-0 flex w-[min(88vw,22rem)] flex-col border-l border-[--color-line] bg-[--color-surface] shadow-[--shadow-lg]",
+          "absolute inset-y-0 right-0 flex w-[min(88vw,22rem)] flex-col border-l border-(--color-line) bg-(--color-surface) shadow-(--shadow-lg)",
           "transition-transform [transition-duration:var(--duration-base)] [transition-timing-function:var(--ease-out-quint)]",
           open ? "translate-x-0" : "translate-x-full",
         )}
       >
-        <div className="flex items-center justify-between border-b border-[--color-line] px-5 py-4">
-          <span className="text-[length:var(--text-sm)] font-semibold text-[--color-ink]">
+        <div className="flex items-center justify-between border-b border-(--color-line) px-5 py-4">
+          <span className="text-(length:--text-sm) font-semibold text-(--color-ink)">
             Menu
           </span>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="inline-flex size-9 items-center justify-center rounded-[--radius-sm] text-[--color-body] transition-colors hover:bg-[--color-surface-2] hover:text-[--color-ink]"
+            className="inline-flex size-9 items-center justify-center rounded-(--radius-sm) text-(--color-body) transition-colors hover:bg-(--color-surface-2) hover:text-(--color-ink)"
           >
             <X aria-hidden="true" className="size-5" />
           </button>
@@ -138,7 +147,7 @@ export function MobileDrawer({ open, onClose, triggerRef }: MobileDrawerProps) {
                 <Link
                   href={link.href}
                   onClick={onClose}
-                  className="block rounded-[--radius-sm] px-3 py-2.5 text-[length:var(--text-base)] font-medium text-[--color-body] transition-colors hover:bg-[--color-surface-2] hover:text-[--color-ink]"
+                  className="block rounded-(--radius-sm) px-3 py-2.5 text-(length:--text-base) font-medium text-(--color-body) transition-colors hover:bg-(--color-surface-2) hover:text-(--color-ink)"
                 >
                   {link.label}
                 </Link>
@@ -146,12 +155,12 @@ export function MobileDrawer({ open, onClose, triggerRef }: MobileDrawerProps) {
             ))}
           </ul>
 
-          <div className="mt-5 border-t border-[--color-line] pt-5">
+          <div className="mt-5 border-t border-(--color-line) pt-5">
             <ThemeToggleRow />
           </div>
         </nav>
 
-        <div className="border-t border-[--color-line] p-5">
+        <div className="border-t border-(--color-line) p-5">
           <Link
             href="/calculator"
             onClick={onClose}
@@ -161,6 +170,7 @@ export function MobileDrawer({ open, onClose, triggerRef }: MobileDrawerProps) {
           </Link>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

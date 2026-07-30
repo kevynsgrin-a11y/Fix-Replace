@@ -31,9 +31,9 @@ export function ThemeToggle({ className }: { className?: string }) {
       title={label}
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className={cn(
-        "inline-flex size-10 items-center justify-center rounded-[--radius-sm] border border-[--color-line] bg-[--color-surface] text-[--color-body]",
+        "inline-flex size-10 items-center justify-center rounded-(--radius-sm) border border-(--color-line) bg-(--color-surface) text-(--color-body)",
         "transition-colors [transition-duration:var(--duration-fast)] [transition-timing-function:var(--ease-out-quint)]",
-        "hover:bg-[--color-surface-2] hover:text-[--color-ink]",
+        "hover:bg-(--color-surface-2) hover:text-(--color-ink)",
         className,
       )}
     >
@@ -59,10 +59,10 @@ export function ThemeToggleRow() {
       : "Switch to dark theme"
 
   return (
-    <div className="flex items-center justify-between rounded-[--radius-sm] border border-[--color-line] bg-[--color-surface] px-4 py-3">
+    <div className="flex items-center justify-between rounded-(--radius-sm) border border-(--color-line) bg-(--color-surface) px-4 py-3">
       <span
         id="drawer-theme-label"
-        className="text-[length:var(--text-sm)] font-medium text-[--color-ink]"
+        className="text-(length:--text-sm) font-medium text-(--color-ink)"
       >
         Theme
       </span>
@@ -73,9 +73,9 @@ export function ThemeToggleRow() {
         aria-describedby="drawer-theme-label"
         onClick={() => setTheme(isDark ? "light" : "dark")}
         className={cn(
-          "inline-flex items-center gap-2 rounded-[--radius-sm] border border-[--color-line-strong] bg-[--color-surface-2] px-3 py-1.5",
-          "text-[length:var(--text-sm)] font-medium text-[--color-ink]",
-          "transition-colors [transition-duration:var(--duration-fast)] hover:bg-[--color-surface-3]",
+          "inline-flex items-center gap-2 rounded-(--radius-sm) border border-(--color-line-strong) bg-(--color-surface-2) px-3 py-1.5",
+          "text-(length:--text-sm) font-medium text-(--color-ink)",
+          "transition-colors [transition-duration:var(--duration-fast)] hover:bg-(--color-surface-3)",
         )}
       >
         {isDark ? (

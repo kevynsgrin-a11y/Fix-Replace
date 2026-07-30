@@ -5,7 +5,7 @@ function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "rounded-[--radius-lg] border border-[--color-line] bg-[--color-surface] text-[--color-body] shadow-[--shadow-xs]",
+        "rounded-(--radius-lg) border border-(--color-line) bg-(--color-surface) text-(--color-body) shadow-(--shadow-xs)",
         className,
       )}
       {...props}
@@ -32,7 +32,7 @@ function CardTitle({
   return (
     <h3
       className={cn(
-        "text-[length:var(--text-lg)] font-semibold text-[--color-ink]",
+        "text-(length:--text-lg) font-semibold text-(--color-ink)",
         className,
       )}
       {...props}
@@ -47,7 +47,7 @@ function CardDescription({
   return (
     <p
       className={cn(
-        "text-[length:var(--text-sm)] text-[--color-muted]",
+        "text-(length:--text-sm) text-(--color-muted)",
         className,
       )}
       {...props}
@@ -69,7 +69,7 @@ function CardFooter({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 border-t border-[--color-line] p-6 pt-4",
+        "flex items-center gap-3 border-t border-(--color-line) p-6 pt-4",
         className,
       )}
       {...props}

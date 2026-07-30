@@ -42,14 +42,14 @@ export function Logo({ className }: { className?: string }) {
     <Link
       href="/"
       className={cn(
-        "inline-flex items-center gap-2.5 rounded-[--radius-sm] text-[--color-ink]",
+        "inline-flex items-center gap-2.5 rounded-(--radius-sm) text-(--color-ink)",
         className,
       )}
       aria-label="RepairOrReplace home"
     >
       <LogoMark />
-      <span className="text-[length:var(--text-base)] font-semibold tracking-[-0.02em]">
-        Repair<span className="text-[--color-muted]">Or</span>Replace
+      <span className="text-(length:--text-base) font-semibold tracking-[-0.02em]">
+        Repair<span className="text-(--color-muted)">Or</span>Replace
       </span>
     </Link>
   )

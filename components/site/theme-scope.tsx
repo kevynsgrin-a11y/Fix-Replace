@@ -24,7 +24,7 @@ export function ThemeScope({
       data-theme={scheme}
       className={cn(
         scheme === "dark" && "dark",
-        "bg-[--color-canvas] text-[--color-body] [color-scheme:var(--_cs)]",
+        "bg-(--color-canvas) text-(--color-body) [color-scheme:var(--_cs)]",
         scheme === "dark" ? "[--_cs:dark]" : "[--_cs:light]",
         className,
       )}

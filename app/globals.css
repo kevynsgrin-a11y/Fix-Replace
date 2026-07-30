@@ -50,6 +50,9 @@
   /* Focus */
   --color-ring: var(--ring);
 
+  /* Scrim — always dark, both themes, for modal backdrops */
+  --color-scrim: var(--scrim);
+
   /* Aliases so Tailwind semantic tokens resolve */
   --color-background: var(--canvas);
   --color-foreground: var(--ink);
@@ -158,6 +161,7 @@
   --on-brand: #ffffff;
   --on-danger: #ffffff;
   --knob: #ffffff;
+  --scrim: rgba(8, 12, 20, 0.5);
 
   --canvas: #f6f7f9;
   --surface: #ffffff;
@@ -204,6 +208,7 @@
   --on-brand: #04231d;
   --on-danger: #2c0708;
   --knob: #f2f6fb;
+  --scrim: rgba(2, 4, 8, 0.66);
 
   --canvas: #080c14;
   --surface: #0f1826;

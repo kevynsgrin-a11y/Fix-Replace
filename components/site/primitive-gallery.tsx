@@ -24,7 +24,7 @@ import { TableWrapper, Table, Th, Td } from "@/components/ui/table"
 /* Sub-heading used inside cards — h3, keeps outline valid under the page h2s. */
 function Sub({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="mb-3 text-[length:var(--text-2xs)] font-semibold uppercase tracking-[0.08em] text-[--color-muted]">
+    <h3 className="mb-3 text-(length:--text-2xs) font-semibold uppercase tracking-[0.08em] text-(--color-muted)">
       {children}
     </h3>
   )
@@ -104,28 +104,28 @@ export function PrimitiveGallery({ idns = "g" }: { idns?: string }) {
           <CardContent className="pt-6">
             <Sub>Tabular readouts</Sub>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <div className="rounded-[--radius-md] border border-[--color-line] bg-[--color-surface-2] p-4">
-                <p className="text-[length:var(--text-xs)] text-[--color-muted]">
+              <div className="rounded-(--radius-md) border border-(--color-line) bg-(--color-surface-2) p-4">
+                <p className="text-(length:--text-xs) text-(--color-muted)">
                   Repair net cost
                 </p>
-                <p className="readout mt-1 text-[length:var(--text-2xl)] text-[--color-repair-ink]">
+                <p className="readout mt-1 text-(length:--text-2xl) text-(--color-repair-ink)">
                   $1,240
                 </p>
               </div>
-              <div className="rounded-[--radius-md] border border-[--color-line] bg-[--color-surface-2] p-4">
-                <p className="text-[length:var(--text-xs)] text-[--color-muted]">
+              <div className="rounded-(--radius-md) border border-(--color-line) bg-(--color-surface-2) p-4">
+                <p className="text-(length:--text-xs) text-(--color-muted)">
                   Replace net cost
                 </p>
-                <p className="readout mt-1 text-[length:var(--text-2xl)] text-[--color-replace-ink]">
+                <p className="readout mt-1 text-(length:--text-2xl) text-(--color-replace-ink)">
                   $1,918
                 </p>
               </div>
-              <div className="rounded-[--radius-md] border border-[--color-line] bg-[--color-surface-2] p-4">
-                <p className="text-[length:var(--text-xs)] text-[--color-muted]">
+              <div className="rounded-(--radius-md) border border-(--color-line) bg-(--color-surface-2) p-4">
+                <p className="text-(length:--text-xs) text-(--color-muted)">
                   Break-even
                 </p>
-                <p className="readout mt-1 text-[length:var(--text-2xl)] text-[--color-ink]">
-                  3.4<span className="text-[length:var(--text-base)] text-[--color-muted]"> yrs</span>
+                <p className="readout mt-1 text-(length:--text-2xl) text-(--color-ink)">
+                  3.4<span className="text-(length:--text-base) text-(--color-muted)"> yrs</span>
                 </p>
               </div>
             </div>
@@ -189,7 +189,7 @@ export function PrimitiveGallery({ idns = "g" }: { idns?: string }) {
               <Sub>Toggle switch</Sub>
               <div className="flex flex-col gap-3">
                 <label className="flex items-center justify-between gap-4">
-                  <span className="text-[length:var(--text-sm)] text-[--color-body]">
+                  <span className="text-(length:--text-sm) text-(--color-body)">
                     Expedited part sourcing
                   </span>
                   <Switch
@@ -199,7 +199,7 @@ export function PrimitiveGallery({ idns = "g" }: { idns?: string }) {
                   />
                 </label>
                 <label className="flex items-center justify-between gap-4">
-                  <span className="text-[length:var(--text-sm)] text-[--color-body]">
+                  <span className="text-(length:--text-sm) text-(--color-body)">
                     Still under warranty
                   </span>
                   <Switch
@@ -229,7 +229,7 @@ export function PrimitiveGallery({ idns = "g" }: { idns?: string }) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-[length:var(--text-sm)]">
+            <p className="text-(length:--text-sm)">
               Cards carry every readout, form, and verdict block across the app.
             </p>
           </CardContent>
@@ -292,10 +292,10 @@ export function PrimitiveGallery({ idns = "g" }: { idns?: string }) {
                     ["Door gasket", "$48", "$90", "$138", "18%", "7.9 yrs"],
                   ].map((row) => (
                     <tr key={row[0]}>
-                      <Td className="font-medium text-[--color-ink]">{row[0]}</Td>
+                      <Td className="font-medium text-(--color-ink)">{row[0]}</Td>
                       <Td className="tnum text-right">{row[1]}</Td>
                       <Td className="tnum text-right">{row[2]}</Td>
-                      <Td className="tnum text-right font-semibold text-[--color-ink]">
+                      <Td className="tnum text-right font-semibold text-(--color-ink)">
                         {row[3]}
                       </Td>
                       <Td className="tnum text-right">{row[4]}</Td>
@@ -305,7 +305,7 @@ export function PrimitiveGallery({ idns = "g" }: { idns?: string }) {
                 </tbody>
               </Table>
             </TableWrapper>
-            <p className="mt-2 text-[length:var(--text-xs)] text-[--color-muted]">
+            <p className="mt-2 text-(length:--text-xs) text-(--color-muted)">
               Narrow the viewport to see the self-hiding scroll-shadow cues.
             </p>
           </CardContent>

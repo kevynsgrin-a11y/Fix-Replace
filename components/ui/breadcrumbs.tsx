@@ -16,7 +16,7 @@ export interface BreadcrumbsProps {
 export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
   return (
     <nav aria-label="Breadcrumb" className={cn("w-full", className)}>
-      <ol className="flex flex-wrap items-center gap-1.5 text-[length:var(--text-xs)]">
+      <ol className="flex flex-wrap items-center gap-1.5 text-(length:--text-xs)">
         {items.map((item, i) => {
           const isLast = i === items.length - 1
           return (
@@ -24,7 +24,7 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
               {item.href && !isLast ? (
                 <Link
                   href={item.href}
-                  className="rounded-[3px] text-[--color-muted] transition-colors hover:text-[--color-ink]"
+                  className="rounded-[3px] text-(--color-muted) transition-colors hover:text-(--color-ink)"
                 >
                   {item.label}
                 </Link>
@@ -32,8 +32,8 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
                 <span
                   className={
                     isLast
-                      ? "font-medium text-[--color-ink]"
-                      : "text-[--color-muted]"
+                      ? "font-medium text-(--color-ink)"
+                      : "text-(--color-muted)"
                   }
                   aria-current={isLast ? "page" : undefined}
                 >
@@ -43,7 +43,7 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
               {!isLast && (
                 <ChevronRight
                   aria-hidden="true"
-                  className="size-3.5 text-[--color-muted]"
+                  className="size-3.5 text-(--color-muted)"
                 />
               )}
             </li>

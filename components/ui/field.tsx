@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils"
  * :focus-visible rule (2px solid var(--ring)). We deliberately DO NOT set a
  * custom box-shadow "glow" that would tempt us into `outline: none`. */
 const controlBase =
-  "w-full rounded-[--radius-sm] border border-[--color-line-strong] bg-[--color-surface] text-[--color-ink] " +
-  "placeholder:text-[--color-muted] shadow-[--shadow-xs] " +
+  "w-full rounded-(--radius-sm) border border-(--color-line-strong) bg-(--color-surface) text-(--color-ink) " +
+  "placeholder:text-(--color-muted) shadow-(--shadow-xs) " +
   "transition-colors [transition-duration:var(--duration-fast)] [transition-timing-function:var(--ease-out-quint)] " +
-  "hover:border-[--color-line-strong] focus:border-[--color-brand] " +
+  "hover:border-(--color-line-strong) focus:border-(--color-brand) " +
   "disabled:cursor-not-allowed disabled:opacity-55"
 
 function Field({
@@ -25,7 +25,7 @@ function Label({
   return (
     <label
       className={cn(
-        "text-[length:var(--text-sm)] font-medium text-[--color-ink]",
+        "text-(length:--text-sm) font-medium text-(--color-ink)",
         className,
       )}
       {...props}
@@ -40,7 +40,7 @@ function FieldHint({
   return (
     <p
       className={cn(
-        "text-[length:var(--text-xs)] text-[--color-muted]",
+        "text-(length:--text-xs) text-(--color-muted)",
         className,
       )}
       {...props}
@@ -55,7 +55,7 @@ const Input = React.forwardRef<
   return (
     <input
       ref={ref}
-      className={cn(controlBase, "h-10 px-3 text-[length:var(--text-sm)]", className)}
+      className={cn(controlBase, "h-10 px-3 text-(length:--text-sm)", className)}
       {...props}
     />
   )
@@ -69,7 +69,7 @@ const Textarea = React.forwardRef<
   return (
     <textarea
       ref={ref}
-      className={cn(controlBase, "min-h-24 px-3 py-2 text-[length:var(--text-sm)]", className)}
+      className={cn(controlBase, "min-h-24 px-3 py-2 text-(length:--text-sm)", className)}
       {...props}
     />
   )
@@ -83,7 +83,7 @@ const Select = React.forwardRef<
   return (
     <select
       ref={ref}
-      className={cn(controlBase, "h-10 px-3 text-[length:var(--text-sm)]", className)}
+      className={cn(controlBase, "h-10 px-3 text-(length:--text-sm)", className)}
       {...props}
     />
   )

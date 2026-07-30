@@ -7,10 +7,10 @@ export default function HomePage() {
   return (
     <Container className="flex min-h-[60vh] flex-col items-start justify-center py-20">
         <Pill variant="brand">Design system · Batch 1</Pill>
-        <h1 className="mt-5 max-w-3xl text-[length:var(--text-4xl)]">
+        <h1 className="mt-5 max-w-3xl text-(length:--text-4xl)">
           The chrome is in place. The verdict comes next.
         </h1>
-        <p className="mt-5 max-w-xl text-[length:var(--text-lg)] text-[--color-muted]">
+        <p className="mt-5 max-w-xl text-(length:--text-lg) text-(--color-muted)">
           Site chrome and design system for RepairOrReplace are ready. Page
           content ships in the next batch.
         </p>
