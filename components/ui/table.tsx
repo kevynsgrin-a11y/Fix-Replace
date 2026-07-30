@@ -16,6 +16,7 @@ export interface TableWrapperProps
 export function TableWrapper({
   className,
   children,
+  "aria-label": ariaLabel,
   ...props
 }: TableWrapperProps) {
   const scrollerRef = React.useRef<HTMLDivElement>(null)
@@ -69,7 +70,7 @@ export function TableWrapper({
         ref={scrollerRef}
         role="region"
         tabIndex={0}
-        aria-label={props["aria-label"]}
+        aria-label={ariaLabel}
         className="overflow-x-auto rounded-[--radius-md] border border-[--color-line]"
         {...props}
       >

@@ -35,16 +35,20 @@ export function MobileDrawer({ open, onClose, triggerRef }: MobileDrawerProps) {
     }
   }, [open])
 
-  /* Focus the panel on open; return focus to trigger on close. */
+  /* Focus the panel on open; return focus to the trigger only when we
+   * actually transition from open → closed (never on initial mount). */
+  const wasOpen = React.useRef(false)
   React.useEffect(() => {
     if (open) {
+      wasOpen.current = true
       const panel = panelRef.current
       if (!panel) return
       const first = panel.querySelector<HTMLElement>(FOCUSABLE)
       // Focus the first focusable (the close button) on the next frame.
       const id = requestAnimationFrame(() => first?.focus())
       return () => cancelAnimationFrame(id)
-    } else {
+    } else if (wasOpen.current) {
+      wasOpen.current = false
       triggerRef.current?.focus()
     }
   }, [open, triggerRef])
@@ -81,10 +85,12 @@ export function MobileDrawer({ open, onClose, triggerRef }: MobileDrawerProps) {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 lg:hidden",
+        "fixed inset-0 z-50 nav:hidden",
         open ? "pointer-events-auto" : "pointer-events-none",
       )}
-      aria-hidden={open ? undefined : true}
+      // When closed, remove the whole overlay (and its links) from the tab
+      // order and the a11y tree so focus can never land off-screen.
+      inert={!open}
     >
       {/* Backdrop scrim */}
       <div

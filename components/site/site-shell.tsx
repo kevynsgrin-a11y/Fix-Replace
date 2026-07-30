@@ -10,7 +10,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     <>
       <a
         href="#main"
-        className="sr-only z-[60] rounded-[--radius-sm] bg-[--color-brand] px-4 py-2 text-[length:var(--text-sm)] font-semibold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+        className="sr-only z-[60] rounded-[--radius-sm] bg-[--color-brand] px-4 py-2 text-[length:var(--text-sm)] font-semibold text-[--color-on-brand] focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
       >
         Skip to main content
       </a>

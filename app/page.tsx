@@ -1,13 +1,11 @@
 import Link from "next/link"
-import { SiteShell } from "@/components/site/site-shell"
 import { Container } from "@/components/ui/container"
 import { Pill } from "@/components/ui/pill"
 import { buttonVariants } from "@/components/ui/button"
 
 export default function HomePage() {
   return (
-    <SiteShell>
-      <Container className="flex min-h-[60vh] flex-col items-start justify-center py-20">
+    <Container className="flex min-h-[60vh] flex-col items-start justify-center py-20">
         <Pill variant="brand">Design system · Batch 1</Pill>
         <h1 className="mt-5 max-w-3xl text-[length:var(--text-4xl)]">
           The chrome is in place. The verdict comes next.
@@ -30,7 +28,6 @@ export default function HomePage() {
             Get my verdict
           </Link>
         </div>
-      </Container>
-    </SiteShell>
+    </Container>
   )
 }

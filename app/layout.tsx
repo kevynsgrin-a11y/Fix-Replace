@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
+import { SiteShell } from "@/components/site/site-shell"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -75,7 +76,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <SiteShell>{children}</SiteShell>
         </ThemeProvider>
       </body>
     </html>

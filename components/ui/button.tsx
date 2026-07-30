@@ -13,13 +13,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-[--color-brand] text-white shadow-[--shadow-xs] hover:bg-[--color-brand-strong] active:bg-[--color-brand-ink]",
+          "bg-[--color-brand] text-[--color-on-brand] shadow-[--shadow-xs] hover:bg-[--color-brand-strong] active:bg-[--color-brand-ink]",
         ghost:
           "bg-transparent text-[--color-body] hover:bg-[--color-surface-2] hover:text-[--color-ink]",
         outline:
           "border border-[--color-line-strong] bg-[--color-surface] text-[--color-ink] shadow-[--shadow-xs] hover:bg-[--color-surface-2]",
         danger:
-          "bg-[--color-danger] text-white shadow-[--shadow-xs] hover:brightness-95 active:brightness-90",
+          "bg-[--color-danger] text-[--color-on-danger] shadow-[--shadow-xs] hover:brightness-95 active:brightness-90",
         subtle:
           "bg-[--color-surface-2] text-[--color-ink] hover:bg-[--color-surface-3]",
       },

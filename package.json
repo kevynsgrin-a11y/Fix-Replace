@@ -4,7 +4,7 @@
   "private": true,
   "description": "RepairOrReplace — an evidence-based decision utility that computes whether repairing or replacing a major household appliance is the economically rational choice.",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p ${PORT:-3000}",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
