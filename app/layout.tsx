@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "RepairOrReplace" }],
   robots: { index: true, follow: true },
-  manifest: "/manifest.webmanifest",
+  manifest: "/site.webmanifest",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
