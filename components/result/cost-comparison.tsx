@@ -54,9 +54,10 @@ interface BarProps {
   tone: "repair" | "replace" | "muted"
   winner: boolean
   delayMs: number
+  animate: boolean
 }
 
-function Bar({ label, total, fraction, tone, winner, delayMs }: BarProps) {
+function Bar({ label, total, fraction, tone, winner, delayMs, animate }: BarProps) {
   const reducedWidth = `${Math.max(6, Math.round(fraction * 100))}%`
   const fillTone =
     tone === "repair"
@@ -83,7 +84,7 @@ function Bar({ label, total, fraction, tone, winner, delayMs }: BarProps) {
             "absolute inset-y-0 left-0 rounded-(--radius-sm) transition-[width] [transition-duration:var(--duration-slow)] [transition-timing-function:var(--ease-out-quint)] motion-reduce:transition-none",
             fillTone,
           )}
-          style={{ width: reducedWidth }}
+          style={{ width: animate ? reducedWidth : "0%" }}
         />
         {winner ? (
           <span className="absolute right-2 top-1/2 -translate-y-1/2 rounded-(--radius-pill) bg-(--color-surface) px-2 py-0.5 text-(length:--text-2xs) font-semibold text-(--color-ink) shadow-(--shadow-xs)">
@@ -102,15 +103,16 @@ function Bar({ label, total, fraction, tone, winner, delayMs }: BarProps) {
  * by the parent) but make no confident dollar claim.
  */
 export function CostComparison({
-  result,
+  npc,
   withheld,
+  animate,
   className,
 }: {
-  result: CalculationResult
+  npc: CalculationResult["npc"]
   withheld: boolean
+  animate: boolean
   className?: string
 }) {
-  const { npc } = result
   const max = Math.max(npc.repair, npc.replace, 1)
   const repairWins = npc.repair <= npc.replace
   const advantage = Math.abs(npc.advantageOfReplacing)
@@ -129,6 +131,7 @@ export function CostComparison({
           tone={withheld ? "muted" : repairWins ? "repair" : "muted"}
           winner={!withheld && repairWins}
           delayMs={260}
+          animate={animate}
         />
         <Bar
           label="Replace now"
@@ -137,6 +140,7 @@ export function CostComparison({
           tone={withheld ? "muted" : !repairWins ? "replace" : "muted"}
           winner={!withheld && !repairWins}
           delayMs={340}
+          animate={animate}
         />
       </div>
 

@@ -25,7 +25,10 @@
   --color-uncertain: var(--uncertain);
   --color-danger: var(--danger);
   --color-danger-ink: var(--danger-ink);
+  --color-danger-tint: var(--danger-tint);
   --color-warn: var(--warn);
+  --color-warn-ink: var(--warn-ink);
+  --color-warn-tint: var(--warn-tint);
 
   /* Foreground colors that sit ON solid fills — flip per theme for contrast */
   --color-on-brand: var(--on-brand);
@@ -156,7 +159,10 @@
   --uncertain: #5b6b82;
   --danger: #c4212b;
   --danger-ink: #9b1119;
+  --danger-tint: #fbe9ea;
   --warn: #8c5400;
+  --warn-ink: #6b4200;
+  --warn-tint: #fbf1dc;
 
   --on-brand: #ffffff;
   --on-danger: #ffffff;
@@ -202,7 +208,10 @@
   --uncertain: #8695ab;
   --danger: #f2555f;
   --danger-ink: #f9a3a9;
+  --danger-tint: #2c1214;
   --warn: #e2a44a;
+  --warn-ink: #f2c98a;
+  --warn-tint: #2a2110;
 
   /* On the lighter dark-mode fills, foreground goes dark for AA contrast */
   --on-brand: #04231d;
@@ -338,5 +347,83 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Print — the result is a document handed to a technician.
+ * Force light tokens, drop chrome, expand disclosures, print URLs.
+ * ------------------------------------------------------------------ */
+@media print {
+  /* Force light tokens regardless of the on-screen theme. */
+  :root,
+  .dark,
+  [data-theme="dark"] {
+    --brand: #0d7c66;
+    --brand-strong: #0a6353;
+    --brand-ink: #064e40;
+    --brand-tint: #e4f3ef;
+    --repair: #0f9d6a;
+    --repair-ink: #0a6b48;
+    --repair-tint: #e6f6ee;
+    --replace: #d97a06;
+    --replace-ink: #9a5602;
+    --replace-tint: #fcf0dc;
+    --uncertain: #5b6b82;
+    --danger: #c4212b;
+    --danger-ink: #9b1119;
+    --danger-tint: #fbe9ea;
+    --warn: #8c5400;
+    --warn-ink: #6b4200;
+    --warn-tint: #fbf1dc;
+    --on-brand: #ffffff;
+    --on-danger: #ffffff;
+    --canvas: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f1f3f7;
+    --surface-3: #e9edf3;
+    --ink: #0e1726;
+    --body: #1f2a3d;
+    --muted: #4a566c;
+    --line: #cbd3df;
+    --line-strong: #b3bccb;
+    color-scheme: light;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  /* Hide app chrome and anything explicitly marked non-print. */
+  header[data-site-header],
+  footer[data-site-footer],
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Expand every disclosure so nothing hides on paper. */
+  details {
+    display: block !important;
+  }
+  details > summary {
+    list-style: none;
+  }
+  details[data-print-open] > div,
+  details > div {
+    display: block !important;
+  }
+
+  /* Print destination URLs after external links. */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: #4a566c;
+    word-break: break-all;
+  }
+
+  /* Avoid awkward breaks inside panels. */
+  section,
+  .print-block {
+    break-inside: avoid;
   }
 }

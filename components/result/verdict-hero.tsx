@@ -25,10 +25,15 @@ const LEVEL_LABEL: Record<string, string> = {
  * HERE at the verdict, never buried in a panel below. The headline carries the
  * focus target (tabIndex -1) so success moves focus straight to the answer.
  */
-export const VerdictHero = React.forwardRef<
-  HTMLHeadingElement,
-  { result: CalculationResult }
->(function VerdictHero({ result }, ref) {
+export function VerdictHero({
+  result,
+  animate,
+  headlineRef,
+}: {
+  result: CalculationResult
+  animate: boolean
+  headlineRef: React.Ref<HTMLHeadingElement>
+}) {
   const { verdict, verdictHeadline, confidence, safety, gaugePosition } = result
   const hazardous = safety.hazards.some((h) => DANGEROUS.includes(h))
 
@@ -42,7 +47,7 @@ export const VerdictHero = React.forwardRef<
   return (
     <div className="flex flex-col items-center gap-6 rounded-(--radius-xl) border border-(--color-line) bg-(--color-surface) p-6 shadow-(--shadow-sm) sm:p-8 md:flex-row md:items-center md:gap-10">
       <div className="shrink-0">
-        <ResultGauge position={gaugePosition} verdict={verdict} />
+        <ResultGauge position={gaugePosition} verdict={verdict} animate={animate} />
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col items-center gap-4 text-center md:items-start md:text-left">
@@ -72,7 +77,7 @@ export const VerdictHero = React.forwardRef<
         </div>
 
         <h2
-          ref={ref}
+          ref={headlineRef}
           tabIndex={-1}
           className={`text-balance text-(length:--text-4xl) font-semibold tracking-[-0.01em] outline-none ${headlineTint}`}
         >
@@ -81,4 +86,4 @@ export const VerdictHero = React.forwardRef<
       </div>
     </div>
   )
-})
+}

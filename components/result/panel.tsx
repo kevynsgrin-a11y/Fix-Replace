@@ -5,6 +5,8 @@ interface PanelProps extends React.HTMLAttributes<HTMLElement> {
   title: string
   /** Short descriptor shown under the title. */
   caption?: string
+  /** Alias for caption — some panels use the word "subtitle". */
+  subtitle?: string
   /** Optional element pinned to the top-right of the header (e.g. a badge). */
   action?: React.ReactNode
   /** Renders the header's heading at this level for a correct outline. */
@@ -19,12 +21,14 @@ interface PanelProps extends React.HTMLAttributes<HTMLElement> {
 export function Panel({
   title,
   caption,
+  subtitle,
   action,
   headingLevel: Heading = "h3",
   className,
   children,
   ...props
 }: PanelProps) {
+  const descriptor = caption ?? subtitle
   return (
     <section
       className={cn(
@@ -38,8 +42,8 @@ export function Panel({
           <Heading className="text-(length:--text-sm) font-semibold uppercase tracking-[0.08em] text-(--color-muted)">
             {title}
           </Heading>
-          {caption ? (
-            <p className="text-(length:--text-xs) text-(--color-muted)">{caption}</p>
+          {descriptor ? (
+            <p className="text-(length:--text-xs) text-(--color-muted)">{descriptor}</p>
           ) : null}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}

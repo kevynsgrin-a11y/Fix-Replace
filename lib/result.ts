@@ -125,6 +125,9 @@ export interface CalculationResult {
   monetization: MonetizationBlock
 }
 
+/** Alias used across the result components — the response body of POST /api/calculate. */
+export type CalculateResponse = CalculationResult
+
 /* -------------------------------------------------------------------------- */
 /* Request payload                                                            */
 /* -------------------------------------------------------------------------- */

@@ -9,6 +9,9 @@ interface ResultGaugeProps {
   /** 0 = strongly repair, 100 = strongly replace. Null = withheld. */
   position: number | null
   verdict: Verdict
+  /** When false the needle holds at center; the parent flips this on after mount
+   *  so the sweep plays only once layout (and number width) is reserved. */
+  animate?: boolean
   className?: string
 }
 
@@ -30,25 +33,26 @@ const needleTint: Record<Verdict, string> = {
  * indeterminate face — dimmed track, no needle, a centered dash — so we never
  * imply a precise reading we can't stand behind.
  */
-export function ResultGauge({ position, verdict, className }: ResultGaugeProps) {
+export function ResultGauge({ position, verdict, animate = true, className }: ResultGaugeProps) {
   const reduced = usePrefersReducedMotion()
   const withheld = position === null
   const target = withheld ? 50 : position
   const targetAngle = 1.8 * target - 90
 
-  // Sweep: start centered, then animate to the target after mount.
+  // Sweep: hold centered until `animate` flips on (post-mount), then transition.
   const [angle, setAngle] = React.useState(reduced ? targetAngle : -0)
   React.useEffect(() => {
     if (reduced) {
       setAngle(targetAngle)
       return
     }
+    if (!animate) return
     // Two rAFs so the initial (centered) frame paints before we transition.
     const id = requestAnimationFrame(() =>
       requestAnimationFrame(() => setAngle(targetAngle)),
     )
     return () => cancelAnimationFrame(id)
-  }, [targetAngle, reduced])
+  }, [targetAngle, reduced, animate])
 
   const readingLabel = withheld
     ? "indeterminate — verdict withheld"
