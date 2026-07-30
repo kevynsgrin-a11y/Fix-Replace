@@ -15,14 +15,19 @@ export interface Crumb {
 
 interface PageHeroProps {
   /** Breadcrumb trail. Last item is the current page (no href). */
-  crumbs: Crumb[]
+  crumbs?: Crumb[]
   /** Small text above the h1, e.g. "Cost guide · Refrigerators" */
   eyebrow?: string
-  heading: string
+  /** Primary heading (preferred prop name). */
+  heading?: string
+  /** Alias for heading — used by older editorial page templates. */
+  title?: string
   /** Paragraph below the heading */
   lede?: string
   /** Data provenance / date line */
   provenanceLine?: string
+  /** Alias for provenanceLine — used by older editorial page templates. */
+  provenance?: string
   /** Optional SVG/illustration anchored to the right of the content column */
   illustration?: React.ReactNode
   /** Tailwind class overrides on the outer section */
@@ -33,11 +38,16 @@ export function PageHero({
   crumbs,
   eyebrow,
   heading,
+  title,
   lede,
   provenanceLine,
+  provenance,
   illustration,
   className,
 }: PageHeroProps) {
+  const resolvedHeading = heading ?? title ?? ""
+  const resolvedProvenance = provenanceLine ?? provenance
+  const resolvedCrumbs = crumbs ?? []
   return (
     <section
       className={cn(
@@ -47,9 +57,10 @@ export function PageHero({
     >
       <Container>
         {/* Breadcrumbs */}
+        {resolvedCrumbs.length > 0 && (
         <nav aria-label="Breadcrumb" className="mb-5">
           <ol className="flex flex-wrap items-center gap-1 text-(length:--text-xs) text-(--color-muted)">
-            {crumbs.map((crumb, i) => (
+            {resolvedCrumbs.map((crumb, i) => (
               <li key={i} className="flex items-center gap-1">
                 {i > 0 && (
                   <span aria-hidden className="select-none text-(--color-line-strong)">
@@ -72,6 +83,7 @@ export function PageHero({
             ))}
           </ol>
         </nav>
+        )}
 
         {/* Two-column layout: copy left, illustration right (content-column anchored) */}
         <div className="flex items-start gap-10">
@@ -82,16 +94,16 @@ export function PageHero({
               </p>
             )}
             <h1 className="text-balance text-(length:--text-4xl) font-semibold leading-[1.12] tracking-[-0.02em] text-(--color-ink)">
-              {heading}
+              {resolvedHeading}
             </h1>
             {lede && (
               <p className="mt-4 text-(length:--text-lg) leading-relaxed text-(--color-muted) max-w-[44ch]">
                 {lede}
               </p>
             )}
-            {provenanceLine && (
+            {resolvedProvenance && (
               <p className="mt-5 text-(length:--text-xs) text-(--color-muted) tabular-nums">
-                {provenanceLine}
+                {resolvedProvenance}
               </p>
             )}
           </div>

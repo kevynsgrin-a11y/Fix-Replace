@@ -99,3 +99,49 @@ export function graphLd(...nodes: Record<string, unknown>[]): Record<string, unk
     "@graph": nodes.map(({ "@context": _ctx, ...rest }) => rest),
   }
 }
+
+// ── Back-compat aliases used by the editorial page templates ─────────────────
+
+export const organizationEntity = (_siteUrl?: string) => organizationLd()
+
+export const breadcrumbList = (items: { name: string; url: string }[]) =>
+  breadcrumbLd(
+    items.map((it) => ({
+      name: it.name,
+      href: it.url.replace(/^https?:\/\/[^/]+/, "") || "/",
+    })),
+  )
+
+export const jsonLd = jsonLdScript
+
+export const faqPage = faqLd
+
+/** WebPage JSON-LD used by editorial + metro pages. */
+export function webPage(opts: {
+  url: string
+  name?: string
+  title?: string
+  description: string
+}): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: opts.name ?? opts.title ?? "",
+    description: opts.description,
+    url: `${SITE_URL}${opts.url}`,
+    isPartOf: { "@id": SITE_ID },
+    publisher: { "@id": ORG_ID },
+  }
+}
+
+/**
+ * Drop-in <JsonLd data={...} /> component.
+ * Defined with createElement so this stays a plain .ts module.
+ */
+import { createElement } from "react"
+export function JsonLd({ data }: { data: Record<string, unknown> }) {
+  return createElement("script", {
+    type: "application/ld+json",
+    dangerouslySetInnerHTML: { __html: jsonLdScript(data) },
+  })
+}
