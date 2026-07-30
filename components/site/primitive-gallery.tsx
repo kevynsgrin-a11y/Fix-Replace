@@ -217,6 +217,7 @@ export function PrimitiveGallery({ idns = "g" }: { idns?: string }) {
         <Card>
           <CardHeader>
             <Breadcrumbs
+              label={idns !== "g" ? `Breadcrumb (${idns} theme)` : "Breadcrumb"}
               items={[
                 { label: "Cost guides", href: "/cost-guides" },
                 { label: "Refrigerators", href: "/cost-guides/refrigerators" },
@@ -272,7 +273,7 @@ export function PrimitiveGallery({ idns = "g" }: { idns?: string }) {
         <Card>
           <CardContent className="pt-6">
             <Sub>Scrollable table region</Sub>
-            <TableWrapper aria-label="Estimated repair costs by component">
+            <TableWrapper aria-label={`Estimated repair costs by component${idns !== "g" ? ` (${idns} theme)` : ""}`}>
               <Table>
                 <thead>
                   <tr>

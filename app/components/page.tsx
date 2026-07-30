@@ -24,7 +24,12 @@ export default function ComponentsPage() {
       </header>
 
       {/* Live gallery — follows the active site theme */}
-      <PrimitiveGallery />
+      <section aria-labelledby="live-gallery">
+        <h2 id="live-gallery" className="sr-only">
+          Primitives in the current theme
+        </h2>
+        <PrimitiveGallery />
+      </section>
 
       {/* Forced dual-theme comparison */}
       <section aria-labelledby="dual-theme" className="mt-(--space-20)">

@@ -11,11 +11,14 @@ export interface Crumb {
 export interface BreadcrumbsProps {
   items: Crumb[]
   className?: string
+  /** Override the landmark label — required if more than one breadcrumb
+   *  trail appears on a single page, so each nav landmark stays unique. */
+  label?: string
 }
 
-export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
+export function Breadcrumbs({ items, className, label = "Breadcrumb" }: BreadcrumbsProps) {
   return (
-    <nav aria-label="Breadcrumb" className={cn("w-full", className)}>
+    <nav aria-label={label} className={cn("w-full", className)}>
       <ol className="flex flex-wrap items-center gap-1.5 text-(length:--text-xs)">
         {items.map((item, i) => {
           const isLast = i === items.length - 1
