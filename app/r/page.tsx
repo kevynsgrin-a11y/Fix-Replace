@@ -1,34 +1,9 @@
-import type { Metadata } from "next"
+"use client"
+
 import Link from "next/link"
 import { Container } from "@/components/ui/container"
 import { Button } from "@/components/ui/button"
 import { SharedResult } from "@/components/result/shared-result"
-
-const SITE = "https://www.repair-or-replace.net"
-
-export function generateMetadata(): Metadata {
-  // Dynamic title/description are set client-side once the result loads.
-  // We provide a sensible static fallback for crawlers.
-  return {
-    title: "Repair-or-replace result — RepairOrReplace.net",
-    description:
-      "A shared repair-vs-replace estimate. See the net-present cost analysis and verdict for this appliance.",
-    openGraph: {
-      title: "Repair-or-replace result",
-      description: "Net-present cost analysis and repair-vs-replace verdict.",
-      url: `${SITE}/r`,
-      images: [
-        {
-          url: `${SITE}/og?type=result`,
-          width: 1200,
-          height: 630,
-          alt: "Repair or replace result",
-        },
-      ],
-    },
-    twitter: { card: "summary_large_image" },
-  }
-}
 
 export default function SharedResultPage() {
   return (
