@@ -7,7 +7,7 @@ import { graphLd, organizationLd, websiteLd, articleLd, faqLd, breadcrumbLd, jso
 const SITE = "https://repair-or-replace.net"
 
 export function generateStaticParams() {
-  return GUIDE_SLUGS.map((slug) => ({ slug }))
+  return GUIDE_SLUGS.map((g) => ({ slug: g.slug }))
 }
 
 export async function generateMetadata({

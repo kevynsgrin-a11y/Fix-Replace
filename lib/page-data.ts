@@ -12,6 +12,7 @@ import {
   type Hazard,
 } from "@/src/data/partCosts"
 import { METROS, NATIONAL_MEAN_WAGE } from "@/src/data/laborRates"
+export { NATIONAL_MEAN_WAGE }
 
 const money = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`
 

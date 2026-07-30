@@ -1,15 +1,21 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { graphLd, organizationLd, websiteLd, breadcrumbLd, jsonLdScript } from "@/lib/json-ld"
-import { getMetroHubData, NATIONAL_MEAN_WAGE } from "@/lib/page-data"
+import {
+  graphLd,
+  organizationLd,
+  websiteLd,
+  breadcrumbLd,
+  jsonLdScript,
+} from "@/lib/json-ld"
+import { getMetroHubData } from "@/lib/page-data"
 import { PageHero } from "@/components/site/page-hero"
 import { Container } from "@/components/ui/container"
-import { MultiplierDial } from "@/components/metro/multiplier-dial"
 
 const SITE = "https://repair-or-replace.net"
+
 const TITLE = "Appliance repair labor rates by metro"
 const DESCRIPTION =
-  "Appliance repair labor costs for 6 US metro markets, benchmarked against the $24.10/hr national mean from BLS OEWS 49-9031. Find your city's multiplier."
+  "Appliance repair labor rates for major US metro markets, benchmarked against the national mean from BLS OEWS 49-9031. Find your city's multiplier."
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -19,9 +25,16 @@ export const metadata: Metadata = {
     title: TITLE,
     description: DESCRIPTION,
     url: `${SITE}/local-costs`,
-    images: [{ url: `${SITE}/og?type=metro&title=${encodeURIComponent("Repair labor by metro")}&description=${encodeURIComponent("6 markets · BLS OEWS 49-9031")}`, width: 1200, height: 630, alt: "Appliance repair labor rates by metro" }],
+    images: [
+      {
+        url: `${SITE}/og?type=metro&title=${encodeURIComponent("Repair labor rates by metro")}&description=${encodeURIComponent("BLS OEWS 49-9031")}`,
+        width: 1200,
+        height: 630,
+        alt: "Appliance repair labor rates by US metro market",
+      },
+    ],
   },
-  twitter: { card: "summary_large_image" },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 }
 
 export default function LocalCostsHubPage() {
@@ -29,45 +42,56 @@ export default function LocalCostsHubPage() {
   const ld = graphLd(
     organizationLd(),
     websiteLd(),
-    breadcrumbLd([{ name: "Home", href: "/" }, { name: "Local costs", href: "/local-costs" }]),
+    breadcrumbLd([
+      { name: "Home", href: "/" },
+      { name: "Local costs", href: "/local-costs" },
+    ]),
   )
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }} />
+
       <PageHero
-        crumbs={[{ label: "Home", href: "/" }, { label: "Local costs" }]}
-        eyebrow="Labor rates"
-        heading="Appliance repair costs by metro"
-        lede={`Labor is the largest variable in any repair bill. These ${metros.length} markets are benchmarked against the $${NATIONAL_MEAN_WAGE.toFixed(2)}/hr national mean from BLS OEWS 49-9031.`}
-        provenanceLine="BLS OEWS 49-9031 May 2023 release · reviewed July 19, 2026"
+        crumbs={[
+          { label: "Home", href: "/" },
+          { label: "Local costs" },
+        ]}
+        eyebrow="Local labor costs"
+        heading="Appliance repair labor rates by metro"
+        lede="Repair bills are mostly labor, and technician wages vary widely by market. These are the mean hourly rates for major US metros, each with a multiplier applied to the national baseline cost."
+        provenanceLine="BLS OEWS 49-9031 · Mean hourly wage survey · Data reviewed July 19, 2026"
       />
-      <Container>
-        <main className="py-12 pb-24">
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {metros.map((m) => (
+
+      <Container className="py-12 lg:py-16">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {metros.map((m) => {
+            const pct = Math.round((m.multiplier - 1) * 100)
+            const above = m.multiplier >= 1
+            return (
               <li key={m.slug}>
                 <Link
                   href={`/local-costs/${m.slug}`}
-                  className="group flex flex-col gap-4 rounded-(--radius-lg) border border-(--color-line) bg-(--color-surface) p-5 transition-colors hover:border-(--color-brand) hover:bg-(--color-surface-2)"
+                  className="group flex h-full flex-col rounded-(--radius-lg) border border-(--color-line) bg-(--color-surface) p-5 transition-colors hover:border-(--color-brand)"
                 >
-                  <div>
-                    <p className="font-semibold text-(--color-ink)">{m.shortName}</p>
-                    <p className="mt-0.5 text-(length:--text-xs) text-(--color-muted)">{m.name}</p>
-                  </div>
-                  <div className="flex items-end justify-between gap-3">
-                    <MultiplierDial multiplier={m.multiplier} size={56} />
-                    <div className="text-right">
-                      <p className="text-(length:--text-xl) font-semibold tabular-nums text-(--color-ink)">
-                        ${m.wage.toFixed(2)}<span className="text-(length:--text-xs) font-normal text-(--color-muted)">/hr</span>
-                      </p>
-                      <p className="text-(length:--text-xs) text-(--color-muted)">BLS mean wage</p>
-                    </div>
-                  </div>
+                  <span className="text-(length:--text-base) font-semibold text-(--color-ink) group-hover:text-(--color-brand)">
+                    {m.shortName}
+                  </span>
+                  <span className="mt-3 flex items-baseline gap-2">
+                    <span className="text-(length:--text-2xl) font-semibold tabular-nums text-(--color-ink)">
+                      ${m.wage.toFixed(2)}
+                    </span>
+                    <span className="text-(length:--text-xs) text-(--color-muted)">/hr mean</span>
+                  </span>
+                  <span className="mt-1 text-(length:--text-xs) text-(--color-muted)">
+                    {m.multiplier.toFixed(2)}× national · {above ? "+" : ""}
+                    {pct}% {above ? "above" : "below"} mean
+                  </span>
                 </Link>
               </li>
-            ))}
-          </ul>
-        </main>
+            )
+          })}
+        </ul>
       </Container>
     </>
   )
