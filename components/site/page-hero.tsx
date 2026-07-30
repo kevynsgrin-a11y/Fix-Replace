@@ -56,33 +56,32 @@ export function PageHero({
       )}
     >
       <Container>
-        {/* Breadcrumbs */}
         {resolvedCrumbs.length > 0 && (
-        <nav aria-label="Breadcrumb" className="mb-5">
-          <ol className="flex flex-wrap items-center gap-1 text-(length:--text-xs) text-(--color-muted)">
-            {resolvedCrumbs.map((crumb, i) => (
-              <li key={i} className="flex items-center gap-1">
-                {i > 0 && (
-                  <span aria-hidden className="select-none text-(--color-line-strong)">
-                    /
-                  </span>
-                )}
-                {crumb.href ? (
-                  <Link
-                    href={crumb.href}
-                    className="hover:text-(--color-ink) transition-colors"
-                  >
-                    {crumb.label}
-                  </Link>
-                ) : (
-                  <span aria-current="page" className="text-(--color-ink)">
-                    {crumb.label}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ol>
-        </nav>
+          <nav aria-label="Breadcrumb" className="mb-5">
+            <ol className="flex flex-wrap items-center gap-1 text-(length:--text-xs) text-(--color-muted)">
+              {resolvedCrumbs.map((crumb, i) => (
+                <li key={i} className="flex items-center gap-1">
+                  {i > 0 && (
+                    <span aria-hidden className="select-none text-(--color-line-strong)">
+                      /
+                    </span>
+                  )}
+                  {crumb.href ? (
+                    <Link
+                      href={crumb.href}
+                      className="transition-colors hover:text-(--color-ink)"
+                    >
+                      {crumb.label}
+                    </Link>
+                  ) : (
+                    <span aria-current="page" className="text-(--color-ink)">
+                      {crumb.label}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </nav>
         )}
 
         {/* Two-column layout: copy left, illustration right (content-column anchored) */}
