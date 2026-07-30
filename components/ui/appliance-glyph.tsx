@@ -257,14 +257,25 @@ const GLYPH_MAP: Record<string, React.FC<GlyphProps>> = {
   water_heater: WaterHeaterGlyph,
   hvac_central: HvacGlyph,
   hvac: HvacGlyph,
+  // Guide slugs (plural) so hub cards can pass the slug directly
+  refrigerators: RefrigeratorGlyph,
+  "washing-machines": WasherGlyph,
+  dishwashers: DishwasherGlyph,
+  dryers: DryerGlyph,
+  ranges: RangeGlyph,
+  "wall-ovens": WallOvenGlyph,
+  microwaves: MicrowaveGlyph,
+  "water-heaters": WaterHeaterGlyph,
 }
 
-/** Renders the correct glyph for any ApplianceCategory string. Falls back to a generic box. */
+/** Renders the correct glyph for any ApplianceCategory or guide slug. Falls back to a generic box. */
 export function ApplianceGlyph({
   category,
+  id,
   ...props
-}: GlyphProps & { category: string }) {
-  const Glyph = GLYPH_MAP[category]
+}: GlyphProps & { category?: string; id?: string }) {
+  const key = category ?? id ?? ""
+  const Glyph = GLYPH_MAP[key]
   if (!Glyph) {
     // Generic box fallback
     return (

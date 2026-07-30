@@ -4,7 +4,6 @@
  * from the existing engine data files. Never imported by client components.
  */
 import type { ApplianceCategory, BrandTier } from "@/src/core/types"
-import { APPLIANCES } from "@/src/data/appliances"
 import { LIFESPANS, getLifespanBand } from "@/src/data/lifespans"
 import {
   COMPONENTS,
@@ -14,93 +13,107 @@ import {
 } from "@/src/data/partCosts"
 import { METROS, NATIONAL_MEAN_WAGE } from "@/src/data/laborRates"
 
+const money = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`
+
 /* -------------------------------------------------------------------------- */
 /* Guides                                                                     */
 /* -------------------------------------------------------------------------- */
 
+/** One entry per guide page. `slug` is the URL segment; `category` keys the engine data. */
 export const GUIDE_SLUGS = [
-  "refrigerators",
-  "washing-machines",
-  "dishwashers",
-  "dryers",
-  "ranges",
-  "wall-ovens",
-  "microwaves",
-  "water-heaters",
-] as const
+  { slug: "refrigerators", navLabel: "Refrigerators", category: "refrigerator_freestanding" },
+  { slug: "washing-machines", navLabel: "Washing machines", category: "washer_frontload" },
+  { slug: "dishwashers", navLabel: "Dishwashers", category: "dishwasher" },
+  { slug: "dryers", navLabel: "Dryers", category: "dryer" },
+  { slug: "ranges", navLabel: "Ranges", category: "range_gas" },
+  { slug: "wall-ovens", navLabel: "Wall ovens", category: "oven" },
+  { slug: "microwaves", navLabel: "Microwaves", category: "microwave_otr" },
+  { slug: "water-heaters", navLabel: "Water heaters", category: "water_heater" },
+] as const satisfies readonly {
+  slug: string
+  navLabel: string
+  category: ApplianceCategory
+}[]
 
-export type GuideSlug = (typeof GUIDE_SLUGS)[number]
+export type GuideSlug = (typeof GUIDE_SLUGS)[number]["slug"]
 
-const GUIDE_META: Record<
-  GuideSlug,
-  {
-    category: ApplianceCategory
-    also?: ApplianceCategory[]
-    title: string
-    /** Lowercase singular noun used mid-sentence. Stored on GuideData.plural. */
-    noun: string
-    lede: string
-    rule: string
-  }
-> = {
+interface GuideMeta {
+  category: ApplianceCategory
+  also?: ApplianceCategory[]
+  label: string
+  /** Lowercase singular noun for mid-sentence use. */
+  noun: string
+  lede: string
+  repairRule: string
+}
+
+const GUIDE_META: Record<GuideSlug, GuideMeta> = {
   refrigerators: {
     category: "refrigerator_freestanding",
     also: ["refrigerator_builtin"],
-    title: "Refrigerator",
+    label: "Refrigerator",
     noun: "refrigerator",
     lede: "A failing refrigerator forces a fast decision — spoiled food raises the stakes. Here is what the common repairs actually cost, how long each brand tier is built to last, and the point where replacement wins.",
-    rule: "Repair a refrigerator under 8 years old for anything short of a sealed-system or compressor failure. Past 12 years, or when the quote clears $400 on a freestanding unit, replacement usually wins on net-present cost.",
+    repairRule:
+      "Repair a refrigerator under 8 years old for anything short of a sealed-system or compressor failure. Past 12 years, or when the quote clears $400 on a freestanding unit, replacement usually wins on net-present cost.",
   },
   "washing-machines": {
     category: "washer_frontload",
     also: ["washer_topload"],
-    title: "Washing Machine",
+    label: "Washing Machine",
     noun: "washing machine",
     lede: "Washers fail in predictable ways — bearings, pumps, and door seals lead the list. These are the real installed costs, the lifespan you should expect by tier, and when a rebuild stops making sense.",
-    rule: "A drum-bearing or transmission job on a washer past 8 years rarely pays off — those repairs run $250–$550 and signal more wear behind them. Pumps, valves, and seals on a newer machine are worth fixing.",
+    repairRule:
+      "A drum-bearing or transmission job on a washer past 8 years rarely pays off — those repairs run $250–$550 and signal more wear behind them. Pumps, valves, and seals on a newer machine are worth fixing.",
   },
   dishwashers: {
     category: "dishwasher",
-    title: "Dishwasher",
+    label: "Dishwasher",
     noun: "dishwasher",
     lede: "Most dishwasher failures are drain pumps, control boards, and door latches — not catastrophic. Here is what each costs installed, how tiers differ on lifespan, and the quote level where a new unit is the smarter buy.",
-    rule: "Dishwashers are inexpensive to replace, so the repair math turns early: past 8 years or above a ~$350 quote, a new ENERGY STAR unit typically wins. Newer machines with a bad pump or valve are worth repairing.",
+    repairRule:
+      "Dishwashers are inexpensive to replace, so the repair math turns early: past 8 years or above a ~$350 quote, a new ENERGY STAR unit typically wins. Newer machines with a bad pump or valve are worth repairing.",
   },
   dryers: {
     category: "dryer",
-    title: "Dryer",
+    label: "Dryer",
     noun: "dryer",
     lede: "Dryers are among the most repair-friendly appliances — heating elements, thermal fuses, and thermostats are cheap and long-lived fixes. Here is what they cost and when a drum or motor job tips toward replacement.",
-    rule: "Repair almost any dryer under 10 years old — elements, fuses, and thermostats are inexpensive and restore full life. A drum-bearing or motor failure on an older unit is the usual replace trigger.",
+    repairRule:
+      "Repair almost any dryer under 10 years old — elements, fuses, and thermostats are inexpensive and restore full life. A drum-bearing or motor failure on an older unit is the usual replace trigger.",
   },
   ranges: {
     category: "range_gas",
     also: ["range_electric"],
-    title: "Range",
+    label: "Range",
     noun: "range",
     lede: "Ranges last longer than almost anything else in the kitchen, so most repairs are worth it. Here are typical igniter, element, and valve costs — and the safety line that makes gas work a licensed-pro job.",
-    rule: "Ranges routinely run 15+ years, so repair is the default well past a decade. The exceptions are a failed gas valve or control board on a budget unit near end of life, where replacement can win.",
+    repairRule:
+      "Ranges routinely run 15+ years, so repair is the default well past a decade. The exceptions are a failed gas valve or control board on a budget unit near end of life, where replacement can win.",
   },
   "wall-ovens": {
     category: "oven",
-    title: "Wall Oven",
+    label: "Wall Oven",
     noun: "wall oven",
     lede: "Wall ovens are built in, so replacement carries cabinetry and fit costs that tilt the math toward repair. Here is what bake elements, boards, and gaskets cost, and when a swap is finally justified.",
-    rule: "Because a built-in swap means matching the cutout and often the cabinetry, repair wins more often than for freestanding units. Replace mainly when the control board fails on an oven already past 15 years.",
+    repairRule:
+      "Because a built-in swap means matching the cutout and often the cabinetry, repair wins more often than for freestanding units. Replace mainly when the control board fails on an oven already past 15 years.",
   },
   microwaves: {
     category: "microwave_otr",
-    title: "Microwave",
+    label: "Microwave",
     noun: "microwave",
     lede: "Over-the-range microwaves are the shortest-lived major appliance, so the repair-versus-replace line comes early. Here is what magnetron and motor repairs cost, and why the internal high-voltage side is pro-only.",
-    rule: "With new over-the-range units starting around $250, most repairs above ~$150 do not pay off. Repair only a newer microwave with a cheap, accessible fault — otherwise replace.",
+    repairRule:
+      "With new over-the-range units starting around $250, most repairs above ~$150 do not pay off. Repair only a newer microwave with a cheap, accessible fault — otherwise replace.",
   },
   "water-heaters": {
     category: "water_heater",
-    title: "Water Heater",
+    label: "Water Heater",
     noun: "water heater",
     lede: "A water heater's age is the whole story: elements and thermostats are cheap, but a tank leak is terminal. Here is what the fixable parts cost and the age past which replacement is the safe call.",
-    rule: "Replace any water heater with a leaking tank — that is not repairable. Elements, thermostats, and thermocouples are worth fixing on a unit under 10 years old; past 12, plan the replacement.",
+    repairRule:
+      "Replace any water heater with a leaking tank — that is not repairable. Elements, thermostats, and thermocouples are worth fixing on a unit under 10 years old; past 12, plan the replacement.",
   },
 }
 
@@ -110,48 +123,18 @@ const TIER_LABEL: Record<BrandTier, string> = {
   premium: "Premium / luxury",
 }
 
-const SYMPTOMS: Record<string, string> = {
-  compressor: "Not cooling; runs constantly or clicks and stops",
-  sealed_system: "Warm box, frost buildup, or hissing near the coils",
-  evaporator_fan_motor: "Noisy freezer fan or uneven cooling",
-  door_gasket: "Condensation, warm spots, or a door that won't seal",
-  water_inlet_valve: "No water dispensed or a slow icemaker",
-  control_board: "Dead panel, wrong readings, or cycles that won't start",
-  drum_bearing: "Loud grinding or a drum that wobbles",
-  transmission: "Won't agitate or spin",
-  drain_pump: "Standing water; won't drain",
-  thermal_fuse: "No heat; dryer runs cold",
-  heating_element: "No heat or weak heat",
-  thermostat: "Overheats, or won't reach temperature",
-  gas_valve: "No flame, or a gas smell (shut off and call a pro)",
-  gas_igniter: "Clicks but won't light",
-  gas_burner: "Weak or uneven flame",
-  bake_element: "Oven won't heat or heats unevenly",
-  magnetron: "Runs but won't heat food",
-  microwave_motor: "Turntable won't turn or fan is dead",
-  wh_element: "No hot water, or runs cold quickly",
-}
-
-const HAZARD_LABEL: Record<Hazard, string> = {
-  gas: "Gas — licensed pro",
-  high_voltage: "High voltage — pro only",
-  refrigerant: "Refrigerant — EPA-certified pro",
-  water: "Water line",
-}
-
 export interface GuideLifespanRow {
   tier: string
-  low: number
-  high: number
+  range: string
+  midpoint: number
 }
 
 export interface GuideFailure {
-  part: string
-  symptom: string
-  low: number
-  high: number
-  diy: boolean
-  hazards: { label: string; kind: Hazard }[]
+  name: string
+  hazard?: Hazard
+  costRange: string
+  costLow: number
+  diyFriendly: boolean
 }
 
 export interface GuideFaq {
@@ -159,52 +142,33 @@ export interface GuideFaq {
   a: string
 }
 
-export interface GuideMetroLink {
-  slug: string
-  name: string
-}
-
 export interface GuideData {
   slug: GuideSlug
   category: ApplianceCategory
-  title: string
-  /** Lowercase singular noun for mid-sentence use. Named `plural` for the consumer. */
-  plural: string
-  glyphId: GuideSlug
+  label: string
+  noun: string
   lede: string
   provenance: string
+  sources: string
   lifespanRows: GuideLifespanRow[]
   failures: GuideFailure[]
-  rule: string
+  repairRule: string
   faqs: GuideFaq[]
-  newPrice: { tier: string; price: number }[]
-  metros: GuideMetroLink[]
 }
 
-const PROVENANCE =
-  "Data reviewed July 19, 2026 · NAHB / InterNACHI lifespan tables · BLS OEWS 49-9031 · EIA residential rates"
+const PROVENANCE = "Data reviewed July 19, 2026"
+const SOURCES = "BLS OEWS 49-9031 · NAHB life-expectancy tables · EIA residential rates"
 
-const FEATURED_METRO_SLUGS = [
-  "new-york",
-  "los-angeles",
-  "chicago",
-  "boston",
-  "miami",
-  "minneapolis",
-] as const
-
-function featuredMetros(): GuideMetroLink[] {
-  return FEATURED_METRO_SLUGS.map((slug) => {
-    const m = METROS.find((x) => x.slug === slug)!
-    return { slug: m.slug, name: m.name }
-  })
+function isGuideSlug(v: string): v is GuideSlug {
+  return GUIDE_SLUGS.some((g) => g.slug === v)
 }
 
 export function getAllGuideSlugs(): GuideSlug[] {
-  return [...GUIDE_SLUGS]
+  return GUIDE_SLUGS.map((g) => g.slug)
 }
 
-export function getGuideData(slug: GuideSlug): GuideData {
+export function getGuideData(slug: string): GuideData | undefined {
+  if (!isGuideSlug(slug)) return undefined
   const meta = GUIDE_META[slug]
   const cats = [meta.category, ...(meta.also ?? [])]
 
@@ -212,8 +176,12 @@ export function getGuideData(slug: GuideSlug): GuideData {
   const lifespanRows: GuideLifespanRow[] = (
     ["budget", "mid", "premium"] as BrandTier[]
   ).map((tier) => {
-    const band = bands[tier] ?? getLifespanBand(meta.category, tier)
-    return { tier: TIER_LABEL[tier], low: band.low, high: band.high }
+    const band = bands?.[tier] ?? getLifespanBand(meta.category, tier)
+    return {
+      tier: TIER_LABEL[tier],
+      range: `${band.low}–${band.high} yrs`,
+      midpoint: Math.round((band.low + band.high) / 2),
+    }
   })
 
   const seen = new Set<string>()
@@ -223,46 +191,36 @@ export function getGuideData(slug: GuideSlug): GuideData {
       if (seen.has(comp.id)) continue
       seen.add(comp.id)
       failures.push({
-        part: comp.label,
-        symptom: SYMPTOMS[comp.id] ?? "Intermittent or complete failure",
-        low: comp.costLow,
-        high: comp.costHigh,
-        diy: comp.diyFriendly,
-        hazards: comp.hazards.map((h) => ({ label: HAZARD_LABEL[h], kind: h })),
+        name: comp.label,
+        hazard: comp.hazards[0],
+        costRange: `${money(comp.costLow)}–${money(comp.costHigh)}`,
+        costLow: comp.costLow,
+        diyFriendly: comp.diyFriendly,
       })
     }
   }
-  failures.sort((a, b) => a.low - b.low)
+  failures.sort((a, b) => a.costLow - b.costLow)
 
   const meanRepair = CATEGORY_DEFAULT_REPAIR[meta.category]
-  const appliance = APPLIANCES[meta.category]
-
-  const newPrice = (["budget", "mid", "premium"] as BrandTier[]).map((tier) => ({
-    tier: TIER_LABEL[tier],
-    price: appliance.newPrice[tier],
-  }))
-
-  const faqs = buildGuideFaqs(meta.title, meta.noun, meanRepair, lifespanRows)
+  const faqs = buildGuideFaqs(meta.label, meta.noun, meanRepair, lifespanRows)
 
   return {
     slug,
     category: meta.category,
-    title: meta.title,
-    plural: meta.noun,
-    glyphId: slug,
+    label: meta.label,
+    noun: meta.noun,
     lede: meta.lede,
     provenance: PROVENANCE,
+    sources: SOURCES,
     lifespanRows,
     failures,
-    rule: meta.rule,
+    repairRule: meta.repairRule,
     faqs,
-    newPrice,
-    metros: featuredMetros(),
   }
 }
 
 function buildGuideFaqs(
-  title: string,
+  label: string,
   noun: string,
   meanRepair: { low: number; high: number },
   lifespanRows: GuideLifespanRow[],
@@ -271,14 +229,14 @@ function buildGuideFaqs(
   return [
     {
       q: `How long should a ${noun} last?`,
-      a: `A mid-range ${noun} typically lasts ${mid.low}–${mid.high} years. Budget models run shorter and premium units longer — see the lifespan table above for the full tier breakdown drawn from NAHB and InterNACHI data.`,
+      a: `A mid-range ${noun} typically lasts ${mid.range}. Budget models run shorter and premium units longer — see the lifespan table above for the full tier breakdown drawn from NAHB and InterNACHI data.`,
     },
     {
       q: `Is it worth repairing a ${noun}?`,
-      a: `It depends on age and the specific part. A typical major ${noun} repair runs about $${meanRepair.low}–$${meanRepair.high} installed. If that is more than half the price of a comparable new unit and the appliance is past two-thirds of its expected life, replacement usually wins.`,
+      a: `It depends on age and the specific part. A typical major ${noun} repair runs about ${money(meanRepair.low)}–${money(meanRepair.high)} installed. If that is more than half the price of a comparable new unit and the appliance is past two-thirds of its expected life, replacement usually wins.`,
     },
     {
-      q: `What ${title.toLowerCase()} repairs can I do myself?`,
+      q: `What ${label.toLowerCase()} repairs can I do myself?`,
       a: `The parts marked DIY-friendly above — typically thermostats, elements, seals, and pumps — are within reach for a careful owner with basic tools. Anything tagged gas, refrigerant, or high-voltage should go to a licensed professional.`,
     },
     {
@@ -321,17 +279,16 @@ export interface MetroData {
   siblings: { slug: string; name: string }[]
 }
 
-const METRO_REPAIRS: { repair: string; componentId: string; guideSlug: GuideSlug }[] =
-  [
-    { repair: "Refrigerator compressor", componentId: "compressor", guideSlug: "refrigerators" },
-    { repair: "Refrigerator evaporator fan motor", componentId: "evaporator_fan_motor", guideSlug: "refrigerators" },
-    { repair: "Washer drum bearing", componentId: "drum_bearing", guideSlug: "washing-machines" },
-    { repair: "Washer drain pump", componentId: "drain_pump", guideSlug: "washing-machines" },
-    { repair: "Dryer heating element", componentId: "heating_element", guideSlug: "dryers" },
-    { repair: "Dishwasher control board", componentId: "control_board", guideSlug: "dishwashers" },
-    { repair: "Range gas valve", componentId: "gas_valve", guideSlug: "ranges" },
-    { repair: "Water heater element", componentId: "wh_element", guideSlug: "water-heaters" },
-  ]
+const METRO_REPAIRS: { repair: string; componentId: string; guideSlug: GuideSlug }[] = [
+  { repair: "Refrigerator compressor", componentId: "compressor", guideSlug: "refrigerators" },
+  { repair: "Refrigerator evaporator fan motor", componentId: "evaporator_fan_motor", guideSlug: "refrigerators" },
+  { repair: "Washer drum bearing", componentId: "drum_bearing", guideSlug: "washing-machines" },
+  { repair: "Washer drain pump", componentId: "drain_pump", guideSlug: "washing-machines" },
+  { repair: "Dryer heating element", componentId: "heating_element", guideSlug: "dryers" },
+  { repair: "Dishwasher control board", componentId: "control_board", guideSlug: "dishwashers" },
+  { repair: "Range gas valve", componentId: "gas_valve", guideSlug: "ranges" },
+  { repair: "Water heater element", componentId: "wh_element", guideSlug: "water-heaters" },
+]
 
 const MIN_MULT = 0.85
 const MAX_MULT = 1.5
@@ -340,18 +297,23 @@ function rawMultiplier(wage: number): number {
   return Math.min(MAX_MULT, Math.max(MIN_MULT, wage / NATIONAL_MEAN_WAGE))
 }
 
+function isMetroSlug(v: string): v is MetroSlug {
+  return (METRO_SLUGS as readonly string[]).includes(v)
+}
+
 export function getAllMetroSlugs(): MetroSlug[] {
   return [...METRO_SLUGS]
 }
 
-export function getMetroData(slug: MetroSlug): MetroData {
-  const metro = METROS.find((m) => m.slug === slug)!
+export function getMetroData(slug: string): MetroData | undefined {
+  if (!isMetroSlug(slug)) return undefined
+  const metro = METROS.find((m) => m.slug === slug)
+  if (!metro) return undefined
   const multiplier = rawMultiplier(metro.meanHourlyWage)
 
-  const costRows: MetroCostRow[] = METRO_REPAIRS.map((r) => {
+  const costRows: MetroCostRow[] = METRO_REPAIRS.filter((r) => COMPONENTS[r.componentId]).map((r) => {
     const comp = COMPONENTS[r.componentId]
-    const adjust = (v: number) =>
-      v * (1 - comp.laborShare) + v * comp.laborShare * multiplier
+    const adjust = (v: number) => v * (1 - comp.laborShare) + v * comp.laborShare * multiplier
     return {
       repair: r.repair,
       low: Math.round(adjust(comp.costLow)),
@@ -372,7 +334,7 @@ export function getMetroData(slug: MetroSlug): MetroData {
   const faqs: GuideFaq[] = [
     {
       q: `Why are appliance repairs priced differently in ${shortName}?`,
-      a: `Repair prices track local field-labor wages. ${shortName} technicians earn a mean $${metro.meanHourlyWage.toFixed(2)}/hr (BLS OEWS 49-9031), which is ${Math.abs(pct)}% ${aboveBelow} the $${NATIONAL_MEAN_WAGE.toFixed(2)}/hr national mean, so the labor share of every bill scales accordingly.`,
+      a: `Repair prices track local field-labor wages. ${shortName} technicians earn a mean ${money(metro.meanHourlyWage)}/hr (BLS OEWS 49-9031), which is ${Math.abs(pct)}% ${aboveBelow} the ${money(NATIONAL_MEAN_WAGE)}/hr national mean, so the labor share of every bill scales accordingly.`,
     },
     {
       q: `How much is a typical repair in ${shortName}?`,
@@ -400,14 +362,16 @@ export function getMetroData(slug: MetroSlug): MetroData {
   }
 }
 
-/** Hub cards: every featured metro with its wage + multiplier. */
-export function getMetroHubData(): {
+export interface MetroHubEntry {
   slug: MetroSlug
   name: string
   shortName: string
   wage: number
   multiplier: number
-}[] {
+}
+
+/** Hub cards: every featured metro with its wage + multiplier. */
+export function getMetroHubData(): MetroHubEntry[] {
   return METRO_SLUGS.map((slug) => {
     const m = METROS.find((x) => x.slug === slug)!
     return {
@@ -419,3 +383,6 @@ export function getMetroHubData(): {
     }
   })
 }
+
+/** Alias used by the metro hub page. */
+export const getAllMetros = getMetroHubData

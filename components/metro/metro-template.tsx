@@ -46,14 +46,15 @@ export function MetroTemplate({ data }: MetroTemplateProps) {
     <>
       {/* 1. Hero */}
       <PageHero
-        breadcrumbs={[
+        crumbs={[
+          { label: "Home", href: "/" },
           { label: "Local costs", href: "/local-costs" },
           { label: shortName },
         ]}
         eyebrow="Local labor costs"
         heading={`Appliance repair costs in ${shortName}`}
         lede={lede}
-        provenance={`BLS OEWS 49-9031 · Mean hourly wage survey · Data reviewed July 19, 2026`}
+        provenanceLine={`BLS OEWS 49-9031 · Mean hourly wage survey · Data reviewed July 19, 2026`}
         illustration={
           <MultiplierDial multiplier={multiplier} metroName={name} />
         }

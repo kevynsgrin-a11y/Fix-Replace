@@ -41,10 +41,21 @@ interface GuideTemplateProps {
   data: GuideData
 }
 
-export function GuideTemplate({ data }: GuideTemplateProps) {
-  const { slug, category, label, noun, provenance, sources, lede, lifespanRows, failures, repairRule, faqs } = data
+const GUIDE_LABEL: Record<string, string> = {
+  refrigerators: "Refrigerators",
+  "washing-machines": "Washing machines",
+  dishwashers: "Dishwashers",
+  dryers: "Dryers",
+  ranges: "Ranges",
+  "wall-ovens": "Wall ovens",
+  microwaves: "Microwaves",
+  "water-heaters": "Water heaters",
+}
 
-  const otherGuides = GUIDE_SLUGS.filter((g) => g.slug !== slug)
+export function GuideTemplate({ data }: GuideTemplateProps) {
+  const { slug, category, label, noun, provenance, lede, lifespanRows, failures, rule, faqs } = data
+
+  const otherGuides = GUIDE_SLUGS.filter((g) => g !== slug)
 
   return (
     <>
@@ -57,7 +68,7 @@ export function GuideTemplate({ data }: GuideTemplateProps) {
         eyebrow={`Cost guide · ${label}`}
         heading={`${label} repair cost guide`}
         lede={lede}
-        provenanceLine={`${provenance} · ${sources}`}
+        provenanceLine={provenance}
         illustration={
           <ApplianceGlyph
             category={category}
@@ -106,8 +117,8 @@ export function GuideTemplate({ data }: GuideTemplateProps) {
                       )}
                     >
                       <td className="px-4 py-3 text-(--color-ink)">{row.tier}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-(--color-ink)">{row.range}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-(--color-muted)">{row.midpoint} yrs</td>
+                      <td className="px-4 py-3 text-right tabular-nums text-(--color-ink)">{row.low}&ndash;{row.high} yrs</td>
+                      <td className="px-4 py-3 text-right tabular-nums text-(--color-muted)">{Math.round((row.low + row.high) / 2)} yrs</td>
                     </tr>
                   ))}
                 </tbody>
@@ -138,31 +149,34 @@ export function GuideTemplate({ data }: GuideTemplateProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {failures.map((f, i) => (
+                  {failures.map((f, i) => {
+                    const hz = f.hazards[0]
+                    return (
                     <tr
-                      key={f.name}
+                      key={f.part}
                       className={cn(
                         "border-b border-(--color-line) last:border-0",
                         i % 2 === 0 ? "bg-(--color-surface)" : "bg-(--color-surface-2)",
                       )}
                     >
                       <td className="px-4 py-3">
-                        <span className="text-(--color-ink)">{f.name}</span>
-                        {f.hazard && (
+                        <span className="text-(--color-ink)">{f.part}</span>
+                        {hz && (
                           <Badge
-                            variant={HAZARD_VARIANT[f.hazard] ?? "neutral"}
+                            variant={HAZARD_VARIANT[hz.kind] ?? "neutral"}
                             className="ml-2"
                           >
-                            {HAZARD_LABEL[f.hazard] ?? f.hazard}
+                            {HAZARD_LABEL[hz.kind] ?? hz.label}
                           </Badge>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-(--color-ink)">{f.costRange}</td>
+                      <td className="px-4 py-3 text-right tabular-nums text-(--color-ink)">${f.low}&ndash;${f.high}</td>
                       <td className="px-4 py-3 text-(--color-muted)">
-                        {f.diyFriendly ? "Possible" : f.hazard ? "No — licensed pro" : "Varies"}
+                        {f.diy ? "Possible" : hz ? "No — licensed pro" : "Varies"}
                       </td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -174,7 +188,7 @@ export function GuideTemplate({ data }: GuideTemplateProps) {
               The repair-vs-replace rule for {noun}s
             </h2>
             <Callout variant="info">
-              <p className="text-(length:--text-sm) leading-relaxed text-(--color-ink)">{repairRule}</p>
+              <p className="text-(length:--text-sm) leading-relaxed text-(--color-ink)">{rule}</p>
             </Callout>
             <p className="mt-4 text-(length:--text-sm) text-(--color-muted)">
               Rules of thumb are starting points. For a precise answer based on your unit&apos;s
@@ -283,11 +297,11 @@ export function GuideTemplate({ data }: GuideTemplateProps) {
             <div className="flex flex-wrap gap-2">
               {otherGuides.map((g) => (
                 <Link
-                  key={g.slug}
-                  href={`/cost-guides/${g.slug}`}
+                  key={g}
+                  href={`/cost-guides/${g}`}
                   className="rounded-(--radius-sm) border border-(--color-line) px-3 py-1.5 text-(length:--text-xs) text-(--color-muted) transition-colors hover:text-(--color-ink)"
                 >
-                  {g.navLabel}
+                  {GUIDE_LABEL[g] ?? g}
                 </Link>
               ))}
             </div>

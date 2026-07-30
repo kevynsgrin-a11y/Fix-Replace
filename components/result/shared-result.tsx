@@ -2,10 +2,9 @@
 
 import * as React from "react"
 import { useSearchParams } from "next/navigation"
-import type { CalculationResult } from "@/lib/result"
+import type { CalculationResult, CalculatePayload } from "@/lib/result"
 import { ResultDocument } from "@/components/result/result-document"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
 
 type Status = "idle" | "loading" | "success" | "error-missing" | "error-fetch"
 
@@ -15,6 +14,7 @@ export function SharedResult() {
 
   const [status, setStatus] = React.useState<Status>(id ? "loading" : "error-missing")
   const [result, setResult] = React.useState<CalculationResult | null>(null)
+  const [payload, setPayload] = React.useState<CalculatePayload | null>(null)
   const [errorKind, setErrorKind] = React.useState<"network" | "server" | null>(null)
 
   React.useEffect(() => {
@@ -33,7 +33,9 @@ export function SharedResult() {
         }
         const data = await res.json()
         if (cancelled) return
-        setResult(data)
+        // The report endpoint returns { result, payload } when sharing is enabled.
+        setResult(data.result ?? data)
+        setPayload(data.payload ?? null)
         setStatus("success")
       } catch {
         if (!cancelled) {
@@ -68,9 +70,7 @@ export function SharedResult() {
           This link is missing the result identifier. Check that you copied the full URL.
         </p>
         <div className="mt-5 flex justify-center">
-          <Button asChild>
-            <Link href="/">Run the calculator</Link>
-          </Button>
+          <Button href="/">Run the calculator</Button>
         </div>
       </div>
     )
@@ -97,16 +97,21 @@ export function SharedResult() {
           >
             Retry
           </Button>
-          <Button asChild>
-            <Link href="/">Run the calculator</Link>
-          </Button>
+          <Button href="/">Run the calculator</Button>
         </div>
       </div>
     )
   }
 
-  if (status === "success" && result) {
-    return <ResultDocument result={result} />
+  if (status === "success" && result && payload) {
+    return (
+      <ResultDocument
+        result={result}
+        payload={payload}
+        announce={() => {}}
+        onAddUpc={() => {}}
+      />
+    )
   }
 
   return null

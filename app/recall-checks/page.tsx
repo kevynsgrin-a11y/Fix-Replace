@@ -45,3 +45,45 @@ const RECALL_RESOURCES = [
     note: "Free subscription available",
   },
 ]
+
+export default function RecallChecksPage() {
+  return (
+    <>
+      <PageHero
+        crumbs={[{ label: "Home", href: "/" }, { label: "Recall check" }]}
+        eyebrow="Safety"
+        heading="Check your appliance for an open recall"
+        lede="Before you repair or keep a failing appliance, check whether a federal recall is open. These are the official resources — no account required."
+      />
+      <Container>
+        <main className="py-12 pb-24">
+          <ul className="flex flex-col gap-4">
+            {RECALL_RESOURCES.map((resource) => (
+              <li key={resource.name}>
+                <a
+                  href={resource.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex flex-col gap-2 rounded-(--radius-lg) border border-(--color-line) bg-(--color-surface) p-5 transition-colors hover:border-(--color-brand)"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="font-semibold text-(--color-ink) group-hover:text-(--color-brand)">{resource.name}</span>
+                    <span className="shrink-0 text-(length:--text-xs) text-(--color-muted)">{resource.note}</span>
+                  </div>
+                  <p className="text-(length:--text-sm) leading-relaxed text-(--color-body)">{resource.description}</p>
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-12 rounded-(--radius-lg) border border-(--color-line) bg-(--color-surface-2) px-6 py-6">
+            <h2 className="text-(length:--text-base) font-semibold text-(--color-ink)">If your appliance has an open recall</h2>
+            <p className="mt-2 text-(length:--text-sm) leading-relaxed text-(--color-body)">
+              Contact the manufacturer directly — recall remedies are free to the consumer and may include a free repair, replacement, or refund depending on the hazard. Do not attempt to fix a recalled unit yourself; the recall process typically covers the certified remedy.
+            </p>
+          </div>
+        </main>
+      </Container>
+    </>
+  )
+}

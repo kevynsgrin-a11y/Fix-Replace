@@ -55,14 +55,16 @@ function arcPath(startDeg: number, endDeg: number, r = R) {
 interface MultiplierDialProps {
   multiplier: number
   /** Metro name for accessible label */
-  metroName: string
+  metroName?: string
   size?: number
+  className?: string
 }
 
 export function MultiplierDial({
   multiplier,
-  metroName,
+  metroName = "This metro",
   size = 180,
+  className,
 }: MultiplierDialProps) {
   const clampedMult = Math.max(MIN, Math.min(MAX, multiplier))
   const needleDeg = multToDeg(clampedMult)
@@ -88,6 +90,7 @@ export function MultiplierDial({
       viewBox="0 0 180 153"
       role="img"
       aria-label={label}
+      className={className}
     >
       <title>{label}</title>
 
