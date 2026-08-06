@@ -312,7 +312,10 @@ export const CATEGORY_DEFAULT_REPAIR: Record<ApplianceCategory, { low: number; h
 
 export function getComponent(id: string | undefined | null): Component | null {
   if (!id) return null;
-  return COMPONENTS[id] ?? null;
+  // Own-property check only: a bare index would walk the prototype chain, so
+  // ids like "constructor" or "__proto__" would return a truthy non-Component
+  // and blow up downstream on `.categories`.
+  return Object.prototype.hasOwnProperty.call(COMPONENTS, id) ? COMPONENTS[id] : null;
 }
 
 /** Components applicable to a given category (for UI symptom pickers). */

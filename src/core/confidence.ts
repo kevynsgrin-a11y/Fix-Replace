@@ -17,7 +17,10 @@ export interface ConfidenceInput {
   ageYears: number;
   repairQuote: number;
   laborMultiplier: number;
+  /** True only when the location RESOLVED to a metro or state, not merely typed. */
   hasLocation: boolean;
+  /** True when a location was supplied but could not be resolved. */
+  locationUnresolved?: boolean;
   componentKnown: boolean;
 }
 
@@ -31,6 +34,7 @@ const SUSPICIOUS_LOW_FRACTION = 0.35;
 export function evaluateConfidence(input: ConfidenceInput): ConfidenceResult {
   const { category, faultComponent, ageYears, repairQuote, laborMultiplier, hasLocation, componentKnown } =
     input;
+  const locationUnresolved = input.locationUnresolved ?? false;
 
   let score = 100;
   const factors: string[] = [];
@@ -47,7 +51,11 @@ export function evaluateConfidence(input: ConfidenceInput): ConfidenceResult {
   }
   if (!hasLocation) {
     score -= 10;
-    factors.push('No location provided — national-average labor and energy rates were used.');
+    factors.push(
+      locationUnresolved
+        ? "We couldn't match the location you entered to a metro we have wage data for — national-average labor and energy rates were used."
+        : 'No location provided — national-average labor and energy rates were used.',
+    );
   }
 
   const band = getRepairCostBand(category, faultComponent, laborMultiplier);
