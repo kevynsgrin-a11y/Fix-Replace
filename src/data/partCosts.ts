@@ -7,14 +7,14 @@ import type { ApplianceCategory } from '../core/types.js';
  * hazard tags that drive the safety hard-stops.
  *
  * Anchored to the brief's cited figures:
- *   - Dryer thermal fuse ............ ~$145 in major metros
- *   - Refrigerator evaporator fan .... $180–$280
- *   - Dishwasher drain pump .......... ~$190 (Los Angeles, basic)
- *   - Gas valve / solenoid ........... $200–$350
- *   - Refrigerator sealed system ..... $500–$1,250
- *   - Washing machine transmission ... $350–$550 professionally
- *   - Dryer heating element .......... $30–$200 in parts
- *   - Microwave motor ................ $20–$100 in parts (pro-only internally)
+ * - Dryer thermal fuse ............ ~$145 in major metros
+ * - Refrigerator evaporator fan .... $180–$280
+ * - Dishwasher drain pump .......... ~$190 (Los Angeles, basic)
+ * - Gas valve / solenoid ........... $200–$350
+ * - Refrigerator sealed system ..... $500–$1,250
+ * - Washing machine transmission ... $350–$550 professionally
+ * - Dryer heating element .......... $30–$200 in parts
+ * - Microwave motor ................ $20–$100 in parts (pro-only internally)
  */
 
 export type Hazard = 'gas' | 'high_voltage' | 'refrigerant' | 'water';

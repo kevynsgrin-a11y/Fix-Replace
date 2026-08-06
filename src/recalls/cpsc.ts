@@ -46,12 +46,12 @@ export function parseRecalls(raw: unknown): RecallMatch[] {
 }
 
 async function fetchJson(url: string): Promise<unknown> {
-  const res = await fetch(url, {
-    headers: { Accept: 'application/json' },
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
-  if (!res.ok) throw new Error(`CPSC API ${res.status}`);
-  return res.json();
+ const res = await fetch(url, {
+ headers: { Accept: 'application/json' },
+ signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+ });
+ if (!res.ok) throw new Error(`CPSC API ${res.status}`);
+ return res.json();
 }
 
 /** Direct UPC lookup against the live API (no cache). */
@@ -92,22 +92,22 @@ export async function fetchRecallsByUpc(apiBase: string, upc: string): Promise<R
 
 /** KV-cached UPC lookup used by the calculate endpoint. */
 export async function checkRecall(env: RecallEnv, upc: string): Promise<RecallResult> {
-  // Defense-in-depth: bound the KV key length so an oversized value can never
-  // exceed Cloudflare's 512-byte key limit and throw. The API boundary already
-  // enforces a strict UPC format; this guards direct/internal callers too.
-  if (typeof upc !== 'string' || upc.length === 0 || upc.length > 100) {
-    return { status: 'unavailable', matches: [], note: 'Unsupported UPC value.' };
-  }
-  const key = `recall:upc:${upc}`;
-  const cached = await env.CACHE.get<RecallResult>(key, 'json');
-  if (cached) return cached;
+ // Defense-in-depth: bound the KV key length so an oversized value can never
+ // exceed Cloudflare's 512-byte key limit and throw. The API boundary already
+ // enforces a strict UPC format; this guards direct/internal callers too.
+ if (typeof upc !== 'string' || upc.length === 0 || upc.length > 100) {
+ return { status: 'unavailable', matches: [], note: 'Unsupported UPC value.' };
+ }
+ const key = `recall:upc:${upc}`;
+ const cached = await env.CACHE.get<RecallResult>(key, 'json');
+ if (cached) return cached;
 
-  const result = await fetchRecallsByUpc(env.CPSC_API_BASE, upc);
-  // Cache definitive results; let transient "unavailable" retry sooner.
-  if (result.status !== 'unavailable') {
-    await env.CACHE.put(key, JSON.stringify(result), { expirationTtl: CACHE_TTL_SECONDS });
-  }
-  return result;
+ const result = await fetchRecallsByUpc(env.CPSC_API_BASE, upc);
+ // Cache definitive results; let transient "unavailable" retry sooner.
+ if (result.status !== 'unavailable') {
+ await env.CACHE.put(key, JSON.stringify(result), { expirationTtl: CACHE_TTL_SECONDS });
+ }
+ return result;
 }
 
 /**

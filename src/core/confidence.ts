@@ -12,16 +12,16 @@ import { getRepairCostBand } from '../data/partCosts.js';
  */
 
 export interface ConfidenceInput {
-  category: ApplianceCategory;
-  faultComponent: string | undefined | null;
-  ageYears: number;
-  repairQuote: number;
-  laborMultiplier: number;
-  /** True only when the location RESOLVED to a metro or state, not merely typed. */
-  hasLocation: boolean;
-  /** True when a location was supplied but could not be resolved. */
-  locationUnresolved?: boolean;
-  componentKnown: boolean;
+ category: ApplianceCategory;
+ faultComponent: string | undefined | null;
+ ageYears: number;
+ repairQuote: number;
+ laborMultiplier: number;
+ /** True only when the location RESOLVED to a metro or state, not merely typed. */
+ hasLocation: boolean;
+ /** True when a location was supplied but could not be resolved. */
+ locationUnresolved?: boolean;
+ componentKnown: boolean;
 }
 
 /** Quote above this multiple of the regional high is treated as predatory. */
@@ -32,31 +32,31 @@ const ELEVATED_HIGH_MULTIPLE = 1.4;
 const SUSPICIOUS_LOW_FRACTION = 0.35;
 
 export function evaluateConfidence(input: ConfidenceInput): ConfidenceResult {
-  const { category, faultComponent, ageYears, repairQuote, laborMultiplier, hasLocation, componentKnown } =
-    input;
-  const locationUnresolved = input.locationUnresolved ?? false;
+ const { category, faultComponent, ageYears, repairQuote, laborMultiplier, hasLocation, componentKnown } =
+ input;
+ const locationUnresolved = input.locationUnresolved ?? false;
 
-  let score = 100;
-  const factors: string[] = [];
-  const warnings: string[] = [];
-  let suppressed = false;
+ let score = 100;
+ const factors: string[] = [];
+ const warnings: string[] = [];
+ let suppressed = false;
 
-  if (!componentKnown) {
-    score -= 25;
-    factors.push('No specific failed component identified — using a category-wide cost estimate.');
-  }
-  if (!(ageYears > 0)) {
-    score -= 20;
-    factors.push('Appliance age was not provided, which weakens the lifespan estimate.');
-  }
-  if (!hasLocation) {
-    score -= 10;
-    factors.push(
-      locationUnresolved
-        ? "We couldn't match the location you entered to a metro we have wage data for — national-average labor and energy rates were used."
-        : 'No location provided — national-average labor and energy rates were used.',
-    );
-  }
+ if (!componentKnown) {
+ score -= 25;
+ factors.push('No specific failed component identified — using a category-wide cost estimate.');
+ }
+ if (!(ageYears > 0)) {
+ score -= 20;
+ factors.push('Appliance age was not provided, which weakens the lifespan estimate.');
+ }
+ if (!hasLocation) {
+ score -= 10;
+ factors.push(
+ locationUnresolved
+ ? "We couldn't match the location you entered to a metro we have wage data for — national-average labor and energy rates were used."
+ : 'No location provided — national-average labor and energy rates were used.',
+ );
+ }
 
   const band = getRepairCostBand(category, faultComponent, laborMultiplier);
   const predatoryThreshold = band.high * PREDATORY_HIGH_MULTIPLE;

@@ -12,10 +12,10 @@ import { getComponent } from '../data/partCosts.js';
 
 /**
  * Monetization contract. Two hard rules from the brief drive this module:
- *   1. Paid placements must never masquerade as the neutral result. The verdict
- *      is computed first and independently; links are appended afterward and the
- *      frontend renders them in a physically separate block.
- *   2. All affiliate/lead placements carry an FTC-compliant disclosure.
+ * 1. Paid placements must never masquerade as the neutral result. The verdict
+ * is computed first and independently; links are appended afterward and the
+ * frontend renders them in a physically separate block.
+ * 2. All affiliate/lead placements carry an FTC-compliant disclosure.
  *
  * DIY parts links are only offered for a known, homeowner-serviceable component
  * on a repair verdict, and are hard-suppressed for any hazardous work.

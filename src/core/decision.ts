@@ -20,10 +20,10 @@ import { evaluateConfidence } from './confidence.js';
 import { buildMonetization } from './monetization.js';
 
 export interface DecisionOptions {
-  /** Macro discount rate (opportunity cost of capital). Defaults to 5%. */
-  discountRate?: number;
-  /** Async recall lookup, injected by the Worker (KV + CPSC API). */
-  recallLookup?: (upc: string) => Promise<RecallResult>;
+ /** Macro discount rate (opportunity cost of capital). Defaults to 5%. */
+ discountRate?: number;
+ /** Async recall lookup, injected by the Worker (KV + CPSC API). */
+ recallLookup?: (upc: string) => Promise<RecallResult>;
 }
 
 const DEFAULT_DISCOUNT_RATE = 0.05;
@@ -55,8 +55,8 @@ function resolveInputs(input: CalculationInput, labor: ResolvedLabor): ResolvedI
 }
 
 export async function calculateDecision(
-  input: CalculationInput,
-  options: DecisionOptions = {},
+ input: CalculationInput,
+ options: DecisionOptions = {},
 ): Promise<CalculationResult> {
   const discountRate = options.discountRate ?? DEFAULT_DISCOUNT_RATE;
   const labor = resolveLabor(input.location);

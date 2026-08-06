@@ -8,10 +8,10 @@ import type { LocationInput } from '../core/types.js';
  * multiplier applied to the labor-heavy portion of component cost estimates.
  *
  * Anchored to published figures:
- *   - National median hourly wage: $22.68
- *   - National 90th percentile:    $34.93
- *   - Minneapolis–St. Paul mean:   $28.51
- *   - Miami mean:                  $22.87
+ * - National median hourly wage: $22.68
+ * - National 90th percentile: $34.93
+ * - Minneapolis–St. Paul mean: $28.51
+ * - Miami mean: $22.87
  * Other metro means are OEWS-consistent estimates for the same occupation.
  */
 
@@ -114,7 +114,7 @@ const ZIP3_TO_METRO: Record<string, string> = {
  * key must go through this.
  */
 function own<T>(map: Record<string, T>, key: string): T | undefined {
-  return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : undefined;
+ return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : undefined;
 }
 
 export interface ResolvedLabor {

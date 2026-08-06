@@ -6,10 +6,10 @@ import type { LocationInput } from '../core/types.js';
  * generic advice columns ignore.
  *
  * Anchored figures:
- *   - New York residential electricity: 26.49 ¢/kWh (brief cites this as 49%
- *     above the national average, implying a national mean near 17.8 ¢/kWh).
- *   - Natural gas rates reflect the EIA short-term outlook's elevated Henry Hub
- *     forecast through 2026–2027, expressed as residential $/therm.
+ * - New York residential electricity: 26.49 ¢/kWh (brief cites this as 49%
+ * above the national average, implying a national mean near 17.8 ¢/kWh).
+ * - Natural gas rates reflect the EIA short-term outlook's elevated Henry Hub
+ * forecast through 2026–2027, expressed as residential $/therm.
  * Other state values are representative EIA-consistent residential rates.
  */
 
