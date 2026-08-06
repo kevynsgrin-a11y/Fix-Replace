@@ -18,13 +18,14 @@ trustworthiness, and they only apply if the front end actually calls this.
 ## 1. The endpoint
 
 ```
-POST https://<worker>.workers.dev/api/calculate
+POST https://repair-or-replace.kevynsgrin.workers.dev/api/calculate
 Content-Type: application/json
 ```
 
-Replace `<worker>` with the host printed by the deploy (see
-`DEPLOY-BROWSER-GUIDE.md`). Once the engine is proven you can put it on
-`api.repair-or-replace.net` and leave the apex + www exactly where they are.
+That host is live as of the first successful deploy (2026-08-06). Once the
+engine is proven in place you can move it to `api.repair-or-replace.net` and
+leave the apex + www exactly where they are — the front end only needs its base
+URL changed.
 
 CORS is already configured for `https://repair-or-replace.net`,
 `https://www.repair-or-replace.net` and `http://localhost:3000`. Any other host
@@ -116,8 +117,12 @@ and keep that block visually distinct from and below the analysis.
 ## 5. Minimal client
 
 ```ts
+// .env.local
+//   NEXT_PUBLIC_CALC_API=https://repair-or-replace.kevynsgrin.workers.dev
+const CALC_API = process.env.NEXT_PUBLIC_CALC_API;
+
 export async function getVerdict(input: CalculationInput): Promise<CalculationResult> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_CALC_API}/api/calculate`, {
+  const res = await fetch(`${CALC_API}/api/calculate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
