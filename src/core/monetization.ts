@@ -30,13 +30,13 @@ function partLinks(category: ApplianceCategory, componentLabel: string): Affilia
   return [
     {
       kind: 'part',
-      label: `${componentLabel} — RepairClinic`,
+      label: componentLabel,
       merchant: 'RepairClinic',
       url: `https://www.repairclinic.com/Shop-For-Parts?query=${q}`,
     },
     {
       kind: 'part',
-      label: `${componentLabel} — Amazon`,
+      label: componentLabel,
       merchant: 'Amazon',
       url: `https://www.amazon.com/s?k=${q}`,
     },
@@ -49,19 +49,19 @@ function newUnitLinks(category: ApplianceCategory, tier: BrandTier): AffiliateLi
   return [
     {
       kind: 'new_unit',
-      label: `Shop ${meta.label} — The Home Depot`,
+      label: `Shop ${meta.label}`,
       merchant: 'The Home Depot',
       url: `https://www.homedepot.com/s/${q}`,
     },
     {
       kind: 'new_unit',
-      label: `Shop ${meta.label} — Best Buy`,
+      label: `Shop ${meta.label}`,
       merchant: 'Best Buy',
       url: `https://www.bestbuy.com/site/searchpage.jsp?st=${q}`,
     },
     {
       kind: 'new_unit',
-      label: `Shop ${meta.label} — Wayfair`,
+      label: `Shop ${meta.label}`,
       merchant: 'Wayfair',
       url: `https://www.wayfair.com/keyword.php?keyword=${q}`,
     },

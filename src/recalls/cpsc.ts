@@ -55,10 +55,28 @@ async function fetchJson(url: string): Promise<unknown> {
 }
 
 /** Direct UPC lookup against the live API (no cache). */
+/**
+ * A single UPC identifies one product, so a genuine filtered response is a
+ * handful of records at most. If the upstream ever ignores the UPC filter and
+ * returns its whole catalogue, an unguarded reading would declare an active
+ * recall for every user — and an active recall hard-overrides the verdict. Well
+ * above any plausible true match, and far below a full unfiltered list.
+ */
+const MAX_PLAUSIBLE_UPC_MATCHES = 25;
+
 export async function fetchRecallsByUpc(apiBase: string, upc: string): Promise<RecallResult> {
   try {
     const url = `${apiBase}?format=json&UPC=${encodeURIComponent(upc)}`;
     const matches = parseRecalls(await fetchJson(url));
+    if (matches.length > MAX_PLAUSIBLE_UPC_MATCHES) {
+      // Treat as an unfiltered/again-changed upstream response rather than
+      // claiming a recall we cannot actually attribute to this product.
+      return {
+        status: 'unavailable',
+        matches: [],
+        note: 'Safety-recall data could not be matched to this specific product; the economic verdict is unaffected.',
+      };
+    }
     if (matches.length > 0) {
       return { status: 'active', matches };
     }
