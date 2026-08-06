@@ -14,11 +14,21 @@
   "compatibility_date": "2024-09-23",
   "compatibility_flags": ["nodejs_compat"],
 
-  // Production custom domains (zone must live in the same Cloudflare account).
-  "routes": [
-    { "pattern": "repair-or-replace.net", "custom_domain": true },
-    { "pattern": "www.repair-or-replace.net", "custom_domain": true }
-  ],
+  // --- Where this Worker is served ------------------------------------------
+  // STAGE 1 (current): deploy to the workers.dev URL only, so the Worker can be
+  // verified end-to-end while the existing site keeps serving the domain. A
+  // custom_domain route rewrites the zone's DNS on deploy, so attaching one
+  // before the Worker is proven would cut the live site over to an unverified
+  // build — and a failure to attach fails the whole deploy, shipping nothing.
+  "workers_dev": true,
+
+  // STAGE 2 (cutover): uncomment to move repair-or-replace.net onto this
+  // Worker. Do this only after the workers.dev URL has been verified, and
+  // after whatever currently serves the apex + www has been disconnected.
+  // "routes": [
+  //   { "pattern": "repair-or-replace.net", "custom_domain": true },
+  //   { "pattern": "www.repair-or-replace.net", "custom_domain": true }
+  // ],
 
   // Static frontend. The Worker runs first and falls through to these assets
   // for any non-/api route.
@@ -68,6 +78,11 @@
 
   "vars": {
     "DISCOUNT_RATE": "0.05",
-    "CPSC_API_BASE": "https://www.saferproducts.gov/RestWebServices/Recall"
+    "CPSC_API_BASE": "https://www.saferproducts.gov/RestWebServices/Recall",
+
+    // Browser origins allowed to call /api/*. The presentation layer is
+    // deployed separately, so calculation requests are cross-origin. Add any
+    // preview host that also needs to call the API.
+    "ALLOWED_ORIGINS": "https://repair-or-replace.net,https://www.repair-or-replace.net,http://localhost:3000"
   }
 }
