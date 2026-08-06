@@ -104,7 +104,13 @@ export async function calculateDecision(
     ageYears: resolved.ageYears,
     repairQuote: resolved.repairQuote,
     laborMultiplier: labor.multiplier,
-    hasLocation: !!(input.location?.metro || input.location?.zip || input.location?.state),
+    // Confidence must reflect whether the location actually RESOLVED, not
+    // merely whether one was typed. Most US ZIPs fall outside the metro
+    // crosswalk and silently fall back to national rates; scoring those as
+    // "located" awarded a higher confidence than leaving the field blank.
+    hasLocation: !!(labor.metro || labor.state),
+    locationUnresolved: !!(input.location?.metro || input.location?.zip || input.location?.state) &&
+      !(labor.metro || labor.state),
     componentKnown: resolved.faultComponent !== null,
   });
 
