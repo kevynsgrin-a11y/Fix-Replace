@@ -108,6 +108,15 @@ const ZIP3_TO_METRO: Record<string, string> = {
   '787': 'austin', '733': 'austin',
 };
 
+/**
+ * Own-property lookup. A bare index walks the prototype chain, so a key like
+ * "constructor" would return a function instead of a miss. Every user-supplied
+ * key must go through this.
+ */
+function own<T>(map: Record<string, T>, key: string): T | undefined {
+  return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : undefined;
+}
+
 export interface ResolvedLabor {
   /** Multiplier applied to labor-heavy cost estimates (1.0 = national). */
   multiplier: number;
@@ -146,7 +155,7 @@ export function resolveLabor(location?: LocationInput): ResolvedLabor {
 
   if (location?.zip && location.zip.length >= 3) {
     const zip3 = location.zip.slice(0, 3);
-    const slug = ZIP3_TO_METRO[zip3];
+    const slug = own(ZIP3_TO_METRO, zip3);
     if (slug) {
       const metro = METRO_BY_SLUG.get(slug)!;
       return {
@@ -159,11 +168,12 @@ export function resolveLabor(location?: LocationInput): ResolvedLabor {
   }
 
   const state = location?.state?.toUpperCase();
-  if (state && STATE_MEAN_WAGE[state]) {
+  const stateWage = state ? own(STATE_MEAN_WAGE, state) : undefined;
+  if (state && stateWage !== undefined) {
     return {
-      multiplier: wageToMultiplier(STATE_MEAN_WAGE[state]),
+      multiplier: wageToMultiplier(stateWage),
       metro: null,
-      basis: `${state} state mean wage $${STATE_MEAN_WAGE[state].toFixed(2)}/hr`,
+      basis: `${state} state mean wage $${stateWage.toFixed(2)}/hr`,
       state,
     };
   }

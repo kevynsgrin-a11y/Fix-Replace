@@ -25,6 +25,11 @@ html {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   scroll-behavior: smooth;
+  /* The header is sticky, so an un-padded in-page anchor parks its own target
+     underneath it — the heading you clicked ends up invisible. Padding the
+     scroll port fixes every anchor on every page at once, including the
+     editorial table-of-contents links. */
+  scroll-padding-top: calc(var(--header-h) + var(--sp-4));
 }
 
 body {
@@ -572,7 +577,7 @@ select {
   color: var(--ink);
   border-bottom: 1px solid var(--line);
 }
-.drawer-nav a[aria-current="page"] {
+.drawer-nav a[aria-current] {
   color: var(--brand-strong);
 }
 .drawer-foot {

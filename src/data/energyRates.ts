@@ -79,12 +79,18 @@ export interface ResolvedEnergyRates {
   state: string | null;
 }
 
+/** Own-property lookup — a bare index would walk the prototype chain. */
+function own(map: Record<string, number>, key: string): number | undefined {
+  return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : undefined;
+}
+
 export function resolveEnergyRates(location?: LocationInput): ResolvedEnergyRates {
   const state = location?.state?.toUpperCase() ?? null;
-  if (state && STATE_ELECTRIC_RATE[state] !== undefined) {
+  const electric = state ? own(STATE_ELECTRIC_RATE, state) : undefined;
+  if (state && electric !== undefined) {
     return {
-      electricRate: STATE_ELECTRIC_RATE[state],
-      gasRate: STATE_GAS_RATE[state] ?? NATIONAL_GAS_RATE,
+      electricRate: electric,
+      gasRate: own(STATE_GAS_RATE, state) ?? NATIONAL_GAS_RATE,
       localized: true,
       state,
     };

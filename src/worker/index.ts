@@ -110,7 +110,10 @@ function validateInput(body: unknown): { ok: true; value: CalculationInput } | {
     }
     const loc = b.location as Record<string, unknown>;
     for (const k of ['zip', 'metro', 'state'] as const) {
-      if (loc[k] !== undefined && typeof loc[k] !== 'string') delete loc[k];
+      // Drop non-strings and absurd lengths — these become map keys downstream.
+      if (loc[k] !== undefined && (typeof loc[k] !== 'string' || (loc[k] as string).length > 64)) {
+        delete loc[k];
+      }
     }
   }
 
@@ -124,10 +127,23 @@ function validateInput(body: unknown): { ok: true; value: CalculationInput } | {
   return { ok: true, value: b as unknown as CalculationInput };
 }
 
+/** A calculation request is a small flat object; anything larger is abuse. */
+const MAX_CALC_BYTES = 8 * 1024;
+
 async function handleCalculate(request: Request, env: Env): Promise<Response> {
+  // Bound the payload before parsing: the endpoint is unauthenticated and
+  // JSON.parse on a multi-megabyte body ties up the isolate.
+  const declared = Number(request.headers.get('content-length') ?? '');
+  if (Number.isFinite(declared) && declared > MAX_CALC_BYTES) {
+    return json({ error: 'Request body too large.' }, { status: 413 });
+  }
+  const text = await request.text();
+  if (text.length > MAX_CALC_BYTES) {
+    return json({ error: 'Request body too large.' }, { status: 413 });
+  }
   let body: unknown;
   try {
-    body = await request.json();
+    body = JSON.parse(text);
   } catch {
     return json({ error: 'Invalid JSON body.' }, { status: 400 });
   }
@@ -204,8 +220,9 @@ async function handleReportGet(url: URL, env: Env): Promise<Response> {
 async function handleApi(request: Request, env: Env, url: URL): Promise<Response> {
   const path = url.pathname;
 
-  if (path === '/api/health') return json({ ok: true, service: 'repair-or-replace' });
-  if (path === '/api/catalog') {
+  const isRead = request.method === 'GET' || request.method === 'HEAD';
+  if (path === '/api/health' && isRead) return json({ ok: true, service: 'repair-or-replace' });
+  if (path === '/api/catalog' && isRead) {
     return json(getCatalog(), {
       headers: { 'Cache-Control': 'public, max-age=3600' },
     });
