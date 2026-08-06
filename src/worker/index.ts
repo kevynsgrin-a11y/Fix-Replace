@@ -24,6 +24,34 @@ export interface Env {
   REPORTS?: R2Bucket;
   DISCOUNT_RATE: string;
   CPSC_API_BASE: string;
+  /**
+   * Comma-separated origins allowed to call /api/* from a browser. The
+   * presentation layer is deployed separately (the v0 front end on its own
+   * host), so calculation requests are cross-origin and need CORS. Omit to
+   * allow same-origin only.
+   */
+  ALLOWED_ORIGINS?: string;
+}
+
+/**
+ * CORS headers for a cross-origin API caller.
+ *
+ * Echoing a matched origin rather than sending `*` keeps the door open to
+ * credentialed requests later and makes the allowlist auditable. An unlisted
+ * origin gets no CORS headers at all, so the browser blocks it.
+ */
+function corsHeaders(request: Request, env: Env): Record<string, string> {
+  const origin = request.headers.get('Origin');
+  if (!origin || !env.ALLOWED_ORIGINS) return {};
+  const allowed = env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean);
+  if (!allowed.includes(origin)) return {};
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400',
+    Vary: 'Origin',
+  };
 }
 
 /** Recall lookup that uses the KV cache when provisioned, else hits CPSC directly. */
@@ -239,13 +267,28 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname.startsWith('/api/')) {
+      // Applied here rather than per-route so preflights, errors, and 404s all
+      // carry the same headers — a CORS gap on the error path is just as
+      // breaking to a browser caller as one on the success path.
+      const cors = corsHeaders(request, env);
+
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { status: 204, headers: { ...SECURITY_HEADERS, ...cors } });
+      }
+
+      let res: Response;
       try {
-        return await handleApi(request, env, url);
+        res = await handleApi(request, env, url);
       } catch (err) {
         // Log server-side (captured by observability) but never leak internals.
         console.error('api_error', err);
-        return json({ error: 'Internal error' }, { status: 500 });
+        res = json({ error: 'Internal error' }, { status: 500 });
       }
+      if (Object.keys(cors).length) {
+        res = new Response(res.body, res);
+        for (const [k, v] of Object.entries(cors)) res.headers.set(k, v);
+      }
+      return res;
     }
     // Everything else is a static asset (frontend + editorial content).
     return env.ASSETS.fetch(request);
