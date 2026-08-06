@@ -31,17 +31,43 @@ const DRAWER_EXTRA = [
   { href: '/about', label: 'About' },
 ];
 
-const LOGO = `<svg class="brand-logo" viewBox="0 0 40 40" fill="none" aria-hidden="true"><defs><linearGradient id="rorlg" x1="0" y1="0" x2="40" y2="40"><stop offset="0" stop-color="var(--brand)"/><stop offset="1" stop-color="var(--brand-strong)"/></linearGradient></defs><rect width="40" height="40" rx="11" fill="url(#rorlg)"/><path d="M13 16h12l-3-3M27 24H15l3 3" stroke="var(--on-brand)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+/* The mark appears three times per page (header, drawer, footer). Each copy
+   needs its own gradient id — three elements sharing id="rorlg" is invalid
+   HTML and leaves the fill referencing whichever one parsed first. */
+const logo = (id) =>
+  `<svg class="brand-logo" viewBox="0 0 40 40" fill="none" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="40" y2="40"><stop offset="0" stop-color="var(--brand)"/><stop offset="1" stop-color="var(--brand-strong)"/></linearGradient></defs><rect width="40" height="40" rx="11" fill="url(#${id})"/><path d="M13 16h12l-3-3M27 24H15l3 3" stroke="var(--on-brand)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 const WORDMARK = `<span>Repair<span class="brand-or">or</span>Replace</span>`;
 
 const MENU_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true"><path d="M3.5 7h17M3.5 12h17M3.5 17h17"/></svg>`;
 const CLOSE_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>`;
 
+/**
+ * How `href` relates to the page being rendered.
+ *
+ * Only an exact match is the current *page*. A section hub whose child we are
+ * on ("Cost guides" while viewing /guides/refrigerator) is still worth
+ * highlighting, but announcing it as aria-current="page" tells a screen-reader
+ * user they are on a page they are not. "true" marks it as the current item in
+ * the set without that false claim.
+ */
+export function currentKind(href, path) {
+  if (href === '/') return path === '/' ? 'page' : null;
+  if (path === href) return 'page';
+  return path.indexOf(href) === 0 ? 'section' : null;
+}
+
+/** The aria-current attribute (including leading space), or ''. */
+export function currentAttr(href, path) {
+  const kind = currentKind(href, path);
+  if (kind === 'page') return ' aria-current="page"';
+  if (kind === 'section') return ' aria-current="true"';
+  return '';
+}
+
 /** Does `href` represent the page currently being rendered? */
 export function isActive(href, path) {
-  if (href === '/') return path === '/';
-  return path === href || path.indexOf(href) === 0;
+  return currentKind(href, path) !== null;
 }
 
 export function skipLink() {
@@ -51,18 +77,18 @@ export function skipLink() {
 export function header(path) {
   const links = NAV.map(
     (n) =>
-      `<a href="${n.href}"${isActive(n.href, path) ? ' aria-current="page"' : ''}>${n.label}</a>`,
+      `<a href="${n.href}"${currentAttr(n.href, path)}>${n.label}</a>`,
   ).join('');
   const drawerLinks = NAV.concat(DRAWER_EXTRA)
     .map(
       (n) =>
-        `<li><a href="${n.href}"${isActive(n.href, path) ? ' aria-current="page"' : ''}>${n.label}</a></li>`,
+        `<li><a href="${n.href}"${currentAttr(n.href, path)}>${n.label}</a></li>`,
     )
     .join('');
 
   return `<header class="site-header">
   <div class="container">
-    <a class="brand-mark" href="/" aria-label="RepairOrReplace home">${LOGO}${WORDMARK}</a>
+    <a class="brand-mark" href="/" aria-label="RepairOrReplace home">${logo('rorlg-header')}${WORDMARK}</a>
     <nav class="nav" aria-label="Primary">${links}</nav>
     <div class="header-actions">
       <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch to dark theme"></button>
@@ -72,9 +98,9 @@ export function header(path) {
   </div>
 </header>
 <div class="drawer-scrim" data-drawer-scrim hidden></div>
-<div class="site-drawer" id="site-drawer" data-drawer hidden>
+<div class="site-drawer" id="site-drawer" data-drawer hidden role="dialog" aria-modal="true" aria-label="Menu">
   <div class="drawer-head">
-    <span class="brand-mark">${LOGO}${WORDMARK}</span>
+    <span class="brand-mark">${logo('rorlg-drawer')}${WORDMARK}</span>
     <button class="nav-toggle" type="button" data-nav-close aria-label="Close menu">${CLOSE_ICON}</button>
   </div>
   <nav aria-label="Mobile"><ul class="drawer-nav">${drawerLinks}</ul></nav>
@@ -137,7 +163,7 @@ export function footer(year) {
     <div class="footer-grid">
       <div>
         <h2 class="sr-only">RepairOrReplace</h2>
-        <a class="brand-mark" href="/">${LOGO}${WORDMARK}</a>
+        <a class="brand-mark" href="/">${logo('rorlg-footer')}${WORDMARK}</a>
         <p class="muted footer-blurb">The evidence-based way to decide whether to repair or replace a major appliance — no lead-capture wall, no guesswork.</p>
       </div>
       ${cols}

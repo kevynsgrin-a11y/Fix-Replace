@@ -180,7 +180,7 @@
   background: var(--line-strong);
   transition: background var(--dur) var(--ease-out);
 }
-.hp-dots button[aria-selected="true"]::before {
+.hp-dots button[aria-pressed="true"]::before {
   background: var(--brand);
 }
 .hp-body {
@@ -1362,10 +1362,14 @@
   color: var(--muted);
   flex: none;
 }
+/* Informational, not actionable. No partner is wired to this yet, so it must
+   not borrow the raised white card + solid border of the clickable .mon-link
+   cards it sits beside — a card that looks clickable and does nothing reads as
+   a broken link. Recessed surface + dashed border marks it as a note. */
 .leadgen {
   padding: var(--sp-4);
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: var(--surface-2);
+  border: 1px dashed var(--line-strong);
   border-radius: var(--r-md);
   display: flex;
   flex-direction: column;

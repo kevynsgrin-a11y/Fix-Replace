@@ -256,7 +256,7 @@
       detailEl.textContent = c.detail;
       root.setAttribute('data-verdict', c.verdict);
       for (var d = 0; d < dots.length; d++) {
-        dots[d].setAttribute('aria-selected', String(d === i));
+        dots[d].setAttribute('aria-pressed', String(d === i));
       }
     }
 

@@ -557,7 +557,7 @@ function safetyMarkup(r, wide) {
       <div class="callout ${calloutClass}"${role}>
         ${svg('shield', 'callout-icon')}
         <div>
-          <h4>${title}</h4>
+          <h3>${title}</h3>
           ${messages ? `<ul>${messages}</ul>` : ''}
           ${diyNote ? `<p style="margin-top:var(--sp-2)">${diyNote}</p>` : ''}
           ${hazards ? `<div class="hazard-tags">${hazards}</div>` : ''}
@@ -591,7 +591,7 @@ function recallMarkup(r) {
         <div class="callout callout-danger" role="alert">
           ${svg('recall', 'callout-icon')}
           <div style="width:100%">
-            <h4>Open federal recall matched</h4>
+            <h3>Open federal recall matched</h3>
             <p>Contact the manufacturer before paying for any repair — a recall remedy is usually free.</p>
             <div style="margin-top:var(--sp-3)">${matches}</div>
           </div>
@@ -608,7 +608,7 @@ function recallMarkup(r) {
       <div class="callout callout-info">
         ${svg('info', 'callout-icon')}
         <div>
-          <h4>Check this unit for open recalls</h4>
+          <h3>Check this unit for open recalls</h3>
           <p>Add the UPC from the model plate and we'll query the federal CPSC database.</p>
           <p style="margin-top:var(--sp-2)"><button class="btn" type="button" data-add-upc>Add a UPC</button></p>
         </div>
@@ -627,7 +627,7 @@ function recallMarkup(r) {
     <section class="rr-panel card span-6">
       <div class="callout ${cls}">
         ${svg(icon, 'callout-icon')}
-        <div><h4>${esc(title)}</h4><p>${esc(note)}</p></div>
+        <div><h3>${esc(title)}</h3><p>${esc(note)}</p></div>
       </div>
     </section>`;
 }
@@ -991,7 +991,7 @@ export function renderError(mount, message, opts = {}) {
       <section class="rr-panel card">
         <div class="rr-state" role="alert">
           <svg class="state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON.alert}</svg>
-          <h3 tabindex="-1" data-error-title>${esc(opts.title || 'Something went wrong')}</h3>
+          <h2 tabindex="-1" data-error-title>${esc(opts.title || 'Something went wrong')}</h2>
           <p>${esc(message || 'Please try again in a moment.')}</p>
           ${ctaHtml}
         </div>
