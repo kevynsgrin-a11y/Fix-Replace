@@ -1,0 +1,223 @@
+# Going live: browser-driven deployment runbook
+
+A click-by-click guide for taking **repair-or-replace.net** live, written to be
+driven by a browser agent (e.g. the Claude Chrome extension) — or by hand.
+
+Each numbered **BATCH** below is a self-contained prompt. Copy **one batch at a
+time** into the extension, let it finish, confirm the success criteria, then move
+to the next. Don't paste them all at once.
+
+---
+
+## Where things actually stand
+
+The code is finished, tested, and merged to `main`. The Worker builds cleanly
+(73 KiB). A GitHub Actions workflow (`.github/workflows/deploy.yml`) already
+auto-deploys on every push to `main`.
+
+**The one thing blocking launch:** both deploy runs failed with
+
+```
+✘ [ERROR] A request to the Cloudflare API
+  (/accounts/***/workers/services/repair-or-replace) failed.
+  Authentication error [code: 10000]
+```
+
+The `CLOUDFLARE_ACCOUNT_ID` secret is populated (the account id appears in the
+URL), but `CLOUDFLARE_API_TOKEN` is either invalid, expired, or missing the
+Workers permissions. **Batches 1–4 fix exactly that.** Nothing needs to change
+in the code.
+
+### Reference facts
+
+| Thing | Value |
+| --- | --- |
+| Worker name | `repair-or-replace` |
+| Repo | `kevynsgrin-a11y/Fix-Replace` |
+| Deploy workflow | `.github/workflows/deploy.yml` (push to `main`, or manual) |
+| Custom domains | `repair-or-replace.net`, `www.repair-or-replace.net` |
+| Required secrets | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` |
+
+### One safety note
+
+Batch 2 creates an **API token** — a live credential with write access to your
+Cloudflare Workers. Treat it like a password: paste it only into the GitHub
+secret field, never into a chat window, a doc, or a screenshot. If it is ever
+exposed, revoke it at <https://dash.cloudflare.com/profile/api-tokens>.
+
+---
+
+## BATCH 1 — Confirm the zone and capture the Account ID
+
+```
+Go to https://dash.cloudflare.com and make sure I'm logged in.
+
+1. On the account home page, find the domain "repair-or-replace.net" in my list
+   of websites. Click into it.
+2. Tell me the domain's status — it should say "Active". If it says "Pending
+   Nameserver Update" or anything other than Active, stop and tell me exactly
+   what it says.
+3. On that domain's Overview page, scroll down the right-hand sidebar to the
+   "API" section and find "Account ID". Copy it.
+4. Report back: the domain status, and the Account ID.
+
+Do not change any settings. This is a read-only check.
+```
+
+**Success criteria:** domain status is **Active**, and you have the Account ID
+(a 32-character hex string).
+
+---
+
+## BATCH 2 — Create a Workers-scoped API token
+
+```
+Go to https://dash.cloudflare.com/profile/api-tokens
+
+1. Click "Create Token".
+2. Find the template named "Edit Cloudflare Workers" and click "Use template".
+3. On the template configuration page:
+   - Under "Account Resources", set it to Include -> my account.
+   - Under "Zone Resources", set it to Include -> Specific zone ->
+     repair-or-replace.net
+   - Leave all the permission rows exactly as the template set them.
+4. Click "Continue to summary", then "Create Token".
+5. On the final screen the token is shown ONCE. Copy it to the clipboard and
+   keep it there — do not paste it into this chat, do not save it to a file.
+6. Tell me only: "token created" and the list of permissions shown on the
+   summary screen. Never repeat the token value back to me.
+```
+
+**Success criteria:** a token exists, its summary includes
+**Workers Scripts: Edit** and **Workers Routes: Edit**, and the value is on
+your clipboard.
+
+> **Why this template:** `wrangler deploy` needs to upload the script
+> (Workers Scripts: Edit) and bind the two custom domains
+> (Workers Routes: Edit + Zone: Read). The template bundles all of them.
+
+---
+
+## BATCH 3 — Put the token into GitHub
+
+```
+Go to https://github.com/kevynsgrin-a11y/Fix-Replace/settings/secrets/actions
+
+1. Look at the list of "Repository secrets". Tell me whether
+   CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID already exist.
+2. For CLOUDFLARE_API_TOKEN:
+   - If it exists, click the pencil/"Update" icon next to it.
+   - If it does not exist, click "New repository secret" and set the name to
+     exactly CLOUDFLARE_API_TOKEN
+   Paste the token from my clipboard into the Secret/value box and save.
+3. For CLOUDFLARE_ACCOUNT_ID: make sure it exists and its value is the Account
+   ID from Batch 1. If it is missing, create it with that value. (If it already
+   exists you cannot view it — update it with the Batch 1 value to be certain.)
+4. Confirm both secrets now appear in the list, and report their "last updated"
+   timestamps.
+```
+
+**Success criteria:** both secrets listed, both updated just now.
+
+---
+
+## BATCH 4 — Run the deploy and watch it
+
+```
+Go to https://github.com/kevynsgrin-a11y/Fix-Replace/actions/workflows/deploy.yml
+
+1. Click the "Run workflow" dropdown on the right, make sure the branch is
+   "main", and click the green "Run workflow" button.
+2. Wait about 10 seconds, then reload the page. A new run should appear at the
+   top with a yellow (in progress) dot. Click into it.
+3. Click the "deploy" job to watch the log stream.
+4. Wait for it to finish (roughly 1-2 minutes).
+5. Report the final result:
+   - If it succeeded (green check): paste the last ~15 lines of the log,
+     which should list the deployed URLs.
+   - If it failed (red X): paste the full error message from the failing step.
+```
+
+**Success criteria:** green check, and the log ends with something like
+`Deployed repair-or-replace triggers` listing `repair-or-replace.net` and
+`www.repair-or-replace.net`.
+
+**If it fails, match the error:**
+
+| Error in log | What it means | Fix |
+| --- | --- | --- |
+| `Authentication error [code: 10000]` | Token still wrong | Redo Batch 2, make sure you used the *Edit Cloudflare Workers* template |
+| `code: 10001` / `Unable to authenticate request` | Account ID mismatch | Redo Batch 3 step 3 with the Batch 1 Account ID |
+| `workers.dev subdomain` / `Zone not found` | Zone not on this account | Confirm in Batch 1 that the domain is in the *same* Cloudflare account |
+| `custom domain ... already in use` / `already exists` | Something else already serves that hostname | Run Batch 4b below |
+
+### BATCH 4b — only if you hit "custom domain already in use"
+
+```
+Go to https://dash.cloudflare.com, open the repair-or-replace.net domain, then
+go to DNS -> Records.
+
+1. List every record for the root "@" / repair-or-replace.net and for "www".
+2. Tell me what they point to (another Worker, a Pages project, an A record,
+   a CNAME, etc). Do not delete anything yet — just report what's there.
+```
+
+Then tell me what it found and I'll advise before anything is removed.
+
+---
+
+## BATCH 5 — Verify the live site
+
+```
+Open a new tab and work through this checklist on https://repair-or-replace.net
+
+1. Does the homepage load with a big headline "Repair it or replace it? Get a
+   straight answer." and a calculator card on the right? Screenshot it.
+2. In the calculator: set "Appliance" to Dishwasher, "Age (years)" to 9, and
+   "Repair quote" to 380, then click the "Get my verdict" button.
+3. Confirm a result appears with a verdict headline, a gauge, and a
+   "Cost over ... yrs" comparison showing two dollar figures. Screenshot it.
+4. Visit https://repair-or-replace.net/guides/refrigerator and confirm it loads
+   with a fridge line-drawing in the header.
+5. Visit https://repair-or-replace.net/api/health and confirm it returns
+   {"ok":true,"service":"repair-or-replace"}
+6. Visit https://www.repair-or-replace.net and confirm it also loads.
+7. Report anything that 404s, errors, or looks visually broken.
+```
+
+**Success criteria:** homepage renders, the calculator returns a real verdict,
+`/api/health` returns ok, and `www` resolves.
+
+> Note: the "Save / share this result" button will show *"Try again"* until you
+> complete Batch 6. That is expected and by design — sharing needs a KV store.
+> Everything else works without it.
+
+---
+
+## BATCH 6 — (Optional) Turn on result sharing
+
+Only needed if you want the "share this result" link feature. Everything else
+works without it.
+
+```
+Go to https://dash.cloudflare.com and open Storage & Databases -> KV
+(older dashboards: Workers & Pages -> KV).
+
+1. Click "Create a namespace".
+2. Name it exactly: repair-or-replace-CACHE
+3. Create it, then copy the namespace ID shown in the list.
+4. Report the namespace ID back to me.
+```
+
+Then tell me the ID and I'll wire it into `wrangler.jsonc` and push — the
+workflow will redeploy automatically and sharing will start working.
+
+---
+
+## After launch
+
+- Every future push to `main` redeploys automatically. No further manual steps.
+- Watch runs at
+  <https://github.com/kevynsgrin-a11y/Fix-Replace/actions/workflows/deploy.yml>
+- Submit the sitemap to Google Search Console:
+  `https://repair-or-replace.net/sitemap.xml`
