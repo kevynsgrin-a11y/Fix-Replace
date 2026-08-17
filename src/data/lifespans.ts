@@ -1,4 +1,4 @@
-import type { ApplianceCategory, BrandTier } from '../core/types.js';
+import type { ApplianceCategory, BrandTier } from '../core/types';
 
 /**
  * Tier-based actuarial lifespans, in years, expressed as a [low, high] band.

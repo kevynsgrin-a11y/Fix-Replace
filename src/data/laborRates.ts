@@ -1,4 +1,4 @@
-import type { LocationInput } from '../core/types.js';
+import type { LocationInput } from '../core/types';
 
 /**
  * Regional labor data for Home Appliance Repairers (BLS OEWS occupation code

@@ -6,9 +6,9 @@ import type {
   MonetizationResult,
   SafetyResult,
   Verdict,
-} from './types.js';
-import { getApplianceMeta } from '../data/appliances.js';
-import { getComponent } from '../data/partCosts.js';
+} from './types';
+import { getApplianceMeta } from '../data/appliances';
+import { getComponent } from '../data/partCosts';
 
 /**
  * Monetization contract. Two hard rules from the brief drive this module:

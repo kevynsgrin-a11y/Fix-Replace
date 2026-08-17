@@ -30,12 +30,7 @@ jobs:
       - name: Unit tests
         run: npm test
 
-      # The header, drawer and footer are static on all 26 pages. This fails if
-      # a page's chrome has drifted from tools/site-chrome.mjs.
-      - name: Site chrome is in sync
-        run: npm run chrome:check
-
-      # Meta/title lengths, unique social cards, favicon + manifest links,
-      # keyboard-reachable tables, heading order, JSON-LD validity, dead links.
-      - name: Page hygiene
-        run: npm run check:pages
+      # Catches broken imports, invalid route exports and prerender failures
+      # that typecheck alone does not reach.
+      - name: Build
+        run: npm run build

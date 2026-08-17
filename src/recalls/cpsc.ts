@@ -1,4 +1,4 @@
-import type { RecallMatch, RecallResult } from '../core/types.js';
+import type { RecallMatch, RecallResult } from '../core/types';
 
 /**
  * CPSC SaferProducts.gov Recall API client.

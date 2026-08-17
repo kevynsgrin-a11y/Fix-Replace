@@ -1,4 +1,4 @@
-import type { ApplianceCategory } from '../core/types.js';
+import type { ApplianceCategory } from '../core/types';
 
 /**
  * Component-level repair economics. Each entry carries a national installed-cost

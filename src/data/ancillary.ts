@@ -1,5 +1,5 @@
-import type { ApplianceCategory, FuelType } from '../core/types.js';
-import { getApplianceMeta } from './appliances.js';
+import type { ApplianceCategory, FuelType } from '../core/types';
+import { getApplianceMeta } from './appliances';
 
 /**
  * Ancillary costs of replacement. Ignoring these artificially biases the

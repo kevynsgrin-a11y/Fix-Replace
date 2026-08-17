@@ -1,5 +1,5 @@
-import type { ApplianceCategory, BrandTier, RulResult } from './types.js';
-import { getLifespanBand } from '../data/lifespans.js';
+import type { ApplianceCategory, BrandTier, RulResult } from './types';
+import { getLifespanBand } from '../data/lifespans';
 
 /**
  * Weibull reliability model for Remaining Useful Life (RUL).
