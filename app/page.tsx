@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { Container } from "@/components/ui/container"
 import { Hero } from "@/components/home/hero"
 import { WorkedExample } from "@/components/home/worked-example"

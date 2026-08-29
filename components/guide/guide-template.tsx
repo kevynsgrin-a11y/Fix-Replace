@@ -30,17 +30,27 @@ const HAZARD_VARIANT: Record<string, "danger" | "neutral"> = {
 /**
  * Featured markets for the guide-page metro rail.
  *
- * Derived from the published metro set rather than hand-listed, so a chip can
- * never point at a market that has no page. Every published market would be too
- * many links to hang off a guide, so this takes the six highest-wage metros —
- * where the local labor rate moves the bill the most — ordered by mean wage and
- * tie-broken on slug so the rail is identical on every build. /local-costs lists
- * all of them, and the trailing "All markets" chip goes there.
+ * Hand-picked by market size, not by wage. Ranking the 22 published markets by
+ * mean wage promotes Seattle and Washington DC over Los Angeles, Chicago and
+ * Miami — which optimises for where labor moves the bill most, but these chips
+ * exist to pass internal link equity, and that follows search volume. The six
+ * below are the largest US appliance markets we publish.
+ *
+ * Filtered against the published set so a chip can never point at a market with
+ * no page; /local-costs lists all 22 and the trailing "All markets" chip goes
+ * there.
  */
-const FEATURED_METRO_COUNT = 6
-const METRO_LINKS = [...getMetroHubData()]
-  .sort((a, b) => b.wage - a.wage || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0))
-  .slice(0, FEATURED_METRO_COUNT)
+const FEATURED_METRO_SLUGS = [
+  "new-york",
+  "los-angeles",
+  "chicago",
+  "dallas",
+  "houston",
+  "miami",
+]
+const METRO_LINKS = FEATURED_METRO_SLUGS.map((slug) =>
+  getMetroHubData().find((m) => m.slug === slug),
+).filter((m): m is NonNullable<typeof m> => Boolean(m))
 
 interface GuideTemplateProps {
   data: GuideData

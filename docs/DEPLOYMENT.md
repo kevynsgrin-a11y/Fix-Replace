@@ -28,6 +28,21 @@
 
 ---
 
+## Environment variables that actually apply today
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | `https://repair-or-replace.com` | Canonical origin. Leave **unset in production** so the default applies; set it on preview/staging to that environment's own origin, or preview builds emit canonical tags and a sitemap pointing at production. Full origin, no trailing slash. |
+| `CPSC_API_BASE` | `https://www.saferproducts.gov/RestWebServices/Recall` | Base URL for the CPSC recall lookup. Override to point staging at a mock. Not a secret — it is a public endpoint. |
+| `TRUST_PROXY_HEADER` | unset | Set to `1` **only** when the app sits behind a proxy or CDN that overwrites `x-forwarded-for` (Vercel and Cloudflare both do). The in-process per-IP rate limiter on `POST /api/calculate` reads the client IP from that header and is **inert unless this is set** — deliberately, because on an unproxied host the header is client-controlled, so trusting it lets an attacker bypass the limit by rotating values while every real visitor collapses into one shared bucket and gets 429s. If you leave it unset, configure rate limiting at the WAF/edge instead; otherwise that endpoint has no request-rate control at all. |
+
+Note that the in-process limiter is a per-instance backstop in any case:
+serverless instances do not share memory, so N concurrent instances multiply the
+effective allowance by N and a cold start resets the counter. Platform-level
+limiting is the real control.
+
+---
+
 ## What is still accurate here
 
 Two things in the historical text below survived the migration, in changed form:

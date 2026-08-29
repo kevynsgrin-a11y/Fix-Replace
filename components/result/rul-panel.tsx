@@ -3,6 +3,7 @@
 import { Panel } from "@/components/result/panel"
 import { CountUp } from "@/components/result/count-up"
 import type { CalculateResponse } from "@/lib/result"
+import { useReducedMotion } from "@/lib/use-reduced-motion"
 import { cn } from "@/lib/utils"
 
 const HORIZONS = [
@@ -20,6 +21,7 @@ export function RulPanel({
   animate: boolean
   className?: string
 }) {
+  const reduced = useReducedMotion()
   // Median at or below ~1 month of remaining life is effectively past expected life.
   const pastLife = rul.medianRemainingYears <= 0.08
 
@@ -76,7 +78,11 @@ export function RulPanel({
                         "h-full rounded-(--radius-pill) bg-(--color-brand) transition-[width] ease-(--ease-out-quint)",
                         animate ? "duration-[900ms]" : "duration-0",
                       )}
-                      style={{ width: `${pct}%` }}
+                      // Start at 0% so the CSS width transition has something to
+                      // animate from — a constant width never fires a transition.
+                      // Reduced-motion users skip straight to the true value,
+                      // which the duration-0 class above keeps instant.
+                      style={{ width: reduced || animate ? `${pct}%` : "0%" }}
                     />
                   </div>
                 </div>
