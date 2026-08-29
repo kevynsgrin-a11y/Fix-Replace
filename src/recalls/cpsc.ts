@@ -10,13 +10,36 @@ import type { RecallMatch, RecallResult } from '../core/types';
  * end-user lookups are sub-50ms and resilient to upstream rate limits.
  */
 
+/**
+ * Structural cache contract.
+ *
+ * Deliberately NOT Cloudflare's ambient `KVNamespace`. The Worker runtime this
+ * module was written for is gone, `@cloudflare/workers-types` is not a
+ * dependency, and an ambient type that no longer resolves broke `tsc` outright
+ * the moment the Next.js API route imported this file — `exclude` in
+ * tsconfig.json only filters root discovery, it does not stop an imported file
+ * from entering the program. Any store matching this shape satisfies it.
+ */
+export interface RecallCache {
+  get<T>(key: string, type: 'json'): Promise<T | null>;
+  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
+}
+
 export interface RecallEnv {
-  CACHE: KVNamespace;
+  CACHE: RecallCache;
   CPSC_API_BASE: string;
 }
 
 const REQUEST_TIMEOUT_MS = 5000;
 const CACHE_TTL_SECONDS = 60 * 60 * 24; // 24h
+
+/**
+ * Hard ceiling on an upstream response body. A short or partial UPC makes the
+ * CPSC endpoint wildcard-match, and an unbounded `res.json()` would buffer the
+ * entire recall catalogue into a serverless function before any guard could
+ * reject it. Enforced against the real byte count, not the declared header.
+ */
+const MAX_RESPONSE_BYTES = 2_000_000; // 2 MB
 
 interface RawRecall {
   RecallNumber?: string;
@@ -45,13 +68,48 @@ export function parseRecalls(raw: unknown): RecallMatch[] {
   });
 }
 
+/**
+ * Read a response body, aborting past `MAX_RESPONSE_BYTES`. The declared
+ * Content-Length is only a fast path — a chunked response omits it, so the
+ * running byte count is what actually enforces the cap.
+ */
+async function readCapped(res: Response): Promise<string> {
+  const declared = Number(res.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > MAX_RESPONSE_BYTES) {
+    throw new Error('CPSC API response exceeds size cap');
+  }
+  if (!res.body) return res.text();
+
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_RESPONSE_BYTES) {
+      await reader.cancel();
+      throw new Error('CPSC API response exceeds size cap');
+    }
+    chunks.push(value);
+  }
+
+  const joined = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    joined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(joined);
+}
+
 async function fetchJson(url: string): Promise<unknown> {
   const res = await fetch(url, {
     headers: { Accept: 'application/json' },
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`CPSC API ${res.status}`);
-  return res.json();
+  return JSON.parse(await readCapped(res));
 }
 
 /** Direct UPC lookup against the live API (no cache). */

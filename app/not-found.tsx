@@ -5,7 +5,7 @@ import { Container } from "@/components/ui/container"
 import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
-  title: "Page not found — RepairOrReplace.net",
+  title: "Page not found",
   description: "The page you requested does not exist.",
 }
 
@@ -28,7 +28,7 @@ export default function NotFound() {
       />
 
       <Container>
-        <main className="mt-12 pb-24">
+        <div className="mt-12 pb-24">
           <div className="mx-auto max-w-[52ch]">
             <nav aria-label="Suggested pages">
               <ul className="space-y-2">
@@ -52,7 +52,7 @@ export default function NotFound() {
               </Button>
             </div>
           </div>
-        </main>
+        </div>
       </Container>
     </>
   )

@@ -10,9 +10,8 @@ import {
   jsonLdScript,
 } from "@/lib/json-ld"
 import { getMetroData, METRO_SLUGS } from "@/lib/page-data"
+import { SITE_URL, ogImageUrl } from "@/lib/site"
 import { MetroTemplate } from "@/components/metro/metro-template"
-
-const SITE = "https://repair-or-replace.net"
 
 interface MetroPageProps {
   params: Promise<{ slug: string }>
@@ -32,8 +31,12 @@ export async function generateMetadata({ params }: MetroPageProps): Promise<Meta
   const description =
     `${shortName} appliance repair labor runs $${data.rate.toFixed(2)}/hr — ` +
     `${data.multiplier.toFixed(2)}× the $${data.nationalMean.toFixed(2)} national mean. See localized repair cost ranges.`
-  const url = `${SITE}/local-costs/${data.slug}`
-  const ogUrl = `${SITE}/og?type=metro&title=${encodeURIComponent(shortName)}&description=${encodeURIComponent(`$${data.rate.toFixed(2)}/hr · ${data.multiplier.toFixed(2)}× national`)}`
+  const url = `${SITE_URL}/local-costs/${data.slug}`
+  const ogUrl = ogImageUrl({
+    type: "metro",
+    title: shortName,
+    description: `$${data.rate.toFixed(2)}/hr · ${data.multiplier.toFixed(2)}× national`,
+  })
 
   return {
     title,

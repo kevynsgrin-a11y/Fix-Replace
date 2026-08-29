@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { useReducedMotion } from "@/lib/use-reduced-motion"
 import { Panel } from "@/components/result/panel"
 import { CountUp } from "@/components/result/count-up"
 import {
@@ -58,7 +59,8 @@ interface BarProps {
 }
 
 function Bar({ label, total, fraction, tone, winner, delayMs, animate }: BarProps) {
-  const reducedWidth = `${Math.max(6, Math.round(fraction * 100))}%`
+  const reduced = useReducedMotion()
+  const fillWidth = `${Math.max(6, Math.round(fraction * 100))}%`
   const fillTone =
     tone === "repair"
       ? "bg-(--color-repair)"
@@ -81,10 +83,11 @@ function Bar({ label, total, fraction, tone, winner, delayMs, animate }: BarProp
       <div className="relative h-9 overflow-hidden rounded-(--radius-sm) bg-(--color-surface-2)">
         <div
           className={cn(
-            "absolute inset-y-0 left-0 rounded-(--radius-sm) transition-[width] [transition-duration:var(--duration-slow)] [transition-timing-function:var(--ease-out-quint)] motion-reduce:transition-none",
+            "absolute inset-y-0 left-0 rounded-(--radius-sm) transition-[width] [transition-timing-function:var(--ease-out-quint)]",
+            animate ? "[transition-duration:var(--duration-slow)]" : "duration-0",
             fillTone,
           )}
-          style={{ width: animate ? reducedWidth : "0%" }}
+          style={{ width: reduced || animate ? fillWidth : "0%" }}
         />
         {winner ? (
           <span className="absolute right-2 top-1/2 -translate-y-1/2 rounded-(--radius-pill) bg-(--color-surface) px-2 py-0.5 text-(length:--text-2xs) font-semibold text-(--color-ink) shadow-(--shadow-xs)">

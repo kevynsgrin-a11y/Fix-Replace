@@ -1,20 +1,30 @@
 import type { Metadata } from "next"
 import { PageHero } from "@/components/site/page-hero"
 import { Container } from "@/components/ui/container"
-import { breadcrumbList, organizationEntity } from "@/lib/json-ld"
-
-const SITE = "https://www.repair-or-replace.net"
+import { breadcrumbLd, organizationLd, websiteLd, graphLd, jsonLdScript } from "@/lib/json-ld"
+import { SITE_URL, ogImageUrl } from "@/lib/site"
 
 export const metadata: Metadata = {
   title: "Appliance Recall Check — Federal Recall Resources",
   description:
     "Check any appliance for an open federal recall. Direct links to CPSC SaferProducts.gov, Recalls.gov, and manufacturer lookup tools. No account required.",
-  alternates: { canonical: `${SITE}/recalls` },
+  alternates: { canonical: `${SITE_URL}/recall-checks` },
   openGraph: {
     title: "Appliance Recall Check",
     description: "Check any appliance for an open federal recall via CPSC SaferProducts.gov and Recalls.gov.",
-    url: `${SITE}/recalls`,
-    images: [{ url: `${SITE}/og?type=editorial&slug=recalls`, width: 1200, height: 630, alt: "Appliance recall check resources" }],
+    url: `${SITE_URL}/recall-checks`,
+    images: [
+      {
+        url: ogImageUrl({
+          type: "editorial",
+          title: "Check your appliance for an open recall",
+          description: "CPSC SaferProducts.gov, Recalls.gov and manufacturer lookups — free, no account.",
+        }),
+        width: 1200,
+        height: 630,
+        alt: "Appliance recall check resources",
+      },
+    ],
   },
   twitter: { card: "summary_large_image" },
 }
@@ -47,8 +57,14 @@ const RECALL_RESOURCES = [
 ]
 
 export default function RecallChecksPage() {
+  const ld = graphLd(
+    organizationLd(),
+    websiteLd(),
+    breadcrumbLd([{ name: "Home", href: "/" }, { name: "Recall check", href: "/recall-checks" }]),
+  )
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }} />
       <PageHero
         crumbs={[{ label: "Home", href: "/" }, { label: "Recall check" }]}
         eyebrow="Safety"
@@ -56,7 +72,7 @@ export default function RecallChecksPage() {
         lede="Before you repair or keep a failing appliance, check whether a federal recall is open. These are the official resources — no account required."
       />
       <Container>
-        <main className="py-12 pb-24">
+        <div className="py-12 pb-24">
           <ul className="flex flex-col gap-4">
             {RECALL_RESOURCES.map((resource) => (
               <li key={resource.name}>
@@ -82,7 +98,7 @@ export default function RecallChecksPage() {
               Contact the manufacturer directly — recall remedies are free to the consumer and may include a free repair, replacement, or refund depending on the hazard. Do not attempt to fix a recalled unit yourself; the recall process typically covers the certified remedy.
             </p>
           </div>
-        </main>
+        </div>
       </Container>
     </>
   )

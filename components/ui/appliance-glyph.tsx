@@ -13,7 +13,8 @@
  *   - Oven: inner shelf lines + viewport window
  *   - Microwave: wide box, door seam, vent slots on right
  *   - Water heater: tall cylinder with two pipe stubs top + bottom
- *   - HVAC: wider unit, three horizontal vent slots, outdoor coil fins
+ *   - HVAC: wide low condenser, louvered vents left, bladed fan right,
+ *     refrigerant line set breaking the outline at top-left
  */
 
 import * as React from "react"
@@ -205,21 +206,20 @@ export function WaterHeaterGlyph(props: GlyphProps) {
 export function HvacGlyph(props: GlyphProps) {
   return (
     <G {...props}>
-      {/* Outdoor unit — wide, low */}
+      {/* Outdoor condenser cabinet — wide, low */}
       <rect x="2" y="8" width="28" height="16" rx="2" />
-      {/* Three horizontal vent slots — distinctive identifier */}
+      {/* Louvered vent slots — left panel */}
       <line x1="6" y1="13" x2="14" y2="13" strokeWidth="1" stroke="var(--color-brand)" />
       <line x1="6" y1="16" x2="14" y2="16" strokeWidth="1" stroke="var(--color-brand)" />
       <line x1="6" y1="19" x2="14" y2="19" strokeWidth="1" stroke="var(--color-brand)" />
-      {/* Fan circle — right side */}
+      {/* Fan housing — right side */}
       <circle cx="21" cy="16" r="5" />
-      {/* Fan blades suggestion */}
-      <line x1="21" y1="11" x2="21" y2="21" strokeWidth="1" stroke="var(--color-brand)" />
-      <line x1="16" y1="16" x2="26" y2="16" strokeWidth="1" stroke="var(--color-brand)" />
-      {/* Coil fins at top */}
-      <line x1="5" y1="8" x2="5" y2="5" strokeWidth="1" />
-      <line x1="9" y1="8" x2="9" y2="5" strokeWidth="1" />
-      <line x1="13" y1="8" x2="13" y2="5" strokeWidth="1" />
+      {/* Three radial fan blades — reads as a fan, not a crosshair */}
+      <line x1="21" y1="16" x2="21" y2="11.5" strokeWidth="1" stroke="var(--color-brand)" />
+      <line x1="21" y1="16" x2="24.9" y2="18.25" strokeWidth="1" stroke="var(--color-brand)" />
+      <line x1="21" y1="16" x2="17.1" y2="18.25" strokeWidth="1" stroke="var(--color-brand)" />
+      {/* Refrigerant line set — breaks the outline top-left, unique identifier */}
+      <path d="M5 8 L5 4 L9 4" strokeWidth="1.5" stroke="var(--color-brand)" />
     </G>
   )
 }

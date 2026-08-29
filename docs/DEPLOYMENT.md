@@ -1,16 +1,57 @@
-# Deployment
+# Deployment (SUPERSEDED — historical reference only)
 
-Step-by-step guide to deploying RepairOrReplace to Cloudflare. The app is a
-single Worker that serves the static frontend and the `/api/*` compute layer, and
-uses D1, KV, and R2. This guide covers provisioning those resources, wiring their
-IDs into `wrangler.jsonc`, applying migrations, running locally, deploying to
-production, and the scheduled cron.
-
-For the architecture behind these pieces, see
-[`ARCHITECTURE.md`](ARCHITECTURE.md). For the API and algorithms, see
-[`../README.md`](../README.md).
+> # ⛔ DO NOT FOLLOW THIS DOCUMENT
+>
+> **This describes an architecture that no longer exists.**
+>
+> It documents deploying RepairOrReplace as a **Cloudflare Worker** backed by
+> **D1**, **KV**, and **R2**, with a scheduled cron. None of that is in this
+> repository: there is no `wrangler.jsonc`, no `src/worker/`, no `migrations/`,
+> and `wrangler` is not a dependency in `package.json`. Every command below
+> (`wrangler login`, `wrangler d1 create`, `wrangler kv namespace create`,
+> `wrangler r2 bucket create`, `wrangler deploy`, `npm run db:migrate:*`,
+> `npm run deploy`) will fail, and the npm scripts it references do not exist.
+>
+> **What is true today:** RepairOrReplace is a standard **Next.js 16** app.
+> `npm run build` produces the production build and `npm start` serves it. It is
+> stateless — no database, no cache tier, no object storage, no cron. The only
+> configuration that matters is `NEXT_PUBLIC_SITE_URL` (canonical origin, set it
+> on preview deployments) and the optional `CPSC_API_BASE`.
+>
+> The canonical domain has also changed, from `repair-or-replace.net` to
+> **`https://repair-or-replace.com`**, configured centrally in
+> [`../lib/site.ts`](../lib/site.ts).
+>
+> See [`../README.md`](../README.md) for how to build and run the app, and
+> [`ARCHITECTURE.md`](ARCHITECTURE.md) for the real architecture. This file is
+> retained so the earlier design and its rationale are not lost.
 
 ---
+
+## What is still accurate here
+
+Two things in the historical text below survived the migration, in changed form:
+
+- **`CPSC_API_BASE`** is still an honored environment variable, still defaulting
+  to `https://www.saferproducts.gov/RestWebServices/Recall`, and still useful for
+  pointing at a mock in testing. It is read from `process.env` in
+  `app/api/calculate/route.ts` rather than from a `wrangler.jsonc` `vars` block.
+- **The recall-degradation behavior** described under "Calculations work but
+  recall lookups always return `unavailable`" is unchanged: a 5-second timeout
+  and graceful degradation to `unavailable`, with the economic verdict
+  unaffected. Note that results are no longer cached at all, so the sentence
+  about caching only definitive results no longer applies.
+
+The `DISCOUNT_RATE` variable is **no longer read from the environment**. The
+default 5% rate now lives in `DEFAULT_DISCOUNT_RATE` in `src/core/decision.ts`.
+
+Everything else below is historical.
+
+---
+
+# Historical document (Cloudflare Worker era)
+
+*The original text follows unmodified.*
 
 ## Prerequisites
 

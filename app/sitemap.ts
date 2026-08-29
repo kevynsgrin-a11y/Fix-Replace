@@ -1,8 +1,6 @@
 import type { MetadataRoute } from "next"
-import { GUIDE_SLUGS } from "@/lib/page-data"
-import { METRO_SLUGS } from "@/lib/page-data"
-
-const SITE = "https://repair-or-replace.net"
+import { GUIDE_SLUGS, METRO_SLUGS } from "@/lib/page-data"
+import { SITE_URL as SITE } from "@/lib/site"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date().toISOString()
@@ -20,6 +18,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
   ]
 
+  // Both blocks below are derived from lib/page-data.ts, so adding a guide or
+  // a metro there puts it in the sitemap automatically — never hardcode a
+  // slug here. GUIDE_SLUGS entries are objects (use `.slug`); METRO_SLUGS
+  // entries are plain strings.
   const guide_pages: MetadataRoute.Sitemap = GUIDE_SLUGS.map((g) => ({
     url: `${SITE}/cost-guides/${g.slug}`,
     lastModified: now,

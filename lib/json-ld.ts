@@ -4,13 +4,28 @@
  * One Organization + WebSite entity referenced by @id from every page.
  */
 
-const SITE_URL = "https://repair-or-replace.net"
+import { ORG, SITE_NAME, SITE_URL } from "@/lib/site"
+
 const ORG_ID = `${SITE_URL}/#organization`
 const SITE_ID = `${SITE_URL}/#website`
 
-/** Serialize a JSON-LD object into a <script> tag string for dangerouslySetInnerHTML. */
+/**
+ * Serialize a JSON-LD object into a <script> tag string for dangerouslySetInnerHTML.
+ *
+ * Every less-than character is rewritten to its JSON unicode escape. Plain
+ * JSON.stringify will happily emit a closing script sequence that appears inside
+ * a string value, and the HTML parser treats that as the end of the script
+ * element regardless of the JSON quoting around it — enough to break out of the
+ * tag and inject markup. The escape is invisible to JSON parsers, which decode
+ * it straight back to a less-than character, so the structured data a crawler
+ * reads is byte-for-byte the same document.
+ *
+ * Defense in depth: today every value is authored in this repo, but the helpers
+ * take arbitrary strings (page titles, FAQ answers) and one CMS-fed or
+ * user-derived value later would otherwise be a stored-XSS hole.
+ */
 export function jsonLdScript(data: Record<string, unknown>): string {
-  return JSON.stringify(data, null, 0)
+  return JSON.stringify(data, null, 0).replace(/</g, "\\u003c")
 }
 
 /** The global Organization node. Include once per page via <script type="application/ld+json">. */
@@ -19,10 +34,24 @@ export function organizationLd(): Record<string, unknown> {
     "@context": "https://schema.org",
     "@type": "Organization",
     "@id": ORG_ID,
-    name: "RepairOrReplace",
+    name: SITE_NAME,
+    legalName: ORG.legalName,
     url: SITE_URL,
     description:
       "Net-present-cost math on real data — giving homeowners an honest verdict on whether to repair or replace a broken appliance.",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: ORG.address.street,
+      addressLocality: ORG.address.locality,
+      addressRegion: ORG.address.region,
+      postalCode: ORG.address.postalCode,
+      addressCountry: ORG.address.country,
+    },
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      email: ORG.email,
+    },
     sameAs: [],
   }
 }
@@ -34,7 +63,7 @@ export function websiteLd(): Record<string, unknown> {
     "@type": "WebSite",
     "@id": SITE_ID,
     url: SITE_URL,
-    name: "RepairOrReplace",
+    name: SITE_NAME,
     publisher: { "@id": ORG_ID },
     potentialAction: {
       "@type": "SearchAction",

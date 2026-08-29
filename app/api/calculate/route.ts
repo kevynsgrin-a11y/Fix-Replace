@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { calculateDecision } from "@/src/core/decision"
+import { fetchRecallsByUpc } from "@/src/recalls/cpsc"
 import type {
   ApplianceCategory,
   BrandTier,
@@ -10,6 +11,38 @@ import type {
 } from "@/src/core/types"
 
 export const runtime = "nodejs"
+
+/**
+ * Live CPSC SaferProducts.gov Recall endpoint. Overridable so a mirror or a
+ * local fixture server can be pointed at without a code change.
+ */
+const CPSC_API_BASE =
+  process.env.CPSC_API_BASE || "https://www.saferproducts.gov/RestWebServices/Recall"
+
+/**
+ * Generous ceiling for this payload shape (a dozen short scalar fields).
+ * Enforced against the body's real byte length, not the declared
+ * Content-Length — that header is absent on a chunked request and trivially
+ * lied about — so nothing over the cap ever reaches `JSON.parse`. The bytes are
+ * still read off the wire first; bounding the *transfer* is the platform's job
+ * (edge/WAF request-size limits), this bounds what we parse.
+ */
+const MAX_BODY_BYTES = 10_000
+
+/**
+ * A UPC-A is 12 digits, EAN-13 is 13, GTIN-14 is 14. Anything shorter is a
+ * partial code, and CPSC's Recall service wildcard-matches the UPC field, so a
+ * partial would match unrelated recalled products — and a recall hit hard-
+ * overrides the verdict to "repair". Short/garbled input must not opt into the
+ * lookup at all.
+ */
+const UPC_MIN_DIGITS = 12
+const UPC_MAX_DIGITS = 14
+
+const RATE_LIMIT_WINDOW_MS = 60_000
+const RATE_LIMIT_MAX_REQUESTS = 20
+/** Hard ceiling on tracked clients so a distributed flood cannot grow the map. */
+const RATE_LIMIT_MAX_CLIENTS = 10_000
 
 const CATEGORIES: ApplianceCategory[] = [
   "refrigerator_freestanding",
@@ -28,43 +61,106 @@ const CATEGORIES: ApplianceCategory[] = [
 const TIERS: BrandTier[] = ["budget", "mid", "premium"]
 
 /**
- * Demo recall lookup. In production this would hit CPSC SaferProducts.gov via a
- * cache; here it deterministically flags a known test UPC as an active recall
- * so the safety path is exercisable, and reports every other code as clear.
+ * Live recall lookup against CPSC SaferProducts.gov. The client owns its own
+ * 5s timeout and degrades to status "unavailable" on any network/parse failure,
+ * so a recall check can never block or fail the economic verdict.
  */
-async function recallLookup(upc: string): Promise<RecallResult> {
-  const normalized = upc.replace(/\D/g, "")
-  if (normalized === "012345678905") {
-    return {
-      status: "active",
-      matches: [
-        {
-          recallNumber: "24-231",
-          recallDate: "2024-05-16",
-          company: "Example Appliance Co.",
-          productType: "Refrigerator",
-          hazard: "Compressor can overheat, posing a fire hazard.",
-          url: "https://www.cpsc.gov/Recalls",
-        },
-      ],
-      note: "This unit matches an open federal recall.",
-    }
+function recallLookup(upc: string): Promise<RecallResult> {
+  return fetchRecallsByUpc(CPSC_API_BASE, upc)
+}
+
+/**
+ * Sliding-window request counter, per instance, and only for requests that
+ * carry a trusted client key (see `clientKeyFor`). Serverless instances do not
+ * share memory, so this is an interim backstop against a single noisy client —
+ * platform-level (WAF/edge) rate limiting is the real control, and it is the
+ * only control on a deployment that does not set TRUST_PROXY_HEADER.
+ */
+const requestLog = new Map<string, number[]>()
+let lastSweep = 0
+
+/** Drop stamps older than the window and forget clients with none left. */
+function sweep(now: number) {
+  const cutoff = now - RATE_LIMIT_WINDOW_MS
+  for (const [key, stamps] of requestLog) {
+    const fresh = stamps.filter((t) => t > cutoff)
+    if (fresh.length === 0) requestLog.delete(key)
+    else requestLog.set(key, fresh)
   }
-  return {
-    status: "clear",
-    matches: [],
-    note: "No open federal recalls match this UPC.",
+  lastSweep = now
+}
+
+function isRateLimited(clientKey: string): boolean {
+  const now = Date.now()
+  // Every entry expires within one window, so sweeping once per window keeps
+  // the map bounded by the clients actually seen recently. The size check is
+  // the backstop for a flood of unique keys arriving inside a single window.
+  if (now - lastSweep > RATE_LIMIT_WINDOW_MS || requestLog.size > RATE_LIMIT_MAX_CLIENTS) {
+    sweep(now)
+    // Still oversized after a sweep means the traffic is genuinely fresh and
+    // adversarial; drop the table rather than leak memory. Worst case a few
+    // clients get an extra window's allowance.
+    if (requestLog.size > RATE_LIMIT_MAX_CLIENTS) requestLog.clear()
   }
+
+  const cutoff = now - RATE_LIMIT_WINDOW_MS
+  const recent = (requestLog.get(clientKey) ?? []).filter((t) => t > cutoff)
+  if (recent.length >= RATE_LIMIT_MAX_REQUESTS) {
+    requestLog.set(clientKey, recent)
+    return true
+  }
+  recent.push(now)
+  requestLog.set(clientKey, recent)
+  return false
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null
 }
 
+/**
+ * Per-client key for the limiter, or null when there is nobody trustworthy to
+ * key on. `x-forwarded-for` is only meaningful behind a proxy that overwrites
+ * it: unproxied it is attacker-controlled (rotate the header, evade the limit)
+ * and usually absent entirely, which would collapse every visitor into one
+ * shared bucket and 429 the calculator site-wide after RATE_LIMIT_MAX_REQUESTS.
+ * So it is read only when the deployment opts in with TRUST_PROXY_HEADER=1;
+ * otherwise per-client limiting is skipped rather than misapplied.
+ */
+function clientKeyFor(request: Request): string | null {
+  if (process.env.TRUST_PROXY_HEADER !== "1") return null
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null
+}
+
 export async function POST(request: Request) {
+  // Fast path: a declared length over the cap is refused without reading the
+  // body. A missing header coerces to 0 and a malformed one to NaN, so neither
+  // rejects here — the real enforcement is the byte count below.
+  const declaredBytes = Number(request.headers.get("content-length"))
+  if (Number.isFinite(declaredBytes) && declaredBytes > MAX_BODY_BYTES) {
+    return NextResponse.json({ error: "Request body too large." }, { status: 413 })
+  }
+
+  const clientKey = clientKeyFor(request)
+  if (clientKey && isRateLimited(clientKey)) {
+    return NextResponse.json({ error: "Too many requests." }, { status: 429 })
+  }
+
+  let raw: string
+  try {
+    raw = await request.text()
+  } catch {
+    return NextResponse.json({ error: "Malformed request body." }, { status: 400 })
+  }
+  // Enforced on the actual bytes, so a chunked or under-declared body cannot
+  // slip an oversized payload past the header check into the JSON parser.
+  if (Buffer.byteLength(raw, "utf8") > MAX_BODY_BYTES) {
+    return NextResponse.json({ error: "Request body too large." }, { status: 413 })
+  }
+
   let body: unknown
   try {
-    body = await request.json()
+    body = JSON.parse(raw)
   } catch {
     return NextResponse.json({ error: "Malformed request body." }, { status: 400 })
   }
@@ -114,8 +210,13 @@ export async function POST(request: Request) {
     input.fuelType = body.fuel as FuelType
   }
 
-  const hasUpc = typeof body.upc === "string" && body.upc.trim() !== ""
-  if (hasUpc) input.upc = (body.upc as string).trim()
+  // Normalize away spaces, dashes and any other separators, then require a real
+  // UPC/EAN/GTIN length before opting into the recall lookup. A typo or a
+  // partial code falls through to the "not_checked" branch below instead of
+  // wildcard-matching somebody else's recall and flipping the verdict.
+  const upcDigits = typeof body.upc === "string" ? body.upc.replace(/\D/g, "") : ""
+  const hasUpc = upcDigits.length >= UPC_MIN_DIGITS && upcDigits.length <= UPC_MAX_DIGITS
+  if (hasUpc) input.upc = upcDigits
 
   let result
   try {

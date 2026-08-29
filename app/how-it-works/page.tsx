@@ -2,19 +2,29 @@ import type { Metadata } from "next"
 import { PageHero } from "@/components/site/page-hero"
 import { Container } from "@/components/ui/container"
 import { breadcrumbLd, organizationLd, websiteLd, graphLd, jsonLdScript } from "@/lib/json-ld"
-
-const SITE = "https://repair-or-replace.net"
+import { SITE_URL, ogImageUrl } from "@/lib/site"
 
 export const metadata: Metadata = {
   title: "How RepairOrReplace Works — The Math Behind the Verdict",
   description:
     "Net-present cost, Weibull reliability, and BLS labor data combined into one honest repair-vs-replace answer. Read the formulas, assumptions, and data sources.",
-  alternates: { canonical: `${SITE}/how-it-works` },
+  alternates: { canonical: `${SITE_URL}/how-it-works` },
   openGraph: {
     title: "How RepairOrReplace Works",
     description: "The net-present cost math, Weibull reliability model, and BLS data behind every verdict.",
-    url: `${SITE}/how-it-works`,
-    images: [{ url: `${SITE}/og?type=editorial&slug=how-it-works`, width: 1200, height: 630, alt: "How RepairOrReplace works" }],
+    url: `${SITE_URL}/how-it-works`,
+    images: [
+      {
+        url: ogImageUrl({
+          type: "editorial",
+          title: "How the math works",
+          description: "Weibull survival curves, BLS labor rates and net-present cost behind every verdict.",
+        }),
+        width: 1200,
+        height: 630,
+        alt: "How RepairOrReplace works",
+      },
+    ],
   },
   twitter: { card: "summary_large_image" },
 }
@@ -64,7 +74,7 @@ export default function HowItWorksPage() {
         provenanceLine="Model reviewed July 19, 2026 · BLS OEWS 49-9031 · NAHB Housing Survey · EIA residential rates"
       />
       <Container>
-        <main className="mx-auto max-w-[72ch] py-12 pb-24">
+        <div className="mx-auto max-w-[72ch] py-12 pb-24">
           <ol className="flex flex-col gap-12">
             {STEPS.map((step) => (
               <li key={step.id} id={step.id} className="scroll-mt-20">
@@ -83,7 +93,7 @@ export default function HowItWorksPage() {
               <li>Repeat-failure probabilities are derived from appliance-specific failure mode prevalence data, not per-unit condition.</li>
             </ul>
           </div>
-        </main>
+        </div>
       </Container>
     </>
   )

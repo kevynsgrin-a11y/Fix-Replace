@@ -24,15 +24,56 @@ import { getComponent } from '../data/partCosts';
 const FTC_DISCLOSURE =
   'Disclosure: RepairOrReplace may earn a commission on parts or products bought through these links, and a referral fee if you request a quote from a local pro. These partnerships never influence your result above or which repair-vs-replace verdict we show.';
 
+/**
+ * RepairClinic affiliate program — the specialist repair-parts complement to the
+ * general-retailer placements. It pays materially better than the big-box
+ * programs (roughly 6% commission on a 7-day cookie, against ~1.6% on a 24-hour
+ * cookie) and it maps exactly onto the moment this link renders: a known,
+ * homeowner-serviceable part on a repair verdict.
+ *
+ * PLACEHOLDER — this is NOT a live partner ID, and it is deliberately not shaped
+ * like one. It must be replaced with the real tracking ID issued once the
+ * RepairClinic affiliate account is approved. Until that happens
+ * `repairClinicPartUrl()` emits a plain, untracked search link: the user still
+ * lands on the correct part, but the click is unattributed and earns nothing.
+ *
+ * The exact attribution mechanism is confirmed at approval time (a tracking
+ * parameter on repairclinic.com, or a network deep link). This constant and
+ * REPAIRCLINIC_AFFILIATE_PARAM are the only two places that need to change.
+ */
+const REPAIRCLINIC_AFFILIATE_ID: string = 'UNSET_REPAIRCLINIC_PARTNER_ID';
+
+/** Query parameter used to attribute a referred RepairClinic click. */
+const REPAIRCLINIC_AFFILIATE_PARAM = 'affiliate_id';
+
+/** True only once a real partner ID has replaced the placeholder above. */
+function hasRepairClinicAffiliateId(): boolean {
+  return REPAIRCLINIC_AFFILIATE_ID.length > 0 && !REPAIRCLINIC_AFFILIATE_ID.startsWith('UNSET_');
+}
+
+/**
+ * Search link into RepairClinic for the failed component on this appliance,
+ * built the same way as the retailer links: a single URL-encoded query string.
+ * Tracking is appended only when a real partner ID is in place.
+ */
+function repairClinicPartUrl(encodedQuery: string): string {
+  const base = `https://www.repairclinic.com/Shop-For-Parts?query=${encodedQuery}`;
+  return hasRepairClinicAffiliateId()
+    ? `${base}&${REPAIRCLINIC_AFFILIATE_PARAM}=${encodeURIComponent(REPAIRCLINIC_AFFILIATE_ID)}`
+    : base;
+}
+
 function partLinks(category: ApplianceCategory, componentLabel: string): AffiliateLink[] {
   const meta = getApplianceMeta(category);
   const q = encodeURIComponent(`${meta.label} ${componentLabel}`);
   return [
+    // Specialist repair-parts partner first: it is the closest match to the
+    // "buy this exact part" intent, and the higher-payout program.
     {
       kind: 'part',
       label: componentLabel,
       merchant: 'RepairClinic',
-      url: `https://www.repairclinic.com/Shop-For-Parts?query=${q}`,
+      url: repairClinicPartUrl(q),
     },
     {
       kind: 'part',

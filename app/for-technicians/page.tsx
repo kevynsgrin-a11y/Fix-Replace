@@ -2,27 +2,43 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { PageHero } from "@/components/site/page-hero"
 import { Container } from "@/components/ui/container"
-import { breadcrumbList, organizationEntity } from "@/lib/json-ld"
-
-const SITE = "https://www.repair-or-replace.net"
+import { breadcrumbLd, organizationLd, websiteLd, graphLd, jsonLdScript } from "@/lib/json-ld"
+import { SITE_URL, ogImageUrl } from "@/lib/site"
 
 export const metadata: Metadata = {
-  title: "For Appliance Repair Professionals — RepairOrReplace.net",
+  title: "For Appliance Repair Professionals — RepairOrReplace",
   description:
     "Hand a customer a link to their result. Reference our cost guides in your estimates. Technicians, inspectors, and service companies — here is how to use this tool professionally.",
-  alternates: { canonical: `${SITE}/for-technicians` },
+  alternates: { canonical: `${SITE_URL}/for-technicians` },
   openGraph: {
     title: "For Appliance Repair Professionals",
-    description: "How technicians, home inspectors, and service companies can use RepairOrReplace.net with customers.",
-    url: `${SITE}/for-technicians`,
-    images: [{ url: `${SITE}/og?type=editorial&slug=for-pros`, width: 1200, height: 630, alt: "RepairOrReplace.net for appliance repair professionals" }],
+    description: "How technicians, home inspectors, and service companies can use RepairOrReplace with customers.",
+    url: `${SITE_URL}/for-technicians`,
+    images: [
+      {
+        url: ogImageUrl({
+          type: "editorial",
+          title: "For appliance repair professionals",
+          description: "Share a result link, cite the cost guides, compare local labor rates.",
+        }),
+        width: 1200,
+        height: 630,
+        alt: "RepairOrReplace for appliance repair professionals",
+      },
+    ],
   },
   twitter: { card: "summary_large_image" },
 }
 
 export default function ForTechniciansPage() {
+  const ld = graphLd(
+    organizationLd(),
+    websiteLd(),
+    breadcrumbLd([{ name: "Home", href: "/" }, { name: "For professionals", href: "/for-technicians" }]),
+  )
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }} />
       <PageHero
         crumbs={[{ label: "Home", href: "/" }, { label: "For professionals" }]}
         eyebrow="Professionals"
@@ -30,7 +46,7 @@ export default function ForTechniciansPage() {
         lede="Hand customers a direct link to their result, reference the cost guides in your estimates, or use the labor-rate pages to show how local markets compare."
       />
       <Container>
-        <main className="mx-auto max-w-[72ch] py-12 pb-24">
+        <div className="mx-auto max-w-[72ch] py-12 pb-24">
           <div className="flex flex-col gap-10">
             <section>
               <h2 className="text-(length:--text-xl) font-semibold text-(--color-ink)">Share a customer link</h2>
@@ -71,11 +87,11 @@ export default function ForTechniciansPage() {
             <section>
               <h2 className="text-(length:--text-xl) font-semibold text-(--color-ink)">What this tool does not do</h2>
               <p className="mt-3 text-(length:--text-base) leading-relaxed text-(--color-body)">
-                RepairOrReplace.net is a homeowner decision aid, not a job-management or quoting platform. It does not generate invoices, manage appointments, or track inventory. The verdict is based on published data, not your specific assessment of unit condition — your professional judgment always takes precedence.
+                RepairOrReplace is a homeowner decision aid, not a job-management or quoting platform. It does not generate invoices, manage appointments, or track inventory. The verdict is based on published data, not your specific assessment of unit condition — your professional judgment always takes precedence.
               </p>
             </section>
           </div>
-        </main>
+        </div>
       </Container>
     </>
   )

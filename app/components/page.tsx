@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Design system",
   description:
     "Every RepairOrReplace UI primitive — buttons, cards, badges, callouts, form controls, and data tables — shown in both light and dark themes.",
+  robots: { index: false, follow: false },
 }
 
 export default function ComponentsPage() {

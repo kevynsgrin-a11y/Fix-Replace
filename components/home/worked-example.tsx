@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { usePrefersReducedMotion } from "@/lib/use-reduced-motion"
 
 type Tone = "repair" | "replace"
 
@@ -44,18 +45,6 @@ const CYCLE_MS = 4000
 const CX = 120
 const CY = 120
 const R = 96
-
-function usePrefersReducedMotion() {
-  const [reduced, setReduced] = React.useState(false)
-  React.useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
-    const update = () => setReduced(mq.matches)
-    update()
-    mq.addEventListener("change", update)
-    return () => mq.removeEventListener("change", update)
-  }, [])
-  return reduced
-}
 
 export function WorkedExample() {
   const reduced = usePrefersReducedMotion()

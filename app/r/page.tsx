@@ -8,7 +8,7 @@ import { SharedResult } from "@/components/result/shared-result"
 export default function SharedResultPage() {
   return (
     <Container>
-      <main className="py-10 pb-24">
+      <div className="py-10 pb-24">
         {/* Breadcrumb-style back link */}
         <nav aria-label="Breadcrumb" className="mb-8">
           <ol className="flex items-center gap-2 text-(length:--text-sm) text-(--color-muted)">
@@ -43,7 +43,7 @@ export default function SharedResultPage() {
             </Button>
           </div>
         </div>
-      </main>
+      </div>
     </Container>
   )
 }

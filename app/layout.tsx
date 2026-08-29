@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SiteShell } from "@/components/site/site-shell"
+import { SITE_URL, ogImageUrl } from "@/lib/site"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -17,7 +18,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://repair-or-replace.net"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "RepairOrReplace — Should you fix it or buy new?",
     template: "%s · RepairOrReplace",
@@ -35,7 +36,10 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "RepairOrReplace" }],
   robots: { index: true, follow: true },
-  manifest: "/site.webmanifest",
+  // Next.js only emits <link rel="canonical"> when alternates.canonical is
+  // set — metadataBase alone does not produce one. Without this the homepage
+  // shipped no canonical tag at all. Child routes override it with their own.
+  alternates: { canonical: "/" },
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
@@ -50,7 +54,18 @@ export const metadata: Metadata = {
     title: "RepairOrReplace — Should you fix it or buy new?",
     description:
       "Evidence-based repair-vs-replace verdicts using net-present-cost math and Weibull lifespan modeling.",
-    url: "https://repair-or-replace.net",
+    url: SITE_URL,
+    // Sitewide default card. Any route that does not declare its own
+    // openGraph.images inherits this one, so the homepage — and anything
+    // added later without an image — still shares with a real preview.
+    images: [
+      {
+        url: ogImageUrl({ type: "home" }),
+        width: 1200,
+        height: 630,
+        alt: "RepairOrReplace — should you fix it or buy new?",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",

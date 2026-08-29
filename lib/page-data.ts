@@ -11,7 +11,7 @@ import {
   componentsForCategory,
   type Hazard,
 } from "@/src/data/partCosts"
-import { METROS, NATIONAL_MEAN_WAGE } from "@/src/data/laborRates"
+import { METROS, NATIONAL_MEAN_WAGE, type MetroLabor } from "@/src/data/laborRates"
 export { NATIONAL_MEAN_WAGE }
 
 const money = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`
@@ -30,6 +30,7 @@ export const GUIDE_SLUGS = [
   { slug: "wall-ovens", navLabel: "Wall ovens", category: "oven" },
   { slug: "microwaves", navLabel: "Microwaves", category: "microwave_otr" },
   { slug: "water-heaters", navLabel: "Water heaters", category: "water_heater" },
+  { slug: "hvac", navLabel: "Central HVAC", category: "hvac_central" },
 ] as const satisfies readonly {
   slug: string
   navLabel: string
@@ -44,6 +45,12 @@ interface GuideMeta {
   label: string
   /** Lowercase singular noun for mid-sentence use. */
   noun: string
+  /**
+   * Indefinite article that precedes `noun` in generated FAQ copy. Defaults to
+   * "a"; set "an" where the noun opens on a vowel *sound* rather than a vowel
+   * letter (e.g. "an HVAC system"), which no letter test gets right.
+   */
+  article?: "a" | "an"
   lede: string
   repairRule: string
 }
@@ -104,9 +111,9 @@ const GUIDE_META: Record<GuideSlug, GuideMeta> = {
     category: "microwave_otr",
     label: "Microwave",
     noun: "microwave",
-    lede: "Over-the-range microwaves are the shortest-lived major appliance, so the repair-versus-replace line comes early. Here is what magnetron and motor repairs cost, and why the internal high-voltage side is pro-only.",
+    lede: "Over-the-range microwaves are the shortest-lived major appliance, so the repair-versus-replace line comes early. Here is what the six common failures cost — from the line fuse and door-interlock switch through the turntable motor, high-voltage capacitor, magnetron, and control board — and why every one of them is pro-only once the cabinet is open.",
     repairRule:
-      "With new over-the-range units starting around $250, most repairs above ~$150 do not pay off. Repair only a newer microwave with a cheap, accessible fault — otherwise replace.",
+      "With new over-the-range units starting around $200 and mid-range models around $350, most repairs above ~$150 do not pay off. Nothing here is a homeowner job either: the cheap parts sit behind the same high-voltage capacitor as the expensive ones, so every quote carries a service call. Repair only a newer microwave with a genuinely cheap fault — otherwise replace.",
   },
   "water-heaters": {
     category: "water_heater",
@@ -115,6 +122,15 @@ const GUIDE_META: Record<GuideSlug, GuideMeta> = {
     lede: "A water heater's age is the whole story: elements and thermostats are cheap, but a tank leak is terminal. Here is what the fixable parts cost and the age past which replacement is the safe call.",
     repairRule:
       "Replace any water heater with a leaking tank — that is not repairable. Elements, thermostats, and thermocouples are worth fixing on a unit under 10 years old; past 12, plan the replacement.",
+  },
+  hvac: {
+    category: "hvac_central",
+    label: "Central HVAC",
+    noun: "HVAC system",
+    article: "an",
+    lede: "A new central system runs $4,500–$11,000 for the system installed depending on tier, before delivery and old-unit removal — about $4,940–$11,440 all-in, which is what the calculator quotes. Either way the bar a repair has to clear sits far higher here than on any kitchen appliance. Here is what compressors, capacitors, and refrigerant work actually cost, how long each tier lasts, and the point where a whole-system swap wins.",
+    repairRule:
+      "Run capacitors ($150–$400) and thermostats ($120–$260) are worth fixing at almost any age — small fractions of a replacement that starts near $4,900 all-in. A compressor at $1,200–$2,800 is the real decision: the top of that band is more than half a new budget system, and it buys none of the efficiency gain a modern unit delivers — roughly 30% less electricity on an ENERGY STAR electric system, but closer to 17% on the gas side, where therms dominate the bill, and about half of either if the replacement is not ENERGY STAR certified. Past 16 years — the midpoint of the 14–18-year mid-tier band in the table above, so a system already at its expected life — replacement usually wins. Refrigerant work ($250–$900) is EPA Section 608 certified-technician-only by law, and on pre-2010 R-22 systems the recharge cost climbs every year — chasing a leak on one rarely pays.",
   },
 }
 
@@ -148,6 +164,11 @@ export interface GuideData {
   category: ApplianceCategory
   label: string
   noun: string
+  /**
+   * Indefinite article for `noun`, so headings can render "an HVAC system"
+   * instead of hardcoding "a". Always populated — defaults to "a".
+   */
+  article: "a" | "an"
   lede: string
   provenance: string
   sources: string
@@ -202,14 +223,22 @@ export function getGuideData(slug: string): GuideData | undefined {
   }
   failures.sort((a, b) => a.costLow - b.costLow)
 
+  const article = meta.article ?? "a"
   const meanRepair = CATEGORY_DEFAULT_REPAIR[meta.category]
-  const faqs = buildGuideFaqs(meta.label, meta.noun, meanRepair, lifespanRows)
+  const faqs = buildGuideFaqs({
+    noun: meta.noun,
+    article,
+    meanRepair,
+    lifespanRows,
+    failures,
+  })
 
   return {
     slug,
     category: meta.category,
     label: meta.label,
     noun: meta.noun,
+    article,
     lede: meta.lede,
     provenance: PROVENANCE,
     sources: SOURCES,
@@ -220,25 +249,96 @@ export function getGuideData(slug: string): GuideData | undefined {
   }
 }
 
-function buildGuideFaqs(
-  label: string,
-  noun: string,
-  meanRepair: { low: number; high: number },
-  lifespanRows: GuideLifespanRow[],
-): GuideFaq[] {
+/**
+ * Lowercase a component label for mid-sentence use, leaving acronym-initial
+ * labels ("HVAC compressor") alone — only "Xy…" shapes are safe to downcase.
+ */
+function midSentence(label: string): string {
+  return /^[A-Z][a-z]/.test(label) ? label.charAt(0).toLowerCase() + label.slice(1) : label
+}
+
+/** "a", "a and b", "a, b, and c" — Oxford comma, matching the prose elsewhere. */
+function listPhrase(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? ""
+  if (items.length === 2) return `${items[0]} and ${items[1]}`
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`
+}
+
+/**
+ * Why a guide with zero DIY-friendly rows has zero of them, phrased from the
+ * hazards those rows actually carry rather than a generic disclaimer.
+ */
+const HAZARD_REASON: Record<Hazard, string> = {
+  high_voltage:
+    "a high-voltage capacitor that can hold a lethal charge long after the unit is unplugged",
+  gas: "a live gas connection",
+  refrigerant: "a sealed refrigerant circuit only an EPA Section 608 certified technician may open",
+  water: "a pressurized water connection",
+}
+
+/**
+ * The self-repair question used to read `label.toLowerCase()`. That is byte-for-
+ * byte the same as `noun` for every guide whose label is plain words, but it
+ * mangles an acronym label ("Central HVAC" -> "central hvac"), so it now uses
+ * `noun` directly.
+ *
+ * It also used to name a fixed list of parts ("thermostats, elements, seals, and
+ * pumps") that matched no guide exactly and matched microwaves not at all — zero
+ * of six microwave rows are DIY-friendly, and only the thermostat is on HVAC. The
+ * answer is now generated from the page's own failures list, which is why that
+ * list is threaded in here.
+ */
+function buildGuideFaqs({
+  noun,
+  article,
+  meanRepair,
+  lifespanRows,
+  failures,
+}: {
+  noun: string
+  article: "a" | "an"
+  meanRepair: { low: number; high: number }
+  lifespanRows: GuideLifespanRow[]
+  failures: GuideFailure[]
+}): GuideFaq[] {
   const mid = lifespanRows[1]
+  const diy = failures.filter((f) => f.diyFriendly)
+
+  let selfRepairAnswer: string
+  if (diy.length > 0) {
+    const names = listPhrase(diy.map((f) => midSentence(f.name)))
+    const rest = failures.length - diy.length
+    selfRepairAnswer =
+      `On this page that means the ${names} — marked DIY-friendly in the table above, within reach of a careful owner with basic tools and the power or gas shut off.` +
+      (rest > 0
+        ? ` The other ${rest === 1 ? "listed repair is" : `${rest} listed repairs are`} professional work: anything tagged gas, refrigerant, or high-voltage should go to a licensed pro.`
+        : "")
+  } else {
+    const hazards = [...new Set(failures.map((f) => f.hazard).filter((h): h is Hazard => !!h))]
+    const reason = hazards.length
+      ? listPhrase(hazards.map((h) => HAZARD_REASON[h]))
+      : "internal assemblies that are not designed to be opened by the owner"
+    const cheapest = failures[0]
+    selfRepairAnswer =
+      `None of them. Every failure in the table above sits behind ${reason}, so no ${noun} repair on this page is homeowner-serviceable` +
+      (cheapest
+        ? ` — not even the ${midSentence(cheapest.name)}, the cheapest row above, where the part costs a few dollars but reaching it does not`
+        : "") +
+      `. Budget for a licensed technician on any of this work, and weigh that service call against the price of a new unit.`
+  }
+
   return [
     {
-      q: `How long should a ${noun} last?`,
+      q: `How long should ${article} ${noun} last?`,
       a: `A mid-range ${noun} typically lasts ${mid.range}. Budget models run shorter and premium units longer — see the lifespan table above for the full tier breakdown drawn from NAHB and InterNACHI data.`,
     },
     {
-      q: `Is it worth repairing a ${noun}?`,
+      q: `Is it worth repairing ${article} ${noun}?`,
       a: `It depends on age and the specific part. A typical major ${noun} repair runs about ${money(meanRepair.low)}–${money(meanRepair.high)} installed. If that is more than half the price of a comparable new unit and the appliance is past two-thirds of its expected life, replacement usually wins.`,
     },
     {
-      q: `What ${label.toLowerCase()} repairs can I do myself?`,
-      a: `The parts marked DIY-friendly above — typically thermostats, elements, seals, and pumps — are within reach for a careful owner with basic tools. Anything tagged gas, refrigerant, or high-voltage should go to a licensed professional.`,
+      q: `What ${noun} repairs can I do myself?`,
+      a: selfRepairAnswer,
     },
     {
       q: `Does my location change the repair cost?`,
@@ -251,6 +351,13 @@ function buildGuideFaqs(
 /* Metros                                                                     */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Every metro that gets a landing page. This must stay a subset of METROS in
+ * src/data/laborRates.ts — each slug is looked up there for its BLS mean wage.
+ *
+ * The first six are the original launch set; their URLs must not move. The rest
+ * were already priced in laborRates.ts and are published in the same template.
+ */
 export const METRO_SLUGS = [
   "new-york",
   "los-angeles",
@@ -258,15 +365,40 @@ export const METRO_SLUGS = [
   "boston",
   "miami",
   "minneapolis",
+  "san-francisco",
+  "san-diego",
+  "seattle",
+  "dallas",
+  "houston",
+  "atlanta",
+  "denver",
+  "phoenix",
+  "philadelphia",
+  "washington-dc",
+  "detroit",
+  "portland",
+  "las-vegas",
+  "nashville",
+  "charlotte",
+  "austin",
 ] as const
 
 export type MetroSlug = (typeof METRO_SLUGS)[number]
+
+/** O(1) slug -> labor record, so the page builders do not re-scan METROS. */
+const METRO_BY_SLUG = new Map<string, MetroLabor>(METROS.map((m) => [m.slug, m]))
 
 export interface MetroCostRow {
   repair: string
   low: number
   high: number
   guideSlug: GuideSlug
+  /**
+   * Unique per row, unlike `guideSlug` — refrigerators and washing machines each
+   * contribute two rows, so keying a rendered list on `guideSlug` produces
+   * duplicate React keys. Key on this instead.
+   */
+  componentId: string
 }
 
 export interface MetroData {
@@ -280,6 +412,15 @@ export interface MetroData {
   siblings: { slug: string; name: string }[]
 }
 
+/**
+ * The repairs priced on every metro page. `componentId` must exist in COMPONENTS
+ * (rows whose component is missing are filtered out) and must be unique across
+ * the list — it is the render key, because `guideSlug` repeats.
+ *
+ * Each row is also an inbound link to its guide from all 22 metro pages, so a
+ * guide missing from this list gets none. Wall ovens and microwaves are still
+ * absent — see the note in the review handoff.
+ */
 const METRO_REPAIRS: { repair: string; componentId: string; guideSlug: GuideSlug }[] = [
   { repair: "Refrigerator compressor", componentId: "compressor", guideSlug: "refrigerators" },
   { repair: "Refrigerator evaporator fan motor", componentId: "evaporator_fan_motor", guideSlug: "refrigerators" },
@@ -289,6 +430,7 @@ const METRO_REPAIRS: { repair: string; componentId: string; guideSlug: GuideSlug
   { repair: "Dishwasher control board", componentId: "control_board", guideSlug: "dishwashers" },
   { repair: "Range gas valve", componentId: "gas_valve", guideSlug: "ranges" },
   { repair: "Water heater element", componentId: "wh_element", guideSlug: "water-heaters" },
+  { repair: "HVAC run capacitor", componentId: "hvac_capacitor", guideSlug: "hvac" },
 ]
 
 const MIN_MULT = 0.85
@@ -302,13 +444,50 @@ function isMetroSlug(v: string): v is MetroSlug {
   return (METRO_SLUGS as readonly string[]).includes(v)
 }
 
+/** Sibling chips rendered per metro page. */
+const MAX_SIBLINGS = 5
+
+/**
+ * Pick the sibling metros to link from a metro page.
+ *
+ * Linking all 21 other markets would bury the page in undifferentiated internal
+ * links, so we cap at MAX_SIBLINGS and choose the ones a reader is most likely
+ * to want: markets in the same state first (Dallas -> Houston, Austin), then the
+ * closest markets by mean wage, since a similar labor rate means comparable
+ * numbers. Ordering is fully deterministic — same-state flag, then absolute wage
+ * distance, then slug — so the same page renders the same chips on every build.
+ * The current metro is excluded before sorting and can never appear.
+ */
+function siblingMetros(slug: MetroSlug): { slug: string; name: string }[] {
+  const self = METRO_BY_SLUG.get(slug)
+  if (!self) return []
+
+  const pool = METRO_SLUGS.filter((s) => s !== slug)
+    .map((s) => METRO_BY_SLUG.get(s))
+    .filter((m): m is MetroLabor => m !== undefined)
+
+  pool.sort((a, b) => {
+    const aSameState = a.state === self.state ? 0 : 1
+    const bSameState = b.state === self.state ? 0 : 1
+    if (aSameState !== bSameState) return aSameState - bSameState
+
+    const aDist = Math.abs(a.meanHourlyWage - self.meanHourlyWage)
+    const bDist = Math.abs(b.meanHourlyWage - self.meanHourlyWage)
+    if (aDist !== bDist) return aDist - bDist
+
+    return a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0
+  })
+
+  return pool.slice(0, MAX_SIBLINGS).map((m) => ({ slug: m.slug, name: m.name }))
+}
+
 export function getAllMetroSlugs(): MetroSlug[] {
   return [...METRO_SLUGS]
 }
 
 export function getMetroData(slug: string): MetroData | undefined {
   if (!isMetroSlug(slug)) return undefined
-  const metro = METROS.find((m) => m.slug === slug)
+  const metro = METRO_BY_SLUG.get(slug)
   if (!metro) return undefined
   const multiplier = rawMultiplier(metro.meanHourlyWage)
 
@@ -320,13 +499,11 @@ export function getMetroData(slug: string): MetroData | undefined {
       low: Math.round(adjust(comp.costLow)),
       high: Math.round(adjust(comp.costHigh)),
       guideSlug: r.guideSlug,
+      componentId: r.componentId,
     }
   })
 
-  const siblings = METRO_SLUGS.filter((s) => s !== slug).map((s) => {
-    const m = METROS.find((x) => x.slug === s)!
-    return { slug: m.slug, name: m.name }
-  })
+  const siblings = siblingMetros(slug)
 
   const shortName = metro.name.split(",")[0]
   const pct = Math.round((multiplier - 1) * 100)
@@ -335,7 +512,9 @@ export function getMetroData(slug: string): MetroData | undefined {
   const faqs: GuideFaq[] = [
     {
       q: `Why are appliance repairs priced differently in ${shortName}?`,
-      a: `Repair prices track local field-labor wages. ${shortName} technicians earn a mean ${money(metro.meanHourlyWage)}/hr (BLS OEWS 49-9031), which is ${Math.abs(pct)}% ${aboveBelow} the ${money(NATIONAL_MEAN_WAGE)}/hr national mean, so the labor share of every bill scales accordingly.`,
+      // Wages print to the cent, matching the hero lede. money() rounds, which
+      // had the FAQ claiming "$29/hr" under a hero reading "$28.80/hr".
+      a: `Repair prices track local field-labor wages. ${shortName} technicians earn a mean $${metro.meanHourlyWage.toFixed(2)}/hr (BLS OEWS 49-9031), which is ${Math.abs(pct)}% ${aboveBelow} the $${NATIONAL_MEAN_WAGE.toFixed(2)}/hr national mean, so the labor share of every bill scales accordingly.`,
     },
     {
       q: `How much is a typical repair in ${shortName}?`,
@@ -371,10 +550,10 @@ export interface MetroHubEntry {
   multiplier: number
 }
 
-/** Hub cards: every featured metro with its wage + multiplier. */
+/** Hub cards: every published metro with its wage + multiplier. */
 export function getMetroHubData(): MetroHubEntry[] {
   return METRO_SLUGS.map((slug) => {
-    const m = METROS.find((x) => x.slug === slug)!
+    const m = METRO_BY_SLUG.get(slug)!
     return {
       slug,
       name: m.name,

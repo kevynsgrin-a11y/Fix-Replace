@@ -8,10 +8,9 @@ import {
   jsonLdScript,
 } from "@/lib/json-ld"
 import { getMetroHubData } from "@/lib/page-data"
+import { SITE_URL, ogImageUrl } from "@/lib/site"
 import { PageHero } from "@/components/site/page-hero"
 import { Container } from "@/components/ui/container"
-
-const SITE = "https://repair-or-replace.net"
 
 const TITLE = "Appliance repair labor rates by metro"
 const DESCRIPTION =
@@ -20,14 +19,18 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
-  alternates: { canonical: `${SITE}/local-costs` },
+  alternates: { canonical: `${SITE_URL}/local-costs` },
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
-    url: `${SITE}/local-costs`,
+    url: `${SITE_URL}/local-costs`,
     images: [
       {
-        url: `${SITE}/og?type=metro&title=${encodeURIComponent("Repair labor rates by metro")}&description=${encodeURIComponent("BLS OEWS 49-9031")}`,
+        url: ogImageUrl({
+          type: "metro",
+          title: "Repair labor rates by metro",
+          description: "BLS OEWS 49-9031",
+        }),
         width: 1200,
         height: 630,
         alt: "Appliance repair labor rates by US metro market",

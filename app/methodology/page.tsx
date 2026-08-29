@@ -1,20 +1,30 @@
 import type { Metadata } from "next"
 import { PageHero } from "@/components/site/page-hero"
 import { Container } from "@/components/ui/container"
-import { breadcrumbList, organizationEntity } from "@/lib/json-ld"
-
-const SITE = "https://www.repair-or-replace.net"
+import { breadcrumbLd, organizationLd, websiteLd, graphLd, jsonLdScript } from "@/lib/json-ld"
+import { SITE_URL, ogImageUrl } from "@/lib/site"
 
 export const metadata: Metadata = {
-  title: "Data Sources & Methodology — RepairOrReplace.net",
+  title: "Data Sources & Methodology — RepairOrReplace",
   description:
-    "Every data source, update schedule, and assumption behind RepairOrReplace.net. BLS OEWS, EIA RECS, NAHB, InterNACHI, CPSC — all cited with direct links.",
-  alternates: { canonical: `${SITE}/methodology` },
+    "Every data source, update schedule, and assumption behind RepairOrReplace. BLS OEWS, EIA RECS, NAHB, InterNACHI, CPSC — all cited with direct links.",
+  alternates: { canonical: `${SITE_URL}/methodology` },
   openGraph: {
     title: "Data Sources & Methodology",
     description: "Full source table and update schedule for every data input used in the repair-vs-replace calculator.",
-    url: `${SITE}/methodology`,
-    images: [{ url: `${SITE}/og?type=editorial&slug=methodology`, width: 1200, height: 630, alt: "RepairOrReplace.net methodology and data sources" }],
+    url: `${SITE_URL}/methodology`,
+    images: [
+      {
+        url: ogImageUrl({
+          type: "editorial",
+          title: "Where every number comes from",
+          description: "BLS, EIA, NAHB, InterNACHI and CPSC — every input cited and dated.",
+        }),
+        width: 1200,
+        height: 630,
+        alt: "RepairOrReplace methodology and data sources",
+      },
+    ],
   },
   twitter: { card: "summary_large_image" },
 }
@@ -72,8 +82,14 @@ const SOURCES = [
 ]
 
 export default function MethodologyPage() {
+  const ld = graphLd(
+    organizationLd(),
+    websiteLd(),
+    breadcrumbLd([{ name: "Home", href: "/" }, { name: "Methodology", href: "/methodology" }]),
+  )
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }} />
       <PageHero
         crumbs={[{ label: "Home", href: "/" }, { label: "Methodology" }]}
         eyebrow="Data sources"
@@ -82,7 +98,7 @@ export default function MethodologyPage() {
         provenanceLine="Last reviewed July 19, 2026"
       />
       <Container>
-        <main className="py-12 pb-24">
+        <div className="py-12 pb-24">
           {/* Responsive source table: stacks below 700 px */}
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px] border-collapse text-(length:--text-sm)">
@@ -124,7 +140,7 @@ export default function MethodologyPage() {
               </div>
             ))}
           </dl>
-        </main>
+        </div>
       </Container>
     </>
   )

@@ -1,4 +1,68 @@
-# Wiring the v0 front end to this calculation engine
+# Wiring the v0 front end (SUPERSEDED — historical reference only)
+
+> # ⛔ DO NOT FOLLOW THIS DOCUMENT
+>
+> **This describes an architecture that no longer exists.**
+>
+> It documents wiring a **separate, cross-origin "v0" front end** to a
+> **Cloudflare Worker** hosting the calculation engine — two codebases, two
+> origins, and a CORS allowlist between them. That split is gone. The front end
+> and the engine now live in **this one Next.js application**: the UI is in
+> `app/` and `components/`, and it calls its own same-origin Route Handler at
+> `/api/calculate`. There is no Worker, no `wrangler.jsonc`, no
+> `ALLOWED_ORIGINS`, and no CORS configuration to maintain.
+>
+> Specifically superseded below:
+> - The endpoint `https://repair-or-replace.kevynsgrin.workers.dev/api/calculate`
+>   does not exist. The engine is at `POST /api/calculate` on the site's own
+>   origin.
+> - The CORS allowlist (`repair-or-replace.net`, `www.repair-or-replace.net`)
+>   is obsolete twice over — same-origin requests need no CORS, and the canonical
+>   domain is now **`https://repair-or-replace.com`** (see
+>   [`../lib/site.ts`](../lib/site.ts)).
+> - `NEXT_PUBLIC_CALC_API` is not read by anything.
+> - `/api/health` does not exist.
+> - The §2 request field names are the **engine's** input shape
+>   (`brandTier`, `ageYears`, `repairQuote`, `faultComponent`). The HTTP route
+>   accepts a shorter client payload (`tier`, `age`, `quote`, `component`) and
+>   maps it. See the API reference in [`../README.md`](../README.md).
+> - The §6 "known issues" were found in a deployed front end that no longer
+>   exists.
+>
+> Retained because §4 is still binding — see immediately below.
+
+---
+
+## Still binding: the three behaviours that must survive any redesign
+
+Section 4 of the historical text below is **not obsolete**. It states the
+product's core trust contract, and it holds for the current UI exactly as
+written:
+
+1. **A verdict can be withheld.** When the verdict is `"uncertain"`,
+   `gaugePosition` is `null`. Do not render a gauge and do not coerce the null
+   to `0` — that would silently display "strongly repair". Show
+   `confidence.warnings` instead. This is the predatory-quote refusal.
+2. **Safety suppresses commerce.** When `safety.diySuppressed` is true, render
+   no DIY parts links. When `safety.professionalRequired` is true, show
+   `safety.messages` prominently. The engine already withholds part links from
+   `monetization.affiliateLinks` in these cases; the failure mode is a front end
+   that adds its own hardcoded parts links.
+3. **Partner links stay separated from the verdict.** Render
+   `monetization.disclosure` wherever `affiliateLinks` or `leadGen` appear (FTC),
+   and keep that block visually distinct from and below the analysis.
+
+The response-shape sketch in §3 also remains broadly accurate as an overview of
+`CalculationResult`, though [`../README.md`](../README.md) and
+[`../lib/result.ts`](../lib/result.ts) are the authoritative contracts. Note two
+current differences: the route strips `resolvedInput`, and `recall.status` has a
+fourth value, `not_checked`, meaning the user supplied no UPC.
+
+---
+
+# Historical document (separate v0 front end + Worker era)
+
+*The original text follows unmodified.*
 
 The v0 build owns the look. This Worker owns the math. Nothing here changes a
 pixel of the front end — it swaps whatever currently computes the verdict for a

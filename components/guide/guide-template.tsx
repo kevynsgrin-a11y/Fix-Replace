@@ -1,5 +1,5 @@
 /**
- * GuideTemplate — shared layout for all 8 appliance cost-guide pages.
+ * GuideTemplate — shared layout for every appliance cost-guide page.
  * Pure server component; no client interactivity needed.
  */
 import * as React from "react"
@@ -11,7 +11,7 @@ import { Callout } from "@/components/ui/callout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { GuideData } from "@/lib/page-data"
-import { GUIDE_SLUGS } from "@/lib/page-data"
+import { GUIDE_SLUGS, getMetroHubData } from "@/lib/page-data"
 import { cn } from "@/lib/utils"
 
 const HAZARD_LABEL: Record<string, string> = {
@@ -27,15 +27,20 @@ const HAZARD_VARIANT: Record<string, "danger" | "neutral"> = {
   water: "neutral",
 }
 
-/* Six featured metro slugs, matching the local-costs pages */
-const METRO_LINKS = [
-  { slug: "new-york", name: "New York" },
-  { slug: "los-angeles", name: "Los Angeles" },
-  { slug: "chicago", name: "Chicago" },
-  { slug: "boston", name: "Boston" },
-  { slug: "miami", name: "Miami" },
-  { slug: "minneapolis", name: "Minneapolis" },
-]
+/**
+ * Featured markets for the guide-page metro rail.
+ *
+ * Derived from the published metro set rather than hand-listed, so a chip can
+ * never point at a market that has no page. Every published market would be too
+ * many links to hang off a guide, so this takes the six highest-wage metros —
+ * where the local labor rate moves the bill the most — ordered by mean wage and
+ * tie-broken on slug so the rail is identical on every build. /local-costs lists
+ * all of them, and the trailing "All markets" chip goes there.
+ */
+const FEATURED_METRO_COUNT = 6
+const METRO_LINKS = [...getMetroHubData()]
+  .sort((a, b) => b.wage - a.wage || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0))
+  .slice(0, FEATURED_METRO_COUNT)
 
 interface GuideTemplateProps {
   data: GuideData
@@ -47,6 +52,7 @@ export function GuideTemplate({ data }: GuideTemplateProps) {
     category,
     label,
     noun,
+    article,
     provenance,
     sources,
     lede,
@@ -84,7 +90,7 @@ export function GuideTemplate({ data }: GuideTemplateProps) {
           {/* ── Lifespan table ───────────────────────────────────── */}
           <section aria-labelledby="lifespan-heading" className="mb-12">
             <h2 id="lifespan-heading" className="mb-1 text-(length:--text-2xl) font-semibold text-(--color-ink)">
-              How long does a {noun} last?
+              How long does {article} {noun} last?
             </h2>
             <p className="mb-5 text-(length:--text-sm) text-(--color-muted)">
               Median lifespan by brand tier, from NAHB field data. Source:{" "}
@@ -203,21 +209,25 @@ export function GuideTemplate({ data }: GuideTemplateProps) {
             <h2 id="faq-heading" className="mb-5 text-(length:--text-2xl) font-semibold text-(--color-ink)">
               Frequently asked questions
             </h2>
-            <dl className="divide-y divide-(--color-line) rounded-(--radius-md) border border-(--color-line)">
+            <div className="divide-y divide-(--color-line) rounded-(--radius-md) border border-(--color-line)">
               {faqs.map((faq) => (
                 <details key={faq.q} className="group px-5 py-4 [&_summary::-webkit-details-marker]:hidden">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
-                    <dt className="text-(length:--text-sm) font-medium text-(--color-ink)">{faq.q}</dt>
+                    <span className="text-(length:--text-sm) font-medium text-(--color-ink)">{faq.q}</span>
                     <span aria-hidden className="shrink-0 text-(--color-muted) transition-transform group-open:rotate-45">
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                         <line x1="8" y1="3" x2="8" y2="13" /><line x1="3" y1="8" x2="13" y2="8" />
                       </svg>
                     </span>
                   </summary>
-                  <dd className="mt-3 text-(length:--text-sm) leading-relaxed text-(--color-muted)">{faq.a}</dd>
+                  {/* The <div> is load-bearing: the print stylesheet forces
+                      collapsed disclosures open via `details > div`. */}
+                  <div>
+                    <p className="mt-3 text-(length:--text-sm) leading-relaxed text-(--color-muted)">{faq.a}</p>
+                  </div>
                 </details>
               ))}
-            </dl>
+            </div>
           </section>
 
           {/* ── Metro rail ───────────────────────────────────────── */}
@@ -235,7 +245,7 @@ export function GuideTemplate({ data }: GuideTemplateProps) {
                   href={`/local-costs/${m.slug}`}
                   className="rounded-(--radius-sm) border border-(--color-line) bg-(--color-surface-2) px-3 py-1.5 text-(length:--text-xs) font-medium text-(--color-ink) transition-colors hover:border-(--color-brand) hover:text-(--color-brand)"
                 >
-                  {m.name}
+                  {m.shortName}
                 </Link>
               ))}
               <Link

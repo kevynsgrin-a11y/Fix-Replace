@@ -1,7 +1,12 @@
 import Link from "next/link"
 import { Container } from "@/components/ui/container"
 
-const FAQS = [
+/**
+ * Exported so app/page.tsx can emit the matching FAQPage JSON-LD from the
+ * same source. Structured data must mirror the visible copy exactly — never
+ * retype these strings into the page.
+ */
+export const FAQS = [
   {
     q: "Is this really free?",
     a: "Yes. No sign-up, no paywall, no email gate. The verdict appears instantly on this page. We make money through optional partner links at the bottom of the result — never by holding your answer hostage.",

@@ -15,7 +15,10 @@ export function SiteHeader() {
   const triggerRef = React.useRef<HTMLButtonElement>(null)
 
   return (
-    <header className="sticky top-0 z-40 border-b border-(--color-line) bg-[color-mix(in_oklab,var(--color-canvas)_82%,transparent)] backdrop-blur-md">
+    <header
+      data-site-header
+      className="sticky top-0 z-40 border-b border-(--color-line) bg-[color-mix(in_oklab,var(--color-canvas)_82%,transparent)] backdrop-blur-md"
+    >
       <Container
         wide
         as="div"
@@ -49,7 +52,7 @@ export function SiteHeader() {
         <div className="hidden items-center gap-2 nav:flex">
           <ThemeToggle />
           <Link
-            href="/calculator"
+            href="/#calculator-heading"
             className={buttonVariants({ variant: "primary", size: "md" })}
           >
             Get my verdict

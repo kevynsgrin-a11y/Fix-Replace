@@ -6,6 +6,7 @@
  */
 import { ImageResponse } from "next/og"
 import type { NextRequest } from "next/server"
+import { SITE_HOST } from "@/lib/site"
 
 export const runtime = "edge"
 
@@ -122,7 +123,7 @@ export async function GET(req: NextRequest) {
           }}
         >
           <span style={{ fontSize: 18, fontWeight: 600, color: INK }}>
-            repair-or-replace.net
+            {SITE_HOST}
           </span>
           <span style={{ fontSize: 15, color: MUTED }}>
             Free · No sign-up · No ads on your result

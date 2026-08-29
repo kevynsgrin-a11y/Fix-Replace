@@ -3,12 +3,14 @@ import Link from "next/link"
 import { Container } from "@/components/ui/container"
 import { LogoMark } from "@/components/site/logo"
 import { footerNav } from "@/lib/navigation"
+import { ORG, ORG_ADDRESS_LINE } from "@/lib/site"
 
 export function SiteFooter() {
   const year = new Date().getFullYear()
 
   return (
     <footer
+      data-site-footer
       className="mt-24 border-t border-(--color-line) bg-(--color-surface)"
       aria-labelledby="footer-heading"
     >
@@ -57,14 +59,34 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-12 flex flex-col gap-3 border-t border-(--color-line) pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-(length:--text-xs) text-(--color-muted)">
-            &copy; <span className="tnum">{year}</span> RepairOrReplace. Estimates
-            are informational, not professional advice.
-          </p>
-          <p className="text-(length:--text-xs) text-(--color-muted)">
-            Built on net-present-cost math &amp; Weibull lifespan modeling.
-          </p>
+        <div className="mt-12 flex flex-col gap-6 border-t border-(--color-line) pt-6 sm:flex-row sm:items-start sm:justify-between sm:gap-10">
+          {/*
+            The Privacy Policy points users at "the address in the footer" and
+            the Terms and About page both promise contact details here, so this
+            block is a compliance dependency, not decoration. Entity, postal
+            address and mailbox all come from lib/site.ts so the legal pages and
+            the footer can never drift apart.
+          */}
+          <address className="flex flex-col gap-1 not-italic text-(length:--text-xs) text-(--color-muted)">
+            <span>{ORG.legalName}</span>
+            <span>{ORG_ADDRESS_LINE}</span>
+            <a
+              href={`mailto:${ORG.email}`}
+              className="w-fit rounded-[3px] underline decoration-1 underline-offset-2 transition-colors [transition-duration:var(--duration-fast)] hover:text-(--color-ink)"
+            >
+              {ORG.email}
+            </a>
+          </address>
+
+          <div className="flex flex-col gap-1 text-(length:--text-xs) text-(--color-muted) sm:items-end sm:text-right">
+            <p>
+              Built on net-present-cost math &amp; Weibull lifespan modeling.
+            </p>
+            <p>
+              &copy; <span className="tnum">{year}</span> {ORG.legalName}.
+              Estimates are informational, not professional advice.
+            </p>
+          </div>
         </div>
       </Container>
     </footer>

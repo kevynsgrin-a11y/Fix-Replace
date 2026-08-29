@@ -1,16 +1,18 @@
 # RepairOrReplace
 
-**RepairOrReplace** is a Cloudflare-native, serverless web app that answers a
-deceptively hard household question: when a major appliance breaks, is it
-economically rational to pay for the repair, or to replace the unit? Instead of
-the usual folk heuristics ("if the repair costs more than half of a new one,
-replace it"), it runs a transparent financial model — a Weibull reliability
-estimate of remaining useful life, a risk-adjusted expected repair cost, a
-localized energy sub-model, and an equivalent-service Net Present Cost
-comparison — then returns a plain-English verdict with every number sourced and
-shown. It refuses to fake precision: vague inputs lower a confidence score, and
-predatory quotes suppress the verdict entirely in favor of "get a second
-opinion."
+**RepairOrReplace** is a Next.js web app that answers a deceptively hard
+household question: when a major appliance breaks, is it economically rational
+to pay for the repair, or to replace the unit? Instead of the usual folk
+heuristics ("if the repair costs more than half of a new one, replace it"), it
+runs a transparent financial model — a Weibull reliability estimate of remaining
+useful life, a risk-adjusted expected repair cost, a localized energy sub-model,
+and an equivalent-service Net Present Cost comparison — then returns a
+plain-English verdict with every number sourced and shown. It refuses to fake
+precision: vague inputs lower a confidence score, and predatory quotes suppress
+the verdict entirely in favor of "get a second opinion."
+
+Canonical origin: **https://repair-or-replace.com**, defined once in
+[`lib/site.ts`](lib/site.ts).
 
 ---
 
@@ -60,15 +62,15 @@ call with evidence rather than a guess.
 - **Predatory-quote detection** — quotes far outside the regional norm suppress a
   definitive verdict and surface a warning.
 - **Federal recall lookup** — optional CPSC SaferProducts.gov lookup by UPC,
-  KV-cached and refreshed by a daily cron; never blocks the economic result.
+  fetched live per request with a 5-second timeout; never blocks the economic
+  result.
 - **Neutral monetization** — affiliate and lead-gen placements are computed
   *after* and *separately from* the verdict, and always carry an FTC disclosure.
 - **Full provenance** — every user-facing figure is labeled with its source
   (NAHB, InterNACHI, BLS, EIA, CPSC).
-- **Shareable reports** — a calculation can be saved and retrieved via a short
-  link.
-- **Themeable, build-free frontend** — a vanilla-JS client on a tokenized design
-  system with light/dark support and no client build step.
+- **Statically generated editorial surface** — appliance cost guides and metro
+  cost pages are prerendered from the same engine data the calculator uses, so
+  the published numbers cannot drift from the model.
 
 ---
 
@@ -76,19 +78,44 @@ call with evidence rather than a guess.
 
 | Layer | Choice |
 | --- | --- |
-| Runtime | Cloudflare Workers (single Worker, `workerd`) |
-| Static hosting | Cloudflare Workers Static Assets (`ASSETS` binding) |
-| Database | Cloudflare D1 (serverless SQLite) — `DB` binding |
-| Cache | Cloudflare KV — `CACHE` binding |
-| Object storage | Cloudflare R2 — `REPORTS` binding |
-| Language | TypeScript (ES2022, strict) |
+| Framework | Next.js 16, App Router |
+| UI | React 19, Server Components by default |
+| Styling | Tailwind CSS 4 (CSS-first config, design tokens in `app/globals.css`) |
+| Language | TypeScript 5.7, `strict` |
+| API | Next.js Route Handlers under `app/api/` |
+| Data | In-code TypeScript modules under `src/data/` — no database |
 | Tests | Vitest (node environment) |
-| Frontend | Vanilla JS + CSS custom properties — **no client build step** |
-| Tooling | Wrangler |
+| Runtime | Node.js ≥ 22 |
 
-The calculation core is written once, as pure TypeScript, and runs identically
-in Node (unit tests) and in `workerd` (production). There is no bundler for the
-browser client: the static assets are shipped as authored.
+The calculation core in `src/core/` is plain, portable TypeScript with no
+framework, DOM, or platform dependencies. The same functions run in Vitest and
+in the Route Handlers, so a passing test is a real guarantee about the API.
+
+### There is no database
+
+Every reference figure — lifespans, labor multipliers, energy rates, component
+cost bands, ancillary costs — is read from a TypeScript module in `src/data/`
+that is compiled into the bundle. There is no SQL, no key-value cache, and no
+object store in the request path. The only network call the app makes is the
+optional CPSC recall lookup, and that is best-effort.
+
+Nothing is written to disk, and no request payload, result, or identifier is
+retained. The one piece of per-client state anywhere in the app is the
+in-memory rate-limit counter in `POST /api/calculate` — an IP string and the
+timestamps of its last few requests, held in a module-level `Map` inside a
+single server instance, dropped once those timestamps age out of the 60-second
+window, and only recorded at all when the deployment sets
+`TRUST_PROXY_HEADER=1`. See [Guards](#post-apicalculate) below.
+
+> **Historical note.** Earlier revisions of this project were a Cloudflare
+> Worker backed by D1, KV, and R2. That stack is gone: there is no
+> `wrangler.jsonc`, no `src/worker/`, no `migrations/`, no `wrangler`
+> dependency in `package.json`, and no deploy workflow — `.github/workflows/`
+> holds `ci.yml` and nothing else. Documents describing it
+> ([`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md),
+> [`docs/V0-INTEGRATION.md`](docs/V0-INTEGRATION.md),
+> [`docs/DEPLOY-BROWSER-GUIDE.md`](docs/DEPLOY-BROWSER-GUIDE.md)) are retained
+> for history only and carry deprecation banners. Do not follow them.
 
 ---
 
@@ -96,13 +123,40 @@ browser client: the static assets are shipped as authored.
 
 ```text
 Fix-Replace/
-├── package.json              # scripts, deps (wrangler, vitest, typescript)
-├── wrangler.jsonc            # Worker config: bindings, cron, vars
-├── tsconfig.json             # strict TS, Workers types
+├── .github/
+│   └── workflows/
+│       └── ci.yml            # typecheck + test + build (the only workflow)
+├── package.json              # scripts and deps (next, react, tailwind, vitest)
+├── next.config.mjs           # security headers (CSP, HSTS, framing, referrer)
+├── tsconfig.json             # strict TS; excludes node_modules and test/
 ├── vitest.config.ts          # node test environment
-├── migrations/               # D1 schema + seed (SQLite)
-│   ├── 0001_init.sql         #   users, appliances, alerts, calculations, labor grid
-│   └── 0002_seed_reference.sql  #  labor_rates + zip_metro seed data
+├── app/                      # Next.js App Router
+│   ├── layout.tsx            #   root layout, theme provider, site chrome
+│   ├── globals.css           #   Tailwind 4 entry + design tokens
+│   ├── page.tsx              #   home: the calculator experience
+│   ├── api/
+│   │   ├── calculate/route.ts  # POST — the decision engine endpoint
+│   │   ├── catalog/route.ts    # GET  — intake-form data
+│   │   └── report/route.ts     # POST — currently 503 (sharing unimplemented)
+│   ├── og/route.tsx          #   generated Open Graph cards (edge runtime)
+│   ├── cost-guides/          #   appliance guides (hub + [slug], prerendered)
+│   ├── local-costs/          #   metro cost pages (hub + [slug], prerendered)
+│   ├── how-it-works/, methodology/, about/, for-technicians/,
+│   ├── recall-checks/, privacy/, terms/, components/
+│   ├── r/                    #   shared-result viewer (force-dynamic)
+│   ├── robots.ts, sitemap.ts, manifest.ts, not-found.tsx
+├── components/
+│   ├── home/                 #   hero, calculator card, trust, worked example
+│   ├── result/               #   the result document and its panels
+│   ├── guide/, metro/        #   editorial page templates
+│   ├── site/                 #   header, footer, drawer, theme toggle
+│   └── ui/                   #   primitives (button, card, field, table, …)
+├── lib/
+│   ├── site.ts               #   canonical origin + operating entity (one source)
+│   ├── page-data.ts          #   server-only: builds guide/metro page data
+│   ├── catalog.ts, result.ts #   client-side type contracts for the API
+│   ├── json-ld.ts            #   structured-data builders
+│   └── navigation.ts, utils.ts, use-reduced-motion.ts
 ├── src/
 │   ├── core/                 # pure, portable calculation library
 │   │   ├── types.ts          #   shared domain contract (Input/Result shapes)
@@ -123,25 +177,13 @@ Fix-Replace/
 │   │   ├── energyRates.ts    #   EIA electricity / gas rates by state
 │   │   ├── partCosts.ts      #   component cost bands, hazards, DIY flags
 │   │   └── ancillary.ts      #   install / delivery / disposal costs
-│   ├── recalls/
-│   │   └── cpsc.ts           # CPSC SaferProducts.gov client + KV cache + ingest
-│   └── worker/
-│       └── index.ts          # the Worker: /api routing, ASSETS fallthrough, cron
-├── public/                   # static frontend (served via ASSETS, no build)
-│   ├── styles/
-│   │   ├── tokens.css        #   design tokens (color, type, space, motion)
-│   │   └── base.css          #   reset, layout primitives, component library
-│   └── scripts/
-│       └── chrome.js         #   shared header/footer + theme toggle
-└── test/
-    └── smoke.test.ts         # end-to-end decision-engine smoke tests
+│   └── recalls/
+│       └── cpsc.ts           # CPSC SaferProducts.gov client
+├── public/                   # icons and og.png only — robots, sitemap and the
+│                             #   web manifest are generated by app/robots.ts,
+│                             #   app/sitemap.ts and app/manifest.ts
+└── test/                     # Vitest suites, one per core module
 ```
-
-> **Note on `public/`:** the design system (`tokens.css`, `base.css`,
-> `chrome.js`) is the shared foundation; the page templates (calculator,
-> `/how-it-works`, cost guides, `/about`, methodology, `/for-pros`) are authored
-> as static HTML on top of it and are being built out in parallel. Any request
-> that is not under `/api/` is served straight from `public/`.
 
 ---
 
@@ -149,8 +191,7 @@ Fix-Replace/
 
 ### Prerequisites
 
-- Node.js 18+ and npm
-- A Cloudflare account (only required for remote deploys and remote D1/KV/R2)
+- Node.js 22 or newer (`engines.node` is `>=22`) and npm
 
 ### Install
 
@@ -158,63 +199,61 @@ Fix-Replace/
 npm install
 ```
 
-### Test and typecheck
-
-```bash
-npm run test        # vitest run — decision-engine smoke tests
-npm run typecheck   # tsc --noEmit — strict type checking
-```
-
-### Local database (D1)
-
-The Worker declares a D1 binding (`DB`) with the migrations in `migrations/`.
-Apply them to the local (Miniflare) database before running `dev`:
-
-```bash
-npm run db:migrate:local     # wrangler d1 migrations apply repair_or_replace --local
-```
-
-To apply the same migrations to the remote database once it exists:
-
-```bash
-npm run db:migrate:remote    # wrangler d1 migrations apply repair_or_replace --remote
-```
-
 ### Run the dev server
 
 ```bash
-npm run dev         # wrangler dev
+npm run dev         # next dev, on $PORT or 3000
 ```
 
-Wrangler serves the Worker and the static assets together at
-`http://localhost:8787`. `/api/*` routes hit the compute layer; everything else
-is served from `public/`.
+Open <http://localhost:3000>. Everything — pages and `/api/*` — is served by the
+one Next.js app; there is no separate backend to start.
 
-> Full Cloudflare provisioning (creating the D1 database, KV namespace, and R2
-> bucket, and pasting their IDs into `wrangler.jsonc`) is covered in
-> [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+### Verify
+
+```bash
+npm run typecheck   # tsc --noEmit
+npm run test        # vitest run
+npm run build       # next build — catches prerender + route-export errors
+```
+
+`npm run build` is worth running before pushing: it catches broken imports,
+invalid route exports, and static-generation failures that `typecheck` alone
+does not reach. CI (`.github/workflows/ci.yml`) runs typecheck, tests, and the
+build on every pull request and push to `main` — the same three commands, so
+green locally means green in CI.
+
+There is **no lint step**. Next.js 16 removed the `next lint` command, and the
+project has no ESLint configuration or dependency, so there is nothing to run;
+`tsc --noEmit` under `strict` is the static-analysis gate. Adding ESLint means
+adding the dependency and a flat config, not restoring a script.
+
+### Environment variables
+
+Everything has a working default; none of these are required for local
+development.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | `https://repair-or-replace.com` | Canonical origin used for canonical tags, Open Graph URLs, the sitemap, and JSON-LD. Set it on preview/staging deployments so those hosts do not advertise the production URL. |
+| `CPSC_API_BASE` | `https://www.saferproducts.gov/RestWebServices/Recall` | Base URL for the CPSC Recall API. Point at a mock or proxy for testing. |
+| `TRUST_PROXY_HEADER` | unset | Set to `1` **only** when the app sits behind a proxy that overwrites `x-forwarded-for`. It is what enables the per-IP rate limiter on `POST /api/calculate`; left unset, the header is ignored and per-client limiting is skipped rather than keyed on an attacker-controlled value. |
+| `PORT` | `3000` | Dev-server port. |
 
 ---
 
 ## API reference
 
-All endpoints live under `/api/`. Responses are JSON and carry a small set of
-security headers (`X-Content-Type-Options`, `Referrer-Policy`,
-`X-Frame-Options`). Any non-`/api` path falls through to the static asset store.
-
-### `GET /api/health`
-
-Liveness probe.
-
-```json
-{ "ok": true, "service": "repair-or-replace" }
-```
+Three Route Handlers live under `app/api/`. Security headers (CSP, HSTS,
+`X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`,
+`Permissions-Policy`, `Cross-Origin-Opener-Policy`) are applied to every
+response by the `headers()` block in `next.config.mjs`, not per route.
 
 ### `GET /api/catalog`
 
-Returns the data the frontend needs to build the intake form dynamically —
-categories with tiers (price + lifespan band), a per-category symptom picker, and
-the metro list. Cached for one hour (`Cache-Control: public, max-age=3600`).
+Returns the data the intake form needs, projected from `src/core/catalog.ts`
+down to the lean client contract in `lib/catalog.ts` so the client ships no
+duplicated domain data. Served with
+`Cache-Control: public, max-age=3600, s-maxage=86400`.
 
 ```json
 {
@@ -224,14 +263,7 @@ the metro list. Cached for one hour (`Cache-Control: public, max-age=3600`).
       "label": "Dishwasher",
       "fuelDependent": false,
       "defaultFuel": "electric",
-      "tiers": [
-        { "id": "budget", "label": "Budget / entry", "newPrice": 450, "lifespan": { "low": 6, "high": 9 } },
-        { "id": "mid", "label": "Mid-range", "newPrice": 800, "lifespan": { "low": 9, "high": 12 } },
-        { "id": "premium", "label": "Premium / luxury", "newPrice": 1500, "lifespan": { "low": 15, "high": 20 } }
-      ],
-      "components": [
-        { "id": "drain_pump", "label": "Drain pump", "diyFriendly": true, "hazards": ["water"], "costLow": 150, "costHigh": 320 }
-      ]
+      "components": [{ "id": "drain_pump", "label": "Drain pump" }]
     }
   ],
   "tiers": [
@@ -239,46 +271,71 @@ the metro list. Cached for one hour (`Cache-Control: public, max-age=3600`).
     { "id": "mid", "label": "Mid-range" },
     { "id": "premium", "label": "Premium / luxury" }
   ],
-  "metros": [
-    { "slug": "los-angeles", "name": "Los Angeles, CA", "state": "CA" }
-  ]
+  "metros": [{ "slug": "los-angeles", "name": "Los Angeles, CA" }]
 }
 ```
 
 ### `POST /api/calculate`
 
-The core endpoint. Accepts a `CalculationInput` and returns a full
-`CalculationResult`.
+The core endpoint (`runtime = "nodejs"`). Accepts the client payload and returns
+a full `CalculationResult`.
 
-**Validation:** the body must be a JSON object with a valid `category` and a
-non-negative numeric `repairQuote`. `ageYears`, if present, must be a
-non-negative number. Everything else is optional and defaulted.
+**Guards, in order:** a declared `Content-Length` over 10,000 bytes returns
+`413` without reading the body; the rate limiter may return `429`; the body is
+then read as text and its **actual** byte length re-checked against the same
+10,000-byte cap, returning `413` if it exceeds it, so a chunked or
+under-declared payload cannot slip past the header check into `JSON.parse`; an
+unparseable or non-object body returns `400`.
 
-**Request** (`CalculationInput`):
+> **The rate limiter is off unless the deployment opts in.** It keys on the
+> first `x-forwarded-for` entry, which is only meaningful behind a proxy that
+> overwrites it — unproxied it is attacker-controlled and usually absent, which
+> would collapse every visitor into one bucket and `429` the calculator
+> site-wide. So it is read only when `TRUST_PROXY_HEADER=1`; otherwise
+> per-client limiting is skipped entirely and no client state is recorded.
+>
+> When it is on: a sliding window of 20 requests per 60 seconds per IP, held in
+> a module-level `Map` of IP → request timestamps, swept once per window, with
+> a hard ceiling of 10,000 tracked clients (cleared outright if a flood of
+> unique keys survives a sweep). It is per-instance in-memory state that never
+> touches disk and never leaves the process. Serverless instances do not share
+> memory, so it is an interim backstop against a single noisy client, not a
+> substitute for platform-level (WAF/edge) rate limiting — which is the *only*
+> control on a deployment that leaves `TRUST_PROXY_HEADER` unset.
+
+**Validation:** `category` must be one of the twelve known categories and
+`quote` must be a finite number greater than zero. Everything else is optional:
+`tier` defaults to `mid`, `energyStar` defaults to true, an omitted `age` is
+left unset, and an unknown `component` lowers confidence rather than blocking a
+result.
+
+**Request:**
 
 ```json
 {
   "category": "dishwasher",
-  "brandTier": "budget",
-  "ageYears": 9,
-  "faultComponent": "control_board",
-  "repairQuote": 380,
-  "location": { "metro": "los-angeles", "state": "CA" },
-  "fuelType": "electric",
-  "underWarranty": false,
-  "newUnitPrice": 450,
-  "energyStarReplacement": true,
+  "tier": "budget",
+  "age": 9,
+  "component": "control_board",
+  "quote": 380,
+  "location": { "metro": "los-angeles" },
+  "fuel": "electric",
+  "warranty": false,
+  "energyStar": true,
   "upc": "012345678905"
 }
 ```
 
-Only `category` and `repairQuote` are required. `faultComponent` accepts a
-component id from the catalog (e.g. `drain_pump`, `control_board`, `gas_valve`);
-an unknown or omitted component lowers confidence rather than blocking a result.
-`upc` triggers an optional recall lookup.
+`location` accepts either `{ "metro": "<slug>" }` or `{ "zip": "<zip>" }`.
+Supplying a `upc` opts into a live federal recall lookup. Non-digits are
+stripped first, and only a 12–14 digit result (UPC-A / EAN-13 / GTIN-14) opts
+in: CPSC wildcard-matches the UPC field, so a partial code would match an
+unrelated recalled product, and a recall hit hard-overrides the verdict. A
+shorter or garbled value is treated as no UPC at all.
 
-**Response** (`CalculationResult`, values below are representative and rounded —
-the live engine computes them):
+**Response** (`CalculationResult` minus the internal `resolvedInput` echo, which
+the route strips; values below are representative and rounded — the engine
+computes them):
 
 ```json
 {
@@ -339,7 +396,7 @@ the live engine computes them):
   },
   "monetization": {
     "affiliateLinks": [
-      { "kind": "new_unit", "label": "Shop Dishwasher — The Home Depot", "merchant": "The Home Depot", "url": "https://www.homedepot.com/s/budget%20Dishwasher" }
+      { "kind": "new_unit", "label": "Shop Dishwasher", "merchant": "The Home Depot", "url": "https://www.homedepot.com/s/budget%20Dishwasher" }
     ],
     "leadGen": [],
     "showDisplayAds": false,
@@ -352,57 +409,44 @@ the live engine computes them):
     { "label": "Removal & disposal costs", "source": "National appliance-removal cost survey ($109–$244 typical)" },
     { "label": "Safety recalls", "source": "CPSC SaferProducts.gov Recall API" },
     { "label": "Discount rate", "source": "5.0% macro opportunity cost of capital" }
-  ],
-  "resolvedInput": {
-    "category": "dishwasher",
-    "brandTier": "budget",
-    "ageYears": 9,
-    "faultComponent": "control_board",
-    "repairQuote": 380,
-    "fuelType": "electric",
-    "underWarranty": false,
-    "newUnitPrice": 450,
-    "energyStarReplacement": true,
-    "metro": "los-angeles",
-    "state": "CA"
-  }
+  ]
 }
 ```
 
 When the confidence logic suppresses the verdict (e.g. a predatory quote),
 `verdict` is `"uncertain"` and `gaugePosition` is `null`.
 
-Invalid input returns `400` with `{ "error": "..." }`; an unexpected server error
-returns `500`.
+`recall.status` is one of `active`, `clear`, `unavailable`, or `not_checked`.
+The route distinguishes the last two deliberately: `not_checked` means the user
+supplied no UPC, so the UI can invite them to run a check instead of showing a
+false "recall check unavailable." An engine failure returns `500`.
 
-### `GET /api/recalls?upc=<upc>`
+### `POST /api/report`
 
-Standalone federal recall lookup by UPC, backed by the KV cache and the CPSC API.
-Returns a `RecallResult`:
+Report sharing is **not implemented**. The endpoint returns `503` with
+`{ "error": "Sharing is not available yet.", "disabled": true }`, and the client
+treats a `503` as "sharing is turned off" — it disables the button rather than
+offering a retry that could never succeed. The `/r` viewer page exists and is
+wired to `GET /api/report?id=`, so restoring the feature is a matter of
+implementing persistence behind this route.
 
-```json
-{ "status": "clear", "matches": [], "note": "No open federal recall found for this UPC." }
-```
+### Recall lookups
 
-`status` is one of `clear`, `active`, or `unavailable`. A missing `upc` returns
-`400`. Recall-data outages degrade to `unavailable` and never surface an error to
-the user.
-
-### `POST /api/report` and `GET /api/report?id=<id>`
-
-Save and retrieve a calculation for sharing.
-
-- `POST /api/report` stores the posted JSON body and returns
-  `{ "id": "<uuid>", "url": "/r?id=<uuid>" }` with status `201`. Saved reports
-  currently live in KV with a 30-day TTL.
-- `GET /api/report?id=<id>` returns the stored JSON, or `404` if it is missing or
-  expired.
+There is no standalone recall endpoint. Recall checking happens inside
+`POST /api/calculate` when a valid `upc` is supplied: the route injects
+`fetchRecallsByUpc` from `src/recalls/cpsc.ts` into the otherwise-pure core via
+`calculateDecision`'s `recallLookup` option. The client owns a 5-second timeout,
+caps the response body at 2 MB (counted as the bytes arrive, since the declared
+`Content-Length` is only a fast path), and degrades to `unavailable` on any
+network, size, or parse failure — so a recall check can never block or fail the
+economic verdict. Every lookup is a live call; **there is no cache.**
 
 ---
 
 ## Algorithms
 
-All formulas below live in `src/core/` and are covered by `test/smoke.test.ts`.
+All formulas below live in `src/core/` and are covered by the suites in `test/`
+(one per module).
 
 ### 1. Weibull remaining useful life (`weibull.ts`)
 
@@ -484,6 +528,9 @@ advantageOfReplacing = NPC_repair − NPC_replace        (> 0 favors replacing)
 breakEvenMonths      = first month where cumulative replace cost ≤ cumulative repair cost
 ```
 
+The default discount rate is `5%` (`DEFAULT_DISCOUNT_RATE` in
+`src/core/decision.ts`); `npc.ts` clamps any supplied rate to `[0, 0.5]`.
+
 ### 5. Confidence & suppression (`confidence.ts`)
 
 A 0–100 completeness/plausibility score, starting at 100:
@@ -527,31 +574,57 @@ The orchestrator wires the modules together, then:
 
 ## Data & provenance
 
-The reference data in `src/data/` (and the seed in `migrations/`) is **seeded and
-representative** — anchored to published figures but intended as a defensible
-baseline, not a live feed. Every user-facing number is labeled with its source in
-the `provenance` array. Swap in live data at these seams:
+The reference data in `src/data/` is **seeded and representative** — anchored to
+published figures but intended as a defensible baseline, not a live feed. It is
+compiled into the bundle; there is no database behind it. Every user-facing
+number is labeled with its source in the `provenance` array. Swap in live data
+at these seams:
 
-| Domain | File(s) | Source | How to make it live |
+| Domain | File | Source | How to make it live |
 | --- | --- | --- | --- |
-| Appliance lifespans (by tier) | `data/lifespans.ts` | NAHB Study of Life Expectancy of Home Components; InterNACHI Estimated Life Expectancy Chart | Refresh bands from the source charts; keep the `[low, high]` IQR convention. |
-| Labor rates | `data/laborRates.ts`, `migrations/0002_seed_reference.sql` | BLS OEWS occupation **49-9031** (Home Appliance Repairers), May 2024 | Replace the in-code metro/ZIP/state tables with the full crosswalk in D1 (`labor_rates`, `zip_metro`). |
-| Energy rates | `data/energyRates.ts` | EIA residential electricity & natural gas rates | Pull EIA rate series per state on a schedule; cache in KV. |
-| Component costs & hazards | `data/partCosts.ts` | Strategy-brief cost bands; industry norms | Calibrate bands against the anonymized `calculations` log. |
-| Removal / disposal | `data/ancillary.ts` | National appliance-removal cost survey ($109–$244 typical) | Regionalize disposal like labor. |
-| Safety recalls | `recalls/cpsc.ts` | **CPSC** SaferProducts.gov Recall API | Already live: fetched on demand, KV-cached, and warmed by the daily cron. |
+| Appliance lifespans (by tier) | `src/data/lifespans.ts` | NAHB Study of Life Expectancy of Home Components; InterNACHI Estimated Life Expectancy Chart | Refresh bands from the source charts; keep the `[low, high]` IQR convention. |
+| Labor rates | `src/data/laborRates.ts` | BLS OEWS occupation **49-9031** (Home Appliance Repairers), May 2024 | Expand the metro/ZIP/state tables from the full BLS crosswalk, or move `resolveLabor` behind a data store if the grid outgrows the bundle. |
+| Energy rates | `src/data/energyRates.ts` | EIA residential electricity & natural gas rates | Refresh the per-state series from EIA on a release cadence, or fetch and cache them if per-request freshness is ever needed. |
+| Component costs & hazards | `src/data/partCosts.ts` | Strategy-brief cost bands; industry norms | Calibrate bands against observed quotes once any usage logging exists. |
+| Removal / disposal | `src/data/ancillary.ts` | National appliance-removal cost survey ($109–$244 typical) | Regionalize disposal like labor. |
+| Safety recalls | `src/recalls/cpsc.ts` | **CPSC** SaferProducts.gov Recall API | Live: `POST /api/calculate` calls the CPSC API per request when a UPC is supplied, with a 5s timeout, a 2 MB response cap, and graceful degradation. Not cached — the file's `checkRecall` sketches a cached path but needs a `RecallCache` binding nothing currently supplies. |
 
-The default macro discount rate is `5%` (`DISCOUNT_RATE` in `wrangler.jsonc`).
+The same modules feed the editorial pages: `lib/page-data.ts` builds the cost
+guides and metro pages from `lifespans.ts`, `partCosts.ts`, and `laborRates.ts`
+at build time, so published figures and calculator figures cannot diverge.
+
+### A note on `src/recalls/cpsc.ts`
+
+Only `fetchRecallsByUpc` (and `parseRecalls` and the capped body reader, which
+it uses) is on the shipping path. The file also exports `checkRecall`,
+`ingestRecentRecalls`, and a `RecallEnv` interface — leftovers from the Worker
+architecture that are **not called by anything**. `checkRecall` is the cached
+variant, but it requires a `CACHE` binding that this deployment never provides,
+so the live path calls `fetchRecallsByUpc` directly and uncached.
+
+The module **is** typechecked. It no longer references Cloudflare's ambient
+`KVNamespace`: the cache dependency is now a local structural `RecallCache`
+interface (`get`/`put`), satisfied by any store of that shape, and
+`"src/recalls"` has been removed from `tsconfig.json`'s `exclude` — which now
+lists only `node_modules` and `test`. The exclusion was never a real fix
+anyway: `exclude` filters root file discovery, so once the calculate route
+imported this module it entered the program regardless, and the unresolvable
+ambient type broke `tsc` outright.
 
 ---
 
 ## Deployment
 
-Local development runs entirely under `wrangler dev`. Provisioning the Cloudflare
-resources (D1 database, KV namespace, R2 bucket), applying migrations remotely,
-setting the cron, and running `wrangler deploy` are documented step by step in
-[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). The architecture — request lifecycle,
-core library layering, the D1 schema, and the caching/cron design — is in
+The app is a standard Next.js 16 application. `npm run build` produces the
+production build and `npm start` serves it; any host that runs a Next.js app
+works, and no external resource needs provisioning for the app to function.
+
+Before shipping, set `NEXT_PUBLIC_SITE_URL` on any non-production deployment so
+previews do not emit canonical tags and Open Graph URLs pointing at
+`https://repair-or-replace.com`.
+
+For how the pieces fit together — the Route Handler request path, the layering
+of the calculation core, and what is roadmap rather than built — see
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ---
@@ -568,8 +641,14 @@ core library layering, the D1 schema, and the caching/cron design — is in
   of, any monetization. Affiliate and lead-gen placements are rendered in a
   physically separate block and always carry an FTC-compliant disclosure; the
   result screen never runs display ads.
-- **No lead-capture wall.** The core calculator is usable anonymously; the MVP
-  writes no user rows.
+- **No lead-capture wall.** The core calculator is usable anonymously — no
+  accounts, no tracking of a user across requests, and nothing persisted to
+  disk or to any database. What you enter is used to compute the response and
+  then discarded. The single exception is the rate-limit counter described
+  under [`POST /api/calculate`](#post-apicalculate): when
+  `TRUST_PROXY_HEADER=1`, a client IP and the timestamps of its last few
+  requests sit in one server instance's memory until they age out of a
+  60-second window. No input, result, or identifier is recorded anywhere else.
 - **Recall data is advisory.** Recall lookups are best-effort and never block the
   economic verdict.
 
@@ -577,39 +656,25 @@ core library layering, the D1 schema, and the caching/cron design — is in
 
 ## Roadmap
 
-Drawn from the phase markers in the code and migrations:
+Everything below is **unbuilt**. There is no schema, no persistence layer, and
+no partial implementation for any of it — these are intentions, listed so the
+shape of the product is legible, not work in progress.
 
-- **MVP (current):** anonymous, single-shot calculator. The full decision engine,
-  catalog, recall lookup, and shareable reports work without an account.
-- **Phase 2 — accounts & inventory:** registered users (`users`), a saved
-  household appliance inventory (`appliances`, the "digital home hardware" log),
-  and proactive maintenance alerts (`maintenance_alerts`). Schema is already in
-  `migrations/0001_init.sql`.
-- **Phase 3 — landlord & pro tiers:** the `pro` plan, tools for property managers
-  with multiple units, a technician surface (`/for-pros`), lead-gen for vetted
-  local pros, and generated PDF reports (the professional tier, backed by the R2
-  `REPORTS` bucket).
+- **Result sharing.** `POST /api/report` returns `503` and the `/r` viewer has
+  nothing to read. Needs a persistence choice and an implementation behind that
+  one route.
+- **Accounts & inventory.** Registered users, a saved household appliance
+  inventory (the "digital home hardware" log), and proactive maintenance alerts.
+  Requires a database that the app does not currently have.
+- **Landlord & pro tiers.** Multi-unit tooling for property managers, a
+  technician surface (`/for-technicians` exists as an editorial page today),
+  lead-gen for vetted local pros, and generated PDF reports.
+
+Because the calculation core is pure and framework-free, each of these can be
+built on top of it without touching the decision logic.
 
 ---
 
 ## License
 
 MIT.
-
-## Front-end tooling
-
-The site ships as hand-written HTML with no build step, so three small scripts
-keep 26 pages honest. Run them before shipping:
-
-| Command | What it does |
-| --- | --- |
-| `npm run chrome` | Stamps the canonical header, drawer, skip link and footer (`tools/site-chrome.mjs`) into every page under `public/`. Idempotent. |
-| `npm run chrome:check` | Fails if any page's chrome has drifted from the template. |
-| `npm run check:pages` | Asserts meta/title lengths, unique per-page social cards, favicon + manifest links, keyboard-reachable tables, heading order, valid JSON-LD and no dead internal links. |
-| `npm run social` | Re-renders `public/social/og-*.png` from `tools/social-card-template.html` and refreshes `public/og.png`. |
-| `npm run icons` | Re-renders the favicon/app-icon set. |
-
-**The site chrome is static, not injected.** It is the entire internal link
-graph and it owns the page landmarks, so it has to be in the served HTML —
-editing a header link means editing `tools/site-chrome.mjs` and re-running
-`npm run chrome`, never editing one page's markup by hand.

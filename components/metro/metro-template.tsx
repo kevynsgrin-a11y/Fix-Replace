@@ -1,5 +1,5 @@
 /**
- * MetroTemplate — shared RSC layout for all 6 metro labor-cost pages.
+ * MetroTemplate — shared RSC layout for every metro labor-cost page.
  *
  * Sections:
  * 1. PageHero (breadcrumb · eyebrow · h1 · lede · multiplier dial)
@@ -108,8 +108,11 @@ export function MetroTemplate({ data }: MetroTemplateProps) {
                   </tr>
                 </thead>
                 <tbody>
+                  {/* Keyed on guide + repair, not guideSlug alone: several guides
+                      contribute more than one row (two refrigerator jobs, two
+                      washer jobs), so the slug on its own is not unique. */}
                   {costRows.map((row) => (
-                    <tr key={row.guideSlug} className="border-t border-(--color-line)">
+                    <tr key={`${row.guideSlug}-${row.repair}`} className="border-t border-(--color-line)">
                       <Td>{row.repair}</Td>
                       <Td align="right" className="readout whitespace-nowrap">
                         {fmtUSD(row.low)}–{fmtUSD(row.high)}
@@ -137,21 +140,25 @@ export function MetroTemplate({ data }: MetroTemplateProps) {
             >
               Frequently asked questions
             </h2>
-            <dl className="flex flex-col divide-y divide-(--color-line) rounded-(--radius-lg) border border-(--color-line)">
+            <div className="flex flex-col divide-y divide-(--color-line) rounded-(--radius-lg) border border-(--color-line)">
               {faqs.map((faq, i) => (
                 <details key={i} className="group px-5 py-4 [&_summary::-webkit-details-marker]:hidden">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-                    <dt className="text-(length:--text-sm) font-medium text-(--color-ink)">{faq.q}</dt>
+                    <span className="text-(length:--text-sm) font-medium text-(--color-ink)">{faq.q}</span>
                     <span aria-hidden className="shrink-0 text-(--color-muted) transition-transform group-open:rotate-180">
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M3 6l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </span>
                   </summary>
-                  <dd className="mt-3 text-(length:--text-sm) leading-relaxed text-(--color-muted)">{faq.a}</dd>
+                  {/* The <div> is load-bearing: the print stylesheet forces
+                      collapsed disclosures open via `details > div`. */}
+                  <div>
+                    <p className="mt-3 text-(length:--text-sm) leading-relaxed text-(--color-muted)">{faq.a}</p>
+                  </div>
                 </details>
               ))}
-            </dl>
+            </div>
           </section>
 
           {/* 5. Sibling-metro chips */}

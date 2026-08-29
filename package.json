@@ -2,12 +2,14 @@
   "name": "repair-or-replace",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "description": "RepairOrReplace — an evidence-based decision utility that computes whether repairing or replacing a major household appliance is the economically rational choice.",
   "scripts": {
     "dev": "next dev -p ${PORT:-3000}",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"

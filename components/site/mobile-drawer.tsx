@@ -162,7 +162,7 @@ export function MobileDrawer({ open, onClose, triggerRef }: MobileDrawerProps) {
 
         <div className="border-t border-(--color-line) p-5">
           <Link
-            href="/calculator"
+            href="/#calculator-heading"
             onClick={onClose}
             className={buttonVariants({ variant: "primary", size: "lg", block: true })}
           >

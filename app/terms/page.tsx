@@ -1,26 +1,39 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 import { PageHero } from "@/components/site/page-hero"
 import { Container } from "@/components/ui/container"
-import { breadcrumbList, organizationEntity } from "@/lib/json-ld"
-
-const SITE = "https://www.repair-or-replace.net"
+import { breadcrumbLd, organizationLd, websiteLd, graphLd, jsonLdScript } from "@/lib/json-ld"
+import { ORG, ORG_ADDRESS_LINE, SITE_URL, ogImageUrl } from "@/lib/site"
 
 export const metadata: Metadata = {
-  title: "Terms of Use — RepairOrReplace.net",
+  title: "Terms of Use",
   description:
-    "RepairOrReplace.net provides estimates, not professional advice. Results are for informational purposes. Read the full terms before relying on any output.",
-  alternates: { canonical: `${SITE}/terms` },
+    "RepairOrReplace provides estimates, not professional advice. Results are for informational purposes. Read the full terms before relying on any output.",
+  alternates: { canonical: `${SITE_URL}/terms` },
   openGraph: {
-    title: "Terms of Use — RepairOrReplace.net",
+    title: "Terms of Use — RepairOrReplace",
     description: "Results are estimates for informational purposes, not professional appliance repair advice.",
-    url: `${SITE}/terms`,
-    images: [{ url: `${SITE}/og?type=editorial&slug=terms`, width: 1200, height: 630, alt: "Terms of use" }],
+    url: `${SITE_URL}/terms`,
+    images: [
+      {
+        url: ogImageUrl({
+          type: "editorial",
+          title: "Terms of Use",
+          description: "Results are estimates for informational purposes, not professional repair advice.",
+        }),
+        width: 1200,
+        height: 630,
+        alt: "Terms of use",
+      },
+    ],
   },
   twitter: { card: "summary_large_image" },
 }
 
 const SECTIONS = [
+  {
+    heading: "Who operates this site",
+    body: `RepairOrReplace is operated by ${ORG.legalName}, ${ORG_ADDRESS_LINE}. "We" and "us" in these terms mean that company.`,
+  },
   {
     heading: "Results are estimates, not advice",
     body: "The repair-vs-replace verdict is a statistical estimate based on published national and regional data. It is not a professional inspection, an engineering assessment, or a guarantee of outcome. Your specific appliance, installer, and market conditions may differ.",
@@ -31,11 +44,15 @@ const SECTIONS = [
   },
   {
     heading: "Affiliate links",
-    body: "Some links on the site — particularly after the verdict and in cost guides — are referral links. We receive a commission if you make a purchase. These links are labelled and do not influence the calculator output or any editorial content.",
+    body: "Some links on the site — specifically in the block that appears after the verdict on the result page — are referral links. We receive a commission if you make a purchase. These links are labelled and do not influence the calculator output or any editorial content. The cost guides and the other editorial pages carry no referral links.",
   },
   {
     heading: "Limitation of liability",
-    body: "To the maximum extent permitted by law, RepairOrReplace.net is not liable for any financial loss, property damage, or other harm arising from reliance on information provided by this tool.",
+    body: `To the maximum extent permitted by law, ${ORG.legalName} is not liable for any financial loss, property damage, or other harm arising from reliance on information provided by this tool.`,
+  },
+  {
+    heading: "Governing law",
+    body: `These terms are governed by the laws of the State of ${ORG.governingState}, without regard to its conflict-of-law rules. Any dispute arising from the site or these terms will be brought in the state or federal courts located in ${ORG.governingState}.`,
   },
   {
     heading: "Changes to these terms",
@@ -44,8 +61,14 @@ const SECTIONS = [
 ]
 
 export default function TermsPage() {
+  const ld = graphLd(
+    organizationLd(),
+    websiteLd(),
+    breadcrumbLd([{ name: "Home", href: "/" }, { name: "Terms of use", href: "/terms" }]),
+  )
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }} />
       <PageHero
         crumbs={[{ label: "Home", href: "/" }, { label: "Terms of use" }]}
         eyebrow="Legal"
@@ -54,7 +77,7 @@ export default function TermsPage() {
         provenanceLine="Effective July 1, 2026"
       />
       <Container>
-        <main className="mx-auto max-w-[68ch] py-12 pb-24">
+        <div className="mx-auto max-w-[68ch] py-12 pb-24">
           <div className="flex flex-col gap-8">
             {SECTIONS.map((s) => (
               <section key={s.heading}>
@@ -66,11 +89,12 @@ export default function TermsPage() {
 
           <p className="mt-12 text-(length:--text-xs) text-(--color-muted)">
             Questions?{" "}
-            <Link href="/about" className="text-(--color-brand) underline decoration-1 underline-offset-2">
-              Contact us via the about page.
-            </Link>
+            <a href={`mailto:${ORG.email}`} className="text-(--color-brand) underline decoration-1 underline-offset-2">
+              {ORG.email}
+            </a>{" "}
+            · {ORG.legalName}, {ORG_ADDRESS_LINE}
           </p>
-        </main>
+        </div>
       </Container>
     </>
   )

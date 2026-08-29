@@ -246,6 +246,51 @@ export const COMPONENTS: Record<string, Component> = {
     partHigh: 100,
     hazards: ['high_voltage'],
   },
+  // Every entry below is an *internal* microwave repair. The part itself may be
+  // cheap, but reaching it means opening the cabinet, where the high-voltage
+  // capacitor can hold a lethal charge long after the unit is unplugged — so
+  // none of these are diyFriendly, and evaluateSafety() adds 'high_voltage' to
+  // any microwave_otr repair regardless of which component is named.
+  microwave_line_fuse: {
+    id: 'microwave_line_fuse',
+    label: 'Line fuse / thermal cutoff',
+    categories: ['microwave_otr'],
+    costLow: 100,
+    costHigh: 200,
+    laborShare: 0.85,
+    diyFriendly: false,
+    hazards: ['high_voltage'],
+  },
+  microwave_door_switch: {
+    id: 'microwave_door_switch',
+    label: 'Door interlock switch',
+    categories: ['microwave_otr'],
+    costLow: 110,
+    costHigh: 230,
+    laborShare: 0.8,
+    diyFriendly: false,
+    hazards: ['high_voltage'],
+  },
+  microwave_hv_capacitor: {
+    id: 'microwave_hv_capacitor',
+    label: 'High-voltage capacitor / diode',
+    categories: ['microwave_otr'],
+    costLow: 120,
+    costHigh: 260,
+    laborShare: 0.75,
+    diyFriendly: false,
+    hazards: ['high_voltage'],
+  },
+  microwave_control_board: {
+    id: 'microwave_control_board',
+    label: 'Control board / touchpad',
+    categories: ['microwave_otr'],
+    costLow: 180,
+    costHigh: 400,
+    laborShare: 0.45,
+    diyFriendly: false,
+    hazards: ['high_voltage'],
+  },
   hvac_compressor: {
     id: 'hvac_compressor',
     label: 'HVAC compressor',

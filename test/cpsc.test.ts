@@ -3,10 +3,11 @@ import {
   parseRecalls,
   fetchRecallsByUpc,
   checkRecall,
+  type RecallCache,
   type RecallEnv,
 } from '../src/recalls/cpsc.js';
 
-/** Minimal in-memory KV stub mimicking the bits of KVNamespace we use. */
+/** Minimal in-memory stub mimicking the bits of RecallCache we use. */
 function makeKV() {
   const store = new Map<string, string>();
   const get = vi.fn(async (key: string, type?: string) => {
@@ -21,12 +22,53 @@ function makeKV() {
 }
 
 function envWith(kv: ReturnType<typeof makeKV>): RecallEnv {
-  return { CACHE: kv as unknown as KVNamespace, CPSC_API_BASE: 'https://api.test/Recall' };
+  return { CACHE: kv as unknown as RecallCache, CPSC_API_BASE: 'https://api.test/Recall' };
 }
 
-/** A Response-like object good enough for fetchJson. */
+/**
+ * A Response-like object good enough for fetchJson.
+ *
+ * Carries real `headers` and a real `body` stream because fetchJson now reads
+ * the body through a byte-counting reader to enforce a size cap — a stub
+ * without them exercises a fallback the production path never takes.
+ */
 function jsonResponse(data: unknown, ok = true, status = 200) {
-  return { ok, status, json: async () => data } as unknown as Response;
+  const text = JSON.stringify(data);
+  const bytes = new TextEncoder().encode(text);
+  return {
+    ok,
+    status,
+    headers: new Headers({ 'content-length': String(bytes.byteLength) }),
+    body: new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(bytes);
+        controller.close();
+      },
+    }),
+    text: async () => text,
+    json: async () => data,
+  } as unknown as Response;
+}
+
+/**
+ * A response whose declared Content-Length is past the 2 MB cap. A partial or
+ * mistyped UPC makes the upstream wildcard-match, so this is the shape that
+ * would otherwise buffer the whole recall catalogue into the function.
+ */
+function oversizeResponse() {
+  return {
+    ok: true,
+    status: 200,
+    headers: new Headers({ 'content-length': String(5_000_000) }),
+    body: new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('[]'));
+        controller.close();
+      },
+    }),
+    text: async () => '[]',
+    json: async () => [],
+  } as unknown as Response;
 }
 
 afterEach(() => {
@@ -87,6 +129,16 @@ describe('parseRecalls — defensive field mapping', () => {
 });
 
 describe('fetchRecallsByUpc', () => {
+  it("degrades to 'unavailable' when the upstream body exceeds the size cap", async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => oversizeResponse()));
+
+    const r = await fetchRecallsByUpc('https://api.test/Recall', '012345678905');
+    // An oversized body must never be parsed, and must never surface as an
+    // error to the caller — the economic verdict is unaffected either way.
+    expect(r.status).toBe('unavailable');
+    expect(r.matches).toEqual([]);
+  });
+
   it("returns 'active' with matches when the API returns records", async () => {
     const fetchMock = vi.fn(async (..._args: unknown[]) =>
       jsonResponse([{ RecallNumber: '9', Products: [{ Type: 'Dryer' }] }]),

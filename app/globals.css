@@ -408,8 +408,11 @@
   details > summary {
     list-style: none;
   }
+  /* Every direct child except the summary is revealed, not just <div>
+     wrappers — FAQ answers are sometimes a bare <p>, <dd> or list. */
   details[data-print-open] > div,
-  details > div {
+  details > div,
+  details > :not(summary) {
     display: block !important;
   }
 

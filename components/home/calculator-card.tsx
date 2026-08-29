@@ -52,7 +52,7 @@ export function CalculatorCard({ onSubmit, submitting, submitted }: CalculatorCa
   return (
     <section
       aria-labelledby="calculator-heading"
-      className="relative flex flex-col rounded-(--radius-lg) border border-(--color-line) bg-(--color-surface) shadow-(--shadow-md)"
+      className="relative flex scroll-mt-24 flex-col rounded-(--radius-lg) border border-(--color-line) bg-(--color-surface) shadow-(--shadow-md)"
     >
       <div className="flex flex-col gap-1 p-6 pb-4">
         <div className="flex items-center gap-2">
@@ -65,9 +65,12 @@ export function CalculatorCard({ onSubmit, submitting, submitted }: CalculatorCa
             The calculator
           </p>
         </div>
+        {/* This h2 is the sitewide CTA target ("/#calculator-heading"), so the
+            scroll offset has to live here too — the browser scrolls the element
+            that owns the id, and the site header is a 64px sticky bar. */}
         <h2
           id="calculator-heading"
-          className="text-(length:--text-xl) font-semibold text-(--color-ink)"
+          className="scroll-mt-24 text-(length:--text-xl) font-semibold text-(--color-ink)"
         >
           Get your verdict
         </h2>
