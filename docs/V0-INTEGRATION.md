@@ -17,9 +17,9 @@
 >   does not exist. The engine is at `POST /api/calculate` on the site's own
 >   origin.
 > - The CORS allowlist (`repair-or-replace.net`, `www.repair-or-replace.net`)
->   is obsolete twice over — same-origin requests need no CORS, and the canonical
->   domain is now **`https://repair-or-replace.com`** (see
->   [`../lib/site.ts`](../lib/site.ts)).
+>   is obsolete — the front end and the API are same-origin now, and same-origin
+>   requests need no CORS. The canonical origin is **`https://www.repair-or-replace.net`**
+>   (see [`../lib/site.ts`](../lib/site.ts)).
 > - `NEXT_PUBLIC_CALC_API` is not read by anything.
 > - `/api/health` does not exist.
 > - The §2 request field names are the **engine's** input shape

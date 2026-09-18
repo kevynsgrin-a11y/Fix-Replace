@@ -10,9 +10,20 @@
  *
  * `NEXT_PUBLIC_SITE_URL` overrides the default at build time (preview
  * deployments, staging hosts) without touching source.
+ *
+ * WHY THIS EXACT ORIGIN — do not change it without checking both facts:
+ *   1. `.net`, not `.com`. `repair-or-replace.com` is not attached to the
+ *      Vercel project and returns 404. It was briefly made canonical anyway,
+ *      which pointed every canonical tag, Open Graph URL, sitemap entry and
+ *      JSON-LD node on the site at a URL that does not exist — telling search
+ *      engines the authoritative copy lived somewhere unreachable.
+ *   2. `www`, not the apex. The apex 308-redirects to the `www` host, so an
+ *      apex canonical would resolve only through a redirect.
+ * If `.com` is ever attached and 301'd here, revisit — until then this is the
+ * only origin that answers 200.
  */
 
-const DEFAULT_SITE_URL = "https://repair-or-replace.com"
+const DEFAULT_SITE_URL = "https://www.repair-or-replace.net"
 
 /** Canonical origin, no trailing slash. */
 export const SITE_URL = (

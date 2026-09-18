@@ -11,7 +11,7 @@ plain-English verdict with every number sourced and shown. It refuses to fake
 precision: vague inputs lower a confidence score, and predatory quotes suppress
 the verdict entirely in favor of "get a second opinion."
 
-Canonical origin: **https://repair-or-replace.com**, defined once in
+Canonical origin: **https://www.repair-or-replace.net**, defined once in
 [`lib/site.ts`](lib/site.ts).
 
 ---
@@ -234,7 +234,7 @@ development.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | `https://repair-or-replace.com` | Canonical origin used for canonical tags, Open Graph URLs, the sitemap, and JSON-LD. Set it on preview/staging deployments so those hosts do not advertise the production URL. |
+| `NEXT_PUBLIC_SITE_URL` | `https://www.repair-or-replace.net` | Canonical origin used for canonical tags, Open Graph URLs, the sitemap, and JSON-LD. Set it on preview/staging deployments so those hosts do not advertise the production URL. |
 | `CPSC_API_BASE` | `https://www.saferproducts.gov/RestWebServices/Recall` | Base URL for the CPSC Recall API. Point at a mock or proxy for testing. |
 | `TRUST_PROXY_HEADER` | unset | Set to `1` **only** when the app sits behind a proxy that overwrites `x-forwarded-for`. It is what enables the per-IP rate limiter on `POST /api/calculate`; left unset, the header is ignored and per-client limiting is skipped rather than keyed on an attacker-controlled value. |
 | `PORT` | `3000` | Dev-server port. |
@@ -621,7 +621,7 @@ works, and no external resource needs provisioning for the app to function.
 
 Before shipping, set `NEXT_PUBLIC_SITE_URL` on any non-production deployment so
 previews do not emit canonical tags and Open Graph URLs pointing at
-`https://repair-or-replace.com`.
+`https://www.repair-or-replace.net`.
 
 For how the pieces fit together — the Route Handler request path, the layering
 of the calculation core, and what is roadmap rather than built — see
