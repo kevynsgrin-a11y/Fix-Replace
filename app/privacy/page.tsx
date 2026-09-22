@@ -8,18 +8,18 @@ import { ORG, ORG_ADDRESS_LINE, SITE_URL, ogImageUrl } from "@/lib/site"
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "RepairOrReplace does not sell your data or build profiles. Calculator inputs stay in your session, no tracking cookies are set, and no analytics scripts load at all.",
+    "RepairOrReplace does not sell your data or build profiles. Calculator inputs stay in your session, no tracking cookies are set, and the only measurement is aggregate Google Analytics — no ad cookies, no profiles.",
   alternates: { canonical: `${SITE_URL}/privacy` },
   openGraph: {
     title: "Privacy Policy — RepairOrReplace",
-    description: "No tracking cookies, no analytics scripts, no data sold. Your calculator inputs stay in your session.",
+    description: "No ad cookies, no data sold, no profiling. Aggregate Google Analytics only; your inputs stay in your session.",
     url: `${SITE_URL}/privacy`,
     images: [
       {
         url: ogImageUrl({
           type: "editorial",
           title: "Privacy Policy",
-          description: "No tracking cookies, no analytics scripts, no data sold.",
+          description: "No ad cookies, no data sold, no profiling. Aggregate analytics only.",
         }),
         width: 1200,
         height: 630,
@@ -37,7 +37,7 @@ const SECTIONS: { heading: string; body: ReactNode }[] = [
   },
   {
     heading: "Cookies and tracking",
-    body: "We do not set cookies for advertising or individual tracking. The site loads no analytics or tracking scripts at all — nothing measures you across pages, sessions, or visits. If we ever add privacy-respecting, aggregate analytics, we will update this policy before turning them on.",
+    body: "We do not set cookies for advertising or individual tracking. We load Google Analytics in its privacy-respecting configuration to count aggregate page views — no advertising cookies, no cross-site profiles, and nothing is sold or shared. What you type into the calculator never leaves your session and is never sent to analytics. If this configuration ever changes, we will update this policy here first.",
   },
   {
     heading: "Shareable result links",
@@ -74,7 +74,7 @@ export default function PrivacyPage() {
         crumbs={[{ label: "Home", href: "/" }, { label: "Privacy" }]}
         eyebrow="Legal"
         heading="Privacy policy"
-        lede="No tracking cookies, no analytics scripts, no data sold. Your inputs stay in your session."
+        lede="No ad cookies, no data sold, no profiling. Aggregate analytics only; your inputs stay in your session."
         provenanceLine="Effective July 1, 2026"
       />
       <Container>
