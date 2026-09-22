@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next"
+import Script from "next/script"
 import { Geist, Geist_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SiteShell } from "@/components/site/site-shell"
@@ -94,6 +95,9 @@ export default function RootLayout({
       className={`bg-background ${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="font-sans antialiased">
+        {/* GA4 aggregate analytics (GSC Ops BATCH-1 native tag; disclosed in /privacy) */}
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-RSMKQ5ZTYN" strategy="afterInteractive" />
+        <Script id="ga4-init" strategy="afterInteractive">{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-RSMKQ5ZTYN');`}</Script>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
