@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     "appliance decision calculator",
   ],
   authors: [{ name: "RepairOrReplace" }],
-  robots: { index: true, follow: true },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 } },
   // Next.js only emits <link rel="canonical"> when alternates.canonical is
   // set — metadataBase alone does not produce one. Without this the homepage
   // shipped no canonical tag at all. Child routes override it with their own.
