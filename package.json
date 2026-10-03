@@ -41,6 +41,6 @@
     "@types/react-dom": "^19.2.0",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.7.0",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.11"
   }
 }
